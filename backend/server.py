@@ -282,6 +282,8 @@ async def verify_payment(payload: VerifyPaymentReq, user: dict = Depends(get_cur
     order = await db.orders.find_one({"orderId": payload.orderId, "userId": user["id"]})
     if not order:
         raise HTTPException(404, "Order not found")
+    if order.get("paymentStatus") == "Payment Successful":
+        return {"ok": True, "invoiceNo": order.get("invoiceNo")}
     # signature verification
     verified = False
     if RZP_LIVE:

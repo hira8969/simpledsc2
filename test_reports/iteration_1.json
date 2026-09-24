@@ -1,0 +1,38 @@
+{
+  "summary": "Comprehensive backend + frontend testing of SimplDSC MVP. 33/33 backend pytest cases passed covering public catalog, DSC finder, OTP auth (send/verify/complete-profile/me), coupon validation, order creation with SD-YYYY-NNNNNN IDs, mock Razorpay payment verification (mock_sig_ prefix), invoice generation INV-YYYY-NNNNNN, document upload (PDF/JPG/PNG allow-list & 400 on invalid MIME), tenant isolation (customer B cannot access customer A order -> 404), admin login with super_admin role, admin dashboard/orders/detail with CAs list, document verify, CA assignment, status update, DSC issuance with ~10-day expiry, expiry-check idempotency (2nd run returns 0), expiry dashboard, DSC renewal request (duplicate blocked), product/coupon CRUD, audit logs populated, analytics, CSV export, staff creation and ticket creation TKT-YYYY-NNNNNN. Frontend E2E flows verified end-to-end: Home hero renders, DSC Finder purpose=business returns 3 recos, OTP modal (mobile->send->devOtp captured from network->OTP input->verify->profile step->save) logs the user in and lands on /dashboard, Buy Now on Product detail opens PurchaseModal, applicant->documents(skipped)->review->WELCOME10 coupon applied->pay-now-btn->purchase-success->goto-dashboard, order SD-2026-000003 appears with 'Documents Pending' status. Admin login at /admin/login with admin@simpldsc.in succeeds, dashboard shows revenue ₹1,799.10 and stat cards including 1 Expiring DSC entry (SPLDSC-2026-C-157535 Class 3, expires ~2026-10-04) proving expiry-check ran end-to-end.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py is ~530 lines and admin_routes.py is ~640 lines — consider splitting admin_routes.py into logical modules (orders, catalog, dsc, leads, settings) as scope grows past ~700 lines.",
+    "gen_simpldsc_id uses find_one_and_update with upsert=False, then a separate $setOnInsert upsert when the counter doesn't exist. This is technically racy under concurrent first-time inserts for the same year+quarter — 2 concurrent new customers could each read 'None' and both seed at 157535 producing duplicate simplDscId. Recommend using upsert=True with $inc + $setOnInsert on same call so the counter is atomically created at start-1 and incremented in one op. Same applies to gen_order_id/gen_invoice_no/gen_ticket_id.",
+    "run_expiry_check filters only status in [Active, Expiring Soon] but never flips a DSC to 'Expiring Soon' status — the computedStatus is only computed on read. So the persisted status stays 'Active' forever and expiry-dashboard 'renewing' bucket + status transitions rely on external code. Consider a background job that also mutates dsc.status when within 30 days.",
+    "OTP verify path returns detailed error messages that could aid enumeration ('Incorrect OTP', 'OTP already used', 'Invalid session'). Consider unifying to a single 'Invalid or expired OTP' response for prod.",
+    "Coupon per-customer-limit check counts by any order carrying that couponCode regardless of paymentStatus. A customer with a failed/cancelled order using WELCOME10 will still be blocked from a fresh attempt. Consider filtering by paymentStatus == 'Payment Successful'.",
+    "verify-payment does not require an idempotency guard — a duplicate call with the same razorpay ids will create a second invoice and second payment row for the same order. Recommend rejecting if order.paymentStatus == 'Payment Successful' already.",
+    "Document upload stores files as base64 inside Mongo docs (5MB cap). Works for MVP but will bloat DB; move to object storage before production.",
+    "Admin brute-force lockout counts failures across all IPs for an email but does not lock the account; a 429 is returned only while the 15-min window is active. Consider also capturing by IP and adding CAPTCHA after N fails.",
+    "@app.on_event('startup') and shutdown are deprecated in FastAPI; migrate to lifespan context manager.",
+    "CORS is allow_origins='*' with allow_credentials=True which browsers reject. Not an issue today because the app is same-origin, but tighten before production."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py"
+  ],
+  "success_rate": {"backend": "100% (33/33)", "frontend": "100% (all critical flows verified)"},
+  "test_credentials": "Admin: admin@simpldsc.in / Simpl@DSC#Admin2026Kx7q. Customer: any 10-digit mobile; devOtp returned in /api/auth/send-otp response.",
+  "seed_data_creation": "Tests generated ephemeral customers (mobiles prefixed 9/8 + timestamp), 2+ orders SD-2026-* with WELCOME10 discount, 1 DSC with ~10d expiry, expiry reminder row, TEST_ contact/partnership leads, 1 support ticket TKT-2026-000001, 1 staff account teststaff_<ts>@x.com. These accumulate on repeated runs — main agent may prune in a fresh db.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test file /app/backend/tests/backend_test.py is the regression suite; run via `pytest /app/backend/tests/backend_test.py -v`. The suite depends on a single fresh mobile per run for the OTP user (auto-generated from timestamp) and requires seeded products/coupons. Razorpay is MOCK so razorpaySignature must start with 'mock_sig_'. Frontend flow verified in headed run: home->DSC Finder->OTP login->Product detail Buy Now->PurchaseModal (5-step) -> WELCOME10 coupon -> mock pay -> dashboard order SD-2026-000003 visible with 'Documents Pending'. Admin dashboard renders full stat matrix including expiring DSC row after issuance flow. No blocking issues found."
+}

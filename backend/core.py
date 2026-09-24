@@ -5,6 +5,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import ReturnDocument
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -28,20 +29,14 @@ def quarter_for(dt: datetime) -> str:
 
 
 async def _next_counter(key: str, start: int) -> int:
-    """Atomically increment a named counter, seeding at `start` on first use."""
+    """Atomically allocate the next number for `key`, first allocation == `start`."""
     doc = await db.sequence_counters.find_one_and_update(
         {"_id": key},
         {"$inc": {"currentNumber": 1}},
-        upsert=False,
-        return_document=True,
+        upsert=True,
+        return_document=ReturnDocument.AFTER,
     )
-    if doc is None:
-        # seed the counter starting at `start`
-        await db.sequence_counters.update_one(
-            {"_id": key}, {"$setOnInsert": {"currentNumber": start}}, upsert=True
-        )
-        return start
-    return doc["currentNumber"]
+    return start - 1 + doc["currentNumber"]
 
 
 async def gen_simpldsc_id() -> dict:
