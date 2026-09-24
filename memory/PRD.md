@@ -33,9 +33,15 @@ Build a production-ready full-stack Digital Signature Certificate (DSC) platform
 ## Backlog / Remaining
 - **P1**: Real Firebase Phone Auth (keys), Real Razorpay (keys), object storage for documents (move off base64/Mongo).
 - **P1**: Persisted DSC status transition to "Expiring Soon" (currently computed on read).
-- **P2**: Live email (Resend) + WhatsApp sends, GA4 live wiring, sitemap.xml/robots.txt generation, per-page SEO meta injection, structured data (Product/Organization/Breadcrumb).
+- **P2**: Live email (Resend) + WhatsApp sends, GA4 live wiring, structured data (Product/Organization/Breadcrumb JSON-LD).
 - **P2**: Coupon per-customer count filter by paid orders; admin CAPTCHA; FastAPI lifespan migration; tighten CORS for prod; unified OTP error message.
 - **P3**: Product/CA logo image uploads, WhatsApp templates, admin analytics GA panel.
+
+## SEO (done 2026-09-24)
+- Per-page `<Seo>` component (title, meta description, Open Graph, canonical, robots index/no-index) on Home, Products, ProductDetail (dynamic from product.seo), Pricing, About, FAQs, Contact. Dashboard + Admin set to noindex.
+- Backend `GET /api/sitemap.xml` (auto-includes all active products from DB, uses settings.canonicalBase) and `GET /api/robots.txt`.
+- Static root `/robots.txt` (disallow /admin, /dashboard) and `/sitemap.xml` in frontend/public. Admin can edit SEO defaults + canonical base + GA id in System > SEO & Settings.
+- ACTION for production: set canonicalBase to the live domain in Admin > System, then submit `<domain>/api/sitemap.xml` (authoritative, dynamic) to Google Search Console.
 
 ## Credentials
 See /app/memory/test_credentials.md. Admin: admin@simpldsc.in / Simpl@DSC#Admin2026Kx7q. Owner: imamitk17@gmail.com. Customer: any mobile (devOtp returned by send-otp).

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Seo } from "@/components/Seo";
 import { ProductCard } from "@/components/ProductCard";
 import { usePurchase } from "@/context/PurchaseContext";
 import api from "@/lib/api";
@@ -18,6 +19,7 @@ export default function Products() {
 
   return (
     <div className="brand-mesh">
+      <Seo title="DSC Products & Prices | SimplDSC" description="Browse Class 2, Class 3, DGFT, eTender, MCA and Document Signer Digital Signature Certificates with transparent pricing and validity." />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="text-center max-w-2xl mx-auto">
           <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Our DSC Products</h1>

@@ -1,3 +1,4 @@
+import { Seo } from "@/components/Seo";
 import { ShieldCheck, Fingerprint, Headphones, Globe, Zap } from "lucide-react";
 
 export default function About() {
@@ -9,6 +10,7 @@ export default function About() {
   ];
   return (
     <div>
+      <Seo title="About SimplDSC — Enabling a Secure and Digital India" description="SimplDSC is a digital-first platform making Digital Signature Certificates simple, secure and accessible for professionals and businesses across India." />
       <section className="brand-mesh">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-purple-600">About SimplDSC</p>

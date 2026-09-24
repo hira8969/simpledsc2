@@ -468,6 +468,36 @@ async def validate_coupon(code: str, productId: str, user: dict = Depends(get_cu
 
 
 from admin_routes import admin_router  # noqa: E402
+
+STATIC_PAGES = [("/", "1.0", "daily"), ("/products", "0.9", "daily"), ("/pricing", "0.8", "weekly"),
+                ("/use-cases", "0.7", "monthly"), ("/about", "0.6", "monthly"), ("/resources", "0.6", "monthly"),
+                ("/contact", "0.5", "monthly"), ("/partner", "0.5", "monthly"), ("/agent", "0.5", "monthly"),
+                ("/faqs", "0.6", "monthly"), ("/terms", "0.3", "yearly"), ("/privacy", "0.3", "yearly"),
+                ("/refund", "0.3", "yearly")]
+
+async def _canonical_base() -> str:
+    s = await db.website_settings.find_one({"_id": "singleton"})
+    base = (s or {}).get("seoDefaults", {}).get("canonicalBase") or "https://simpldsc.in"
+    return base.rstrip("/")
+
+@api.get("/sitemap.xml")
+async def sitemap_xml():
+    base = await _canonical_base()
+    products = await db.products.find({"active": True}, {"_id": 0, "slug": 1, "updatedAt": 1}).to_list(500)
+    rows = [f'  <url><loc>{base}{p}</loc><changefreq>{f}</changefreq><priority>{pr}</priority></url>'
+            for p, pr, f in STATIC_PAGES]
+    for prod in products:
+        lm = f'<lastmod>{prod["updatedAt"][:10]}</lastmod>' if prod.get("updatedAt") else ""
+        rows.append(f'  <url><loc>{base}/products/{prod["slug"]}</loc>{lm}<changefreq>weekly</changefreq><priority>0.8</priority></url>')
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "\n".join(rows) + "\n</urlset>"
+    return Response(content=xml, media_type="application/xml")
+
+@api.get("/robots.txt")
+async def robots_txt():
+    base = await _canonical_base()
+    txt = f"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /dashboard\n\nSitemap: {base}/sitemap.xml\n"
+    return PlainTextResponse(content=txt)
+
 api.include_router(admin_router)
 app.include_router(api)
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Seo } from "@/components/Seo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import api from "@/lib/api";
 import { HelpCircle, Phone } from "lucide-react";
@@ -8,6 +9,7 @@ export default function Faqs() {
   useEffect(() => { api.get("/faqs").then((r) => setFaqs(r.data)); }, []);
   return (
     <div className="brand-mesh">
+      <Seo title="DSC FAQs | SimplDSC" description="Answers to common questions about Digital Signature Certificates — documents required, processing time, GST/MCA/Income Tax use and renewals." />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700"><HelpCircle className="h-6 w-6" /></div>

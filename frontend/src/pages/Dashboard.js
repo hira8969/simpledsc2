@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { Seo } from "@/components/Seo";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
@@ -63,6 +64,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <Seo title="My Dashboard | SimplDSC" index={false} />
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
         <div className="flex h-16 items-center justify-between px-4 sm:px-6">

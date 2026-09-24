@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Seo } from "@/components/Seo";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DscFinder } from "@/components/DscFinder";
@@ -48,6 +49,7 @@ export default function Home() {
 
   return (
     <div>
+      <Seo title="SimplDSC — Digital Signatures, Made Simple." description="Get your Class 3, DGFT, eTender & MCA Digital Signature Certificate quickly and securely across India. Fast, paperless eKYC, CCA-compliant." />
       {/* HERO */}
       <section className="relative brand-mesh overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">

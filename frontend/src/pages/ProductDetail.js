@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Seo } from "@/components/Seo";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePurchase } from "@/context/PurchaseContext";
@@ -21,6 +22,12 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <Seo
+        title={product.seo?.title || `${product.name} | SimplDSC`}
+        description={product.seo?.metaDescription || product.description}
+        image={product.seo?.ogImage || product.imageUrl}
+        index={product.seo?.index !== false}
+      />
       <button onClick={() => nav("/products")} className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-purple-700"><ArrowLeft className="h-4 w-4" /> All Products</button>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-lavender-50 to-white p-6">

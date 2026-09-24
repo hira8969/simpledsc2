@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +25,7 @@ export default function Contact() {
   };
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <Seo title="Contact SimplDSC" description="Reach SimplDSC for DSC support. Office: Bhubaneswar, Odisha. Phone +91 98765 43210, email support@simpldsc.in." />
       <div className="text-center max-w-2xl mx-auto">
         <h1 className="font-display text-4xl font-extrabold text-navy-900">Get in Touch</h1>
         <p className="mt-2 text-slate-500">We're here to help. Reach out to us for any queries or support.</p>

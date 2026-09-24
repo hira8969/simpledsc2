@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/context/AdminAuthContext";
+import { Seo } from "@/components/Seo";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen dark-mesh flex items-center justify-center p-4">
+      <Seo title="Admin Portal | SimplDSC" index={false} />
       <div className="w-full max-w-md rounded-2xl border border-purple-900/40 bg-white/5 backdrop-blur-xl p-8 shadow-2xl">
         <div className="flex justify-center mb-6"><Logo dark /></div>
         <div className="text-center mb-6">
