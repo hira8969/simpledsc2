@@ -1,0 +1,40 @@
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { usePurchase } from "@/context/PurchaseContext";
+import api from "@/lib/api";
+import { Check } from "lucide-react";
+
+export default function Pricing() {
+  const [products, setProducts] = useState([]);
+  const { startPurchase } = usePurchase();
+  useEffect(() => { api.get("/products").then((r) => setProducts(r.data)); }, []);
+  return (
+    <div className="brand-mesh">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div className="text-center max-w-2xl mx-auto">
+          <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Simple & Transparent Pricing</h1>
+          <p className="mt-3 text-slate-500">No hidden charges. Choose the plan that fits your needs.</p>
+        </div>
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((p, i) => (
+            <div key={p.id} className={`relative rounded-2xl border bg-white p-6 ${i === 1 ? "border-purple-400 shadow-xl ring-1 ring-purple-200" : "border-slate-200"}`}>
+              {i === 1 && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-purple-700 to-navy-800 px-3 py-0.5 text-[11px] font-semibold text-white">Most Popular</span>}
+              <p className="text-xs font-semibold uppercase tracking-wider text-purple-600">{p.category}</p>
+              <h3 className="mt-1 font-display text-xl font-bold text-navy-900">{p.name}</h3>
+              <div className="mt-4 flex items-baseline gap-1">
+                <span className="font-display text-4xl font-extrabold text-navy-900">₹{p.price.toLocaleString("en-IN")}</span>
+                <span className="text-sm text-slate-400">/ {p.validity}</span>
+              </div>
+              <ul className="mt-5 space-y-2">
+                {(p.features || []).map((f) => <li key={f} className="flex items-center gap-2 text-sm text-slate-600"><Check className="h-4 w-4 text-emerald-500" /> {f}</li>)}
+              </ul>
+              <Button data-testid={`pricing-buy-${p.slug}`} onClick={() => startPurchase(p)}
+                className={`mt-6 w-full rounded-xl py-6 ${i === 1 ? "bg-gradient-to-r from-purple-700 to-navy-800 text-white" : "bg-white border border-slate-300 text-navy-800 hover:bg-slate-50"}`}>Buy Now</Button>
+            </div>
+          ))}
+        </div>
+        <p className="mt-8 text-center text-xs text-slate-400">*Government taxes are included as applicable. Prices are configured centrally by SimplDSC.</p>
+      </div>
+    </div>
+  );
+}

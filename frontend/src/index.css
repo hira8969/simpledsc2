@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy-950: #050B1A;
+  --navy-900: #0B1528;
+  --navy-800: #132342;
+  --purple-800: #3D1768;
+  --purple-700: #582294;
+  --purple-600: #6F32B5;
+  --purple-500: #8545D4;
+  --lavender-100: #EDE7FB;
+  --lavender-50: #F7F5FE;
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #FFFFFF;
+  color: #0B1528;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 265 57% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 260 60% 97%;
+    --secondary-foreground: 265 57% 30%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 260 60% 96%;
+    --accent-foreground: 265 57% 35%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 265 57% 45%;
+    --radius: 0.9rem;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
+
+.brand-mesh {
+  background:
+    radial-gradient(ellipse 70% 55% at 78% -10%, rgba(133,69,212,0.18), rgba(255,255,255,0)),
+    radial-gradient(ellipse 60% 50% at 10% 10%, rgba(111,50,181,0.10), rgba(255,255,255,0));
+}
+.dark-mesh {
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 0%, rgba(133,69,212,0.28), rgba(5,11,26,0)),
+    radial-gradient(ellipse 70% 60% at 0% 20%, rgba(88,34,148,0.22), rgba(5,11,26,0)),
+    #050B1A;
+}
+.glass-nav { backdrop-filter: blur(18px); background: rgba(255,255,255,0.82); }
+.dot-grid { background-image: radial-gradient(#dcd3f2 1px, transparent 1px); background-size: 18px 18px; }
+
+.animate-rise { animation: rise 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+::selection { background: rgba(133,69,212,0.24); }
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

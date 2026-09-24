@@ -1,0 +1,174 @@
+{
+  "project_name": "SimplDSC",
+  "tagline": "Digital Signatures, Made Simple.",
+  "theme_archetype": "ARCHETYPE 5: LUXURY & FINTECH PRECISION (Deep Navy, Indigo, Royal Purple & Soft Lavender)",
+  "global_restrictions": [
+    "ABSOLUTELY NO MAPS of any kind (no Leaflet, no Google Maps, no Mapbox, no SVG geographic maps).",
+    "ABSOLUTELY NO SOCIAL MEDIA ICONS anywhere (no Twitter, X, Facebook, LinkedIn, Instagram, YouTube).",
+    "Address in Contact and Footer must be clean formatted text only with pin code and landmark.",
+    "Footer is dark navy/violet with logo, tagline, quick links, legal, support, contact info, text address, security certifications, and copyright.",
+    "Use REAL DSC USB token hardware photos (no generic vector/clipart illustration placeholders).",
+    "Every interactive element and key stat/status MUST have data-testid in kebab-case."
+  ],
+  "typography": {
+    "font_family_heading": "Cabinet Grotesk, Clash Display, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+    "font_family_body": "'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+    "font_family_mono": "'JetBrains Mono', 'Fira Code', monospace",
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-white",
+      "h3": "text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100",
+      "h4": "text-lg sm:text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100",
+      "subtitle": "text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed font-normal",
+      "body": "text-base text-slate-600 dark:text-slate-300 leading-relaxed",
+      "small": "text-sm text-slate-500 dark:text-slate-400 font-medium",
+      "micro_label": "text-xs font-semibold tracking-[0.18em] uppercase text-purple-600 dark:text-purple-400"
+    }
+  },
+  "colors": {
+    "brand_palette": {
+      "navy_950": "#050B1A",
+      "navy_900": "#0B1528",
+      "navy_800": "#132342",
+      "navy_700": "#1E335C",
+      "purple_900": "#2C124D",
+      "purple_800": "#3D1768",
+      "purple_700": "#582294",
+      "purple_600": "#6F32B5",
+      "purple_500": "#8545D4",
+      "lavender_400": "#A87FE8",
+      "lavender_200": "#D8C7F8",
+      "lavender_100": "#EDE7FB",
+      "lavender_50": "#F7F5FE",
+      "surface_white": "#FFFFFF",
+      "surface_offwhite": "#F8FAFC",
+      "slate_border": "#E2E8F0",
+      "slate_muted": "#64748B",
+      "emerald_success": "#10B981",
+      "amber_warning": "#F59E0B",
+      "rose_danger": "#EF4444",
+      "cyan_info": "#06B6D4"
+    },
+    "semantic_mapping": {
+      "primary_action": "bg-gradient-to-r from-purple-700 to-indigo-800 hover:from-purple-800 hover:to-indigo-900 text-white shadow-md shadow-purple-900/20 active:scale-[0.99]",
+      "secondary_action": "bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200/80 dark:bg-purple-950/40 dark:text-purple-200 dark:border-purple-800/60",
+      "subtle_action": "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700",
+      "accent_pill": "bg-purple-100/80 text-purple-800 border border-purple-200/60 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/50",
+      "trust_badge": "bg-indigo-50/90 text-indigo-900 border border-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-200 dark:border-indigo-800/40",
+      "dark_footer": "bg-[#070D1C] text-slate-300 border-t border-purple-950/60"
+    }
+  },
+  "status_badges": {
+    "draft": "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300",
+    "payment_pending": "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300",
+    "docs_pending": "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/50 dark:text-rose-300",
+    "in_verification": "bg-indigo-50 text-indigo-800 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300",
+    "approved": "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300",
+    "token_dispatched": "bg-cyan-50 text-cyan-800 border-cyan-200 dark:bg-cyan-950/50 dark:text-cyan-300",
+    "active": "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200",
+    "expiring_soon": "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200",
+    "expired": "bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950 dark:text-rose-200"
+  },
+  "layout_and_spacing": {
+    "container_padding": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "section_vertical_spacing": "py-16 sm:py-20 lg:py-24",
+    "card_radius": "rounded-2xl",
+    "subtle_border": "border border-slate-200/80 dark:border-slate-800",
+    "elevation_shadow": "shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_28px_-6px_rgba(111,50,181,0.12)] transition-all duration-300",
+    "grid_tetris_hero": "grid grid-cols-1 lg:grid-cols-12 gap-8 items-center",
+    "grid_products": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8",
+    "grid_dashboard": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
+  },
+  "visual_enhancers": {
+    "crystal_glass_nav": "backdrop-blur-xl bg-white/85 dark:bg-[#0B1528]/85 border-b border-purple-100/60 dark:border-purple-950/80 sticky top-0 z-40 transition-colors",
+    "brand_mesh_hero": "bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(111,50,181,0.15),rgba(255,255,255,0))]",
+    "purple_glow_accent": "relative before:absolute before:-inset-1 before:bg-gradient-to-r before:from-purple-600/20 before:to-indigo-600/20 before:rounded-3xl before:blur-xl before:-z-10",
+    "token_card_spotlight": "relative overflow-hidden bg-white dark:bg-[#0E1A33] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 hover:border-purple-300 dark:hover:border-purple-700/60 transition-all duration-300 shadow-sm",
+    "noise_grain_light": "bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"
+  },
+  "image_urls": {
+    "hero_dsc_token": {
+      "image_url": "https://images.unsplash.com/photo-1587145820098-23e484e69816?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwxfHx1c2IlMjBzZWN1cml0eSUyMGtleSUyMGhhcmR3YXJlJTIwdG9rZW58ZW58MHx8fHwxNzkwMjg0NTkyfDA&ixlib=rb-4.1.0&q=85",
+      "category": "hero",
+      "description": "FIPS certified USB security hardware token on minimalist clean surface for the Hero section and trust presentation"
+    },
+    "product_class3_token": {
+      "image_url": "https://images.unsplash.com/photo-1551818014-7c8ace9c1b5c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwyfHx1c2IlMjBzZWN1cml0eSUyMGtleSUyMGhhcmR3YXJlJTIwdG9rZW58ZW58MHx8fHwxNzkwMjg0NTkyfDA&ixlib=rb-4.1.0&q=85",
+      "category": "products",
+      "description": "Black cryptographic thumb drive token representing Class 3 Combo / Signing DSC"
+    },
+    "product_dgft_token": {
+      "image_url": "https://images.pexels.com/photos/10336136/pexels-photo-10336136.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "category": "products",
+      "description": "High-grade dual interface metal USB hardware token on grid pattern for DGFT & Foreign Trade IEC DSC"
+    },
+    "product_etender_token": {
+      "image_url": "https://images.pexels.com/photos/5474301/pexels-photo-5474301.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "category": "products",
+      "description": "USB security key beside laptop for eTender, MCA-21, and GeM government procurement bidding"
+    },
+    "product_doc_signer": {
+      "image_url": "https://images.unsplash.com/photo-1477949331575-2763034b5fb5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwzfHx1c2IlMjBzZWN1cml0eSUyMGtleSUyMGhhcmR3YXJlJTIwdG9rZW58ZW58MHx8fHwxNzkwMjg0NTkyfDA&ixlib=rb-4.1.0&q=85",
+      "category": "products",
+      "description": "Plugged-in crypto key for high volume Document Signer and Organization Certificate"
+    },
+    "security_encryption_art": {
+      "image_url": "https://images.unsplash.com/photo-1614064548237-096f735f344f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzV8MHwxfHNlYXJjaHwzfHxkaWdpdGFsJTIwc2VjdXJpdHklMjBkYXRhJTIwcHJvdGVjdGlvbnxlbnwwfHx8fDE3OTAyODQ1OTZ8MA&ixlib=rb-4.1.0&q=85",
+      "category": "security_banner",
+      "description": "2048-bit encryption padlock hardware representation with kinetic data fiber trails"
+    }
+  },
+  "context_specific_guidance": {
+    "marketing_public_site": {
+      "header": "Clean sticky navigation bar with SimplDSC Hexagon Logo, nav links (Products, Use Cases, DSC Finder, Pricing, About, Resources, Contact), Phone/Support badge, Login/OTP button, and primary CTA 'Get Your DSC'.",
+      "hero_section": "Headline 'Your Trusted Digital Signature Partner in India', eyebrow 'CCA COMPLIANT & PAPERLESS E-KYC', subtitle 'Legally valid Class 3 & DGFT Digital Signatures delivered in 24 hours. Sign MCA, GST, Income Tax & e-Tenders effortlessly.', two CTA buttons ('Get Your DSC Now', 'Find My DSC Wizard'), trust metric counter chips (150,000+ DSCs issued, 99.8% Approval, 2-Hour eKYC, 100% Legal IT Act 2000), real USB token hardware photograph card with floating security check chip.",
+      "trust_bar": "Certifying Authorities logos & compliance pills: eMudhra, Capricorn, VSign, IDSign, CCA Licensed, FIPS 140-2 Level 2 Token, SHA-256 / 2048-Bit RSA.",
+      "dsc_finder_wizard": "Interactive 3-step decision tree ('Which DSC Do You Need?'): Step 1: Who are you? (Individual, Business Entity, Foreign National, Exporter/Importer). Step 2: What is your primary portal/use-case? (Income Tax/GST, MCA/ROC Filings, eTendering/GeM, DGFT/ICEGATE, High-volume PDF Signing). Step 3: Token preference (New Token + Certificate, Renewal / Existing Token only, Cloud Sign). Instant recommendation card with price, validity, documents required, and 'Buy This DSC' direct link.",
+      "use_cases_bento": "6 asymmetric cards: Income Tax & GST Returns, MCA-21 & ROC Company Incorporation, e-Tendering & GeM Government Contracts, DGFT & Foreign Trade IEC, Trademark & Patent Filings, Banking & Document Signer.",
+      "products_grid": "Tabs: All, Individual, Organization, DGFT / Foreign Trade, Document Signer. Each card features real USB token photo, Class badge, Validity pill (1 Yr / 2 Yrs / 3 Yrs), encryption type (Signing Only / Combo Sign & Encrypt), included FIPS token details, transparent price in INR with GST note, bullet features, and 'Select & Order' button.",
+      "how_it_works_steps": "4 clear numbered steps: 1. Choose DSC & Duration, 2. Paperless Video eKYC / Aadhaar OTP, 3. CA Verification & Issuance (under 2 hours), 4. Express Dispatch of Cryptographic Token or Instant Download.",
+      "pricing_comparison": "Clear tiered comparison with toggle for 1 Year / 2 Years / 3 Years. Clear breakdown of Individual vs Organization vs DGFT vs Bulk Signer.",
+      "footer": "Deep navy background (#070D1C), brand logo with purple hexagon, text description, quick links, legal links, support hours, full physical corporate address (NO map), support email and phone, compliance disclaimer 'SimplDSC operates as an authorized registration authority partner for CCA licensed Certifying Authorities. No social media icons.'."
+    },
+    "customer_dashboard": {
+      "layout": "Modern desktop sidebar with collapsible mobile drawer, top header with notification bell, customer phone/email, balance/active DSC summary, and theme toggle.",
+      "sections": [
+        "Overview (Summary cards: Active DSCs, Pending Verification, Expiring in 30 Days, Support Tickets)",
+        "My DSCs (Active token inventory, Certificate serial numbers, Issued by CA, Expiry countdown with auto-renew trigger, Token PIN reset guide)",
+        "My Orders (Timeline tracking: Order Placed -> Payment Verified -> eKYC Video Uploaded -> CA Approved -> Token Dispatched / Download Ready)",
+        "Pending Documents / Verification (Dropzone for PAN, Aadhaar OTP verification status, Video KYC recording status)",
+        "Invoices (GST compliant tax invoices downloadable with CGST/SGST/IGST breakdown and SimplDSC GSTIN)",
+        "Renew DSC (Fast-track 2-click renewal for existing token owners with 15% loyalty discount)",
+        "Support Tickets (Raise ticket for driver issues, token lock, ePass2003 / ProxKey installation, DSC mapping on MCA)"
+      ]
+    },
+    "admin_operational_panel": {
+      "layout": "High-density admin command center with navy/slate dark chrome or crisp light mode, compact metrics, order status filter tabs, search by Order ID / PAN / Phone, bulk document verification modal, CA integration status, shipping tracking integration, coupon management, and audit logs.",
+      "key_tables": [
+        "Orders Management (Order ID, Customer, DSC Type, Validity, Amount, Payment ID, Status Badge, Action dropdown)",
+        "Document Verification Inbox (Customer KYC review, PAN preview, Aadhaar status, Video verification clip verification, Approve / Reject with remarks)",
+        "DSC Lifecycle & Inventory (FIPS tokens inventory stock, Serial numbers, CA provider, Issuance date, Expiry reminders batch trigger)",
+        "Enquiries & Partner Leads (Contact inquiries, CA partner applications, franchise requests)",
+        "Coupon & Pricing Config (Discount codes, percentage, expiry, usage count)"
+      ]
+    }
+  },
+  "interactive_components": {
+    "dsc_finder_wizard": "src/components/DscFinderModal.js or DscFinderSection.js",
+    "otp_auth_modal": "src/components/OtpAuthModal.js (Phone number input -> 6-digit OTP auto-fill/verify -> instant token issuance session)",
+    "purchase_checkout_flow": "src/components/PurchaseModal.js (Step 1: Plan & Validity -> Step 2: Applicant Details -> Step 3: Document Upload -> Step 4: Razorpay Checkout Simulation -> Step 5: Success & Order ID)",
+    "order_timeline": "src/components/OrderTimeline.js (Visual stepper with completed, current, and pending steps)",
+    "tax_invoice_modal": "src/components/InvoiceModal.js (Formatted B2B/B2C GST tax invoice modal with printable view)"
+  },
+  "instructions_to_main_agent": [
+    "Follow this exact navy/violet/lavender design system. Maintain a high-end fintech & compliance look that exudes security, trust, and speed.",
+    "Strictly honor the two global restrictions: ZERO maps of any kind and ZERO social media icons across all components, footers, headers, and contact pages.",
+    "Use the real DSC token photos provided in `image_urls` for the hero and product cards. Make them prominent with crisp card borders and subtle elevation.",
+    "Implement the DSC Finder as an interactive wizard that guides users based on their need (e.g. Individual vs Director vs Exporter vs Contractor) and auto-selects the recommended product.",
+    "Implement the customer auth flow using Indian phone number + OTP (simulated with instant 4-digit/6-digit prefill for effortless testing).",
+    "Implement the interactive purchase modal with Razorpay checkout experience, address capture for USB token shipping, and instant order creation.",
+    "Provide rich customer dashboard views (My Orders with visual timeline, My DSCs with expiry warnings, Pending Document uploads, Invoices download, Ticket creation).",
+    "Provide comprehensive Admin dashboard with tabbed management: Orders, KYC Document Verification, Issued DSCs, Enquiry Leads, Coupons, and Staff/CA stats.",
+    "Add `data-testid` to all interactive buttons, inputs, tabs, modal triggers, status badges, and table rows for testing."
+  ]
+}
