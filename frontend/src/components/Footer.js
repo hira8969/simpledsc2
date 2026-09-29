@@ -34,7 +34,8 @@ export function Footer() {
             <h4 className="text-white font-semibold text-sm mb-4">Contact</h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li className="flex gap-2.5"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-purple-400" /><span>Mallick Complex, Plot No. A/69, Kharavela Nagar, Unit 3, Bhubaneswar, Odisha – 751001</span></li>
-              <li className="flex gap-2.5 items-center"><Phone className="h-4 w-4 shrink-0 text-purple-400" /><a href="tel:+919876543210" className="hover:text-white">+91 98765 43210</a></li>
+              <li className="flex gap-2.5 items-center"><Phone className="h-4 w-4 shrink-0 text-purple-400" /><a href="tel:+917992999947" className="hover:text-white">+91 79929 99947</a>
+              <a href="tel:+917992777799" className="hover:text-white">+91 79927 77799</a></li>
               <li className="flex gap-2.5 items-center"><Mail className="h-4 w-4 shrink-0 text-purple-400" /><a href="mailto:support@simpldsc.in" className="hover:text-white">support@simpldsc.in</a></li>
             </ul>
           </div>
