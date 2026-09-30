@@ -42,8 +42,13 @@ const TOPICS = [
   },
   {
     key: "contact", q: "How do I contact support?",
-    a: `Call us at ${SITE.phone} or email ${SITE.email}. Business hours: ${SITE.hoursNote}.`,
+    a: `Call us at ${SITE.phone} or ${SITE.phone2}, or email ${SITE.email}. Business hours: ${SITE.hoursNote}.`,
     link: { label: "Contact us", to: "/contact" },
+  },
+  {
+    key: "cancellation", q: "How do I cancel or get a refund?",
+    a: `You can request cancellation or a refund by calling ${SITE.phone} / ${SITE.phone2} or emailing ${SITE.email} with your Order ID. See our Refund Policy for eligibility.`,
+    link: { label: "Refund Policy", to: "/refund" },
   },
 ];
 

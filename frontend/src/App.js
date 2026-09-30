@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { AdminAuthProvider } from "@/context/AdminAuthContext";
@@ -47,7 +47,7 @@ export default function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/resources" element={<Resources />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="/partner" element={<Partner />} />
+                <Route path="/partner" element={<Navigate to="/agent" replace />} />
                 <Route path="/agent" element={<Partner agent />} />
                 <Route path="/faqs" element={<Faqs />} />
                 <Route path="/terms" element={<Legal type="terms" />} />

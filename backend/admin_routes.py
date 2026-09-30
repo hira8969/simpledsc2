@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, EmailStr
 
-from core import db, new_id, now_iso, clean, audit, notify
+from core import db, new_id, now_iso, clean, audit, notify, gen_invoice_no
 from security import (hash_password, verify_password, make_token,
                       get_current_admin, require_roles, client_ip)
 
@@ -206,6 +206,28 @@ async def issue_dsc(order_id: str, payload: dict, request: Request,
     await notify("customer", order["userId"], "dsc_ready", "DSC Ready",
                  f"Your DSC for order {order_id} has been issued.", "dsc", dsc["id"])
     return {"dsc": clean(dsc)}
+
+
+@admin_router.post("/admin/orders/{order_id}/manual-invoice")
+async def manual_invoice(order_id: str, request: Request, admin: dict = Depends(require_roles("order_staff", "staff"))):
+    order = await db.orders.find_one({"orderId": order_id})
+    if not order:
+        raise HTTPException(404, "Order not found")
+    if order.get("invoiceNo"):
+        return {"invoiceNo": order["invoiceNo"], "existing": True}
+    inv_no = await gen_invoice_no()
+    user = await db.users.find_one({"id": order["userId"]})
+    invoice = {"id": new_id(), "invoiceNo": inv_no, "orderId": order["orderId"], "userId": order["userId"],
+               "simplDscId": order["simplDscId"], "amount": order.get("amount", order["totalAmount"]),
+               "discount": order.get("discount", 0), "gst": order.get("gst", 0),
+               "professionalFee": order.get("professionalFee", order["totalAmount"]),
+               "totalAmount": order["totalAmount"], "productName": order["productName"],
+               "customerName": order.get("customerName"), "billing": (user or {}).get("billing", {}),
+               "status": "Manual", "createdAt": now_iso()}
+    await db.invoices.insert_one(invoice)
+    await db.orders.update_one({"orderId": order_id}, {"$set": {"invoiceNo": inv_no, "updatedAt": now_iso()}})
+    await audit(admin, "manual_invoice_created", "order", order_id, None, inv_no, client_ip(request))
+    return {"invoiceNo": inv_no}
 
 
 # ---------- DOCUMENTS INBOX ----------

@@ -15,7 +15,8 @@ export default function Pricing() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="text-center max-w-2xl mx-auto">
           <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Simple & Transparent Pricing</h1>
-          <p className="mt-3 text-slate-500">No hidden charges. Choose the plan that fits your needs.</p>
+          <p className="mt-3 text-slate-500">Every plan includes paperless eKYC, secure processing and a FIPS-certified USB token — all prices are inclusive of GST with no hidden charges.</p>
+          <p className="mt-3 inline-block rounded-full bg-purple-50 border border-purple-200 px-4 py-1.5 text-sm font-medium text-purple-700">Most popular: the Class 3 Individual DSC — the best all-round choice for professionals, directors, GST, MCA and Income Tax filings.</p>
         </div>
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((p, i) => (

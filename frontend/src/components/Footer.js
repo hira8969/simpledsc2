@@ -35,14 +35,14 @@ export function Footer() {
             <h4 className="text-white font-semibold text-sm mb-4">Contact</h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li className="flex gap-2.5"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-purple-400" /><span>{SITE.address}</span></li>
-              <li className="flex gap-2.5 items-center"><Phone className="h-4 w-4 shrink-0 text-purple-400" /><a href={`tel:${SITE.phoneHref}`} className="hover:text-white">{SITE.phone}</a></li>
+              <li className="flex gap-2.5 items-center"><Phone className="h-4 w-4 shrink-0 text-purple-400" /><a href={`tel:${SITE.phoneHref}`} className="hover:text-white">{SITE.phone}</a><span className="text-slate-600">·</span><a href={`tel:${SITE.phone2Href}`} className="hover:text-white">{SITE.phone2}</a></li>
               <li className="flex gap-2.5 items-center"><Mail className="h-4 w-4 shrink-0 text-purple-400" /><a href={`mailto:${SITE.emailHref}`} className="hover:text-white">{SITE.email}</a></li>
               <li className="flex gap-2.5 items-center"><Clock className="h-4 w-4 shrink-0 text-purple-400" /><span>{SITE.hoursNote}</span></li>
             </ul>
           </div>
         </div>
         <div className="mt-12 pt-6 border-t border-purple-950/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} SimplDSC™. All rights reserved.</p>
+          <p>© {SITE.footerYear} SimplDSC™. All rights reserved.</p>
           <p>SimplDSC operates as a registration assistance platform for CCA-licensed Certifying Authorities.</p>
         </div>
       </div>

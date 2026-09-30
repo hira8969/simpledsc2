@@ -51,7 +51,7 @@ export default function AdminOrders() {
             {orders.map((o) => (
               <tr key={o.orderId} data-testid={`order-row-${o.orderId}`} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-mono text-xs text-purple-700 whitespace-nowrap">{o.simplDscId}</td>
-                <td className="px-4 py-3 font-mono text-xs text-navy-900">{o.orderId}</td>
+                <td className="px-4 py-3 font-mono text-xs text-navy-900">{o.orderId}<div className="text-[10px] text-slate-400">{o.invoiceNo || "No invoice"}</div></td>
                 <td className="px-4 py-3"><p className="font-medium text-navy-900">{o.customerName}</p><p className="text-xs text-slate-400">{o.mobile}</p></td>
                 <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{o.productName}</td>
                 <td className="px-4 py-3 font-semibold text-navy-900">₹{o.totalAmount}</td>
@@ -93,6 +93,7 @@ function OrderDetail({ orderId, onClose, onReload }) {
   };
   const updateShipping = async (deliveryStatus) => { await api.put(`/admin/orders/${orderId}/shipping`, { deliveryStatus }); toast.success("Shipping updated"); load(); onReload(); };
   const refund = async () => { await api.post(`/admin/orders/${orderId}/refund`, { reason: "Admin refund" }); toast.success("Refunded"); load(); onReload(); };
+  const genInvoice = async () => { const { data } = await api.post(`/admin/orders/${orderId}/manual-invoice`); toast.success(`Invoice ${data.invoiceNo} ready`); load(); onReload(); };
 
   return (
     <Dialog open={!!orderId} onOpenChange={(x) => !x && onClose()}>
@@ -106,6 +107,7 @@ function OrderDetail({ orderId, onClose, onReload }) {
             <Box title="Order & Payment">
               <KV k="Product" v={o.productName} /><KV k="Amount" v={`₹${o.totalAmount}`} /><KV k="Payment" v={o.paymentStatus} /><KV k="Invoice" v={o.invoiceNo || "—"} mono />
               <KV k="Razorpay Payment" v={o.razorpayPaymentId || "—"} mono />
+              {!o.invoiceNo && <Button size="sm" data-testid="gen-invoice-btn" onClick={genInvoice} className="mt-2 w-full rounded-lg bg-gradient-to-r from-purple-700 to-navy-800 text-white h-8">Generate Manual Invoice</Button>}
             </Box>
             <Box title="Certifying Authority">
               <Select value={o.caId || ""} onValueChange={setCA}>

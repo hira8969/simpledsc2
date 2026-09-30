@@ -146,7 +146,7 @@ async def seed_all():
             "_id": "singleton",
             "contact": {
                 "address": "Mallick Complex, Plot No. A/69, Kharavela Nagar, Unit 3, Bhubaneswar, Odisha \u2013 751001",
-                "phone": "+91 98765 43210", "email": "support@simpldsc.in",
+                "phone": "7992999947, 7992777799", "email": "support@simpldsc.in",
             },
             "seoDefaults": {
                 "title": "SimplDSC \u2013 Digital Signatures, Made Simple.",

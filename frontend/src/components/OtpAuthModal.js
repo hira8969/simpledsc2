@@ -89,7 +89,7 @@ export function OtpAuthModal() {
                 <span className="px-3 text-sm text-slate-500 border-r">+91</span>
                 <input data-testid="otp-mobile-input" value={mobile} inputMode="numeric" maxLength={10}
                   onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
-                  placeholder="98765 43210" className="w-full bg-transparent px-3 py-2.5 outline-none text-sm" />
+                  placeholder="79929 99947" className="w-full bg-transparent px-3 py-2.5 outline-none text-sm" />
               </div>
             </div>
             <Button data-testid="otp-send-btn" onClick={sendOtp} disabled={loading}

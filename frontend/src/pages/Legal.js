@@ -27,7 +27,8 @@ const CONTENT = {
       ["Eligibility", "Refunds may be requested before the DSC application is submitted to the Certifying Authority."],
       ["Non-Refundable", "Once a certificate is issued, the professional and government fees are non-refundable."],
       ["Process", "Approved refunds are processed to the original payment method via Razorpay within 5–7 business days."],
-      ["Cancellation", "You may request cancellation from your dashboard; our team will review and respond."],
+      ["Cancellation by Phone Call", "To cancel an order or request support, call us at 7992999947 or 7992777799 during business hours (10:00 AM – 7:00 PM)."],
+      ["Cancellation by Email", "You can also request cancellation by emailing support@simpldsc.in with your Order ID. Our team will review and respond."],
     ],
   },
 };
@@ -46,7 +47,6 @@ export default function Legal({ type }) {
           </div>
         ))}
       </div>
-      <p className="mt-10 rounded-xl bg-lavender-50 p-4 text-xs text-slate-500">This is a summary policy. Final legal wording should be reviewed before production use.</p>
     </div>
   );
 }

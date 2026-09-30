@@ -81,7 +81,7 @@ export function DscFinder({ onBuy }) {
             ))}
           </div>
           <div className="mt-4 rounded-xl bg-lavender-50 p-3 text-xs text-slate-500 flex items-center gap-2">
-            <Check className="h-4 w-4 text-purple-600" /> Not sure? Call our experts free at {SITE.phone}.
+            <Check className="h-4 w-4 text-purple-600" /> Not sure? Call our experts free at {SITE.phone} or {SITE.phone2}.
           </div>
         </div>
       )}

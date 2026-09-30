@@ -17,7 +17,6 @@ const NAV = [
   { label: "Resources", to: "/resources" },
 ];
 const MORE = [
-  { label: "Partner With Us", to: "/partner" },
   { label: "Become a DSC Agent", to: "/agent" },
   { label: "Contact", to: "/contact" },
   { label: "FAQs", to: "/faqs" },
