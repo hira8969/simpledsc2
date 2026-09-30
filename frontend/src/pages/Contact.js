@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Seo } from "@/components/Seo";
+import { SITE } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,9 +34,9 @@ export default function Contact() {
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-4">
           <Info icon={MapPin} title="Our Office" lines={["SimplDSC™", "Mallick Complex, Plot No. A/69,", "Kharavela Nagar, Unit 3,", "Bhubaneswar, Odisha – 751001"]} />
-          <Info icon={Phone} title="Phone" lines={["+91 98765 43210"]} />
-          <Info icon={Mail} title="Email" lines={["support@simpldsc.in"]} />
-          <Info icon={Clock} title="Hours" lines={["Mon – Sat, 9:00 AM – 6:00 PM", "Pan India Service"]} />
+          <Info icon={Phone} title="Phone" lines={[SITE.phone]} />
+          <Info icon={Mail} title="Email" lines={[SITE.email]} />
+          <Info icon={Clock} title="Hours" lines={[SITE.hoursNote, "Pan India Service"]} />
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="space-y-4">

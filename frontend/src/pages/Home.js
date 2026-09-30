@@ -115,7 +115,7 @@ export default function Home() {
       </section>
 
       {/* DSC FINDER */}
-      <section className="bg-lavender-50/60 dot-grid">
+      <section id="dsc-finder" className="bg-lavender-50/60 dot-grid">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div className="text-center max-w-2xl mx-auto mb-10">
             <h2 className="font-display text-3xl lg:text-4xl font-bold text-navy-900">Which DSC Do You Need?</h2>

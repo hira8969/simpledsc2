@@ -38,7 +38,15 @@ export default function Partner({ agent = false }) {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700"><Handshake className="h-6 w-6" /></div>
           <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-navy-900">{agent ? "Become a SimplDSC Agent" : "Become a SimplDSC Partner"}</h1>
-          <p className="mt-3 text-lg text-slate-600">Grow your business with SimplDSC. Offer DSC solutions to your customers.</p>
+          <p className="mt-3 text-lg text-slate-600">{agent ? "Earn by offering Digital Signature Certificates to your clients. Apply below and our team will onboard you after a quick review." : "Grow your business with SimplDSC. Offer DSC solutions to your customers."}</p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs font-medium text-slate-500">
+            {["Apply", "Submit Application", "Admin Review", "Approved & Onboarded"].map((s, i) => (
+              <span key={s} className="flex items-center gap-2">
+                <span className="rounded-full bg-purple-100 px-3 py-1 text-purple-700">{i + 1}. {s}</span>
+                {i < 3 && <span className="text-purple-300">→</span>}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

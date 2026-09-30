@@ -1,3 +1,5 @@
+import { SITE } from "@/lib/site";
+
 const CONTENT = {
   terms: {
     title: "Terms & Conditions",
@@ -35,7 +37,7 @@ export default function Legal({ type }) {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <h1 className="font-display text-4xl font-extrabold text-navy-900">{c.title}</h1>
-      <p className="mt-2 text-sm text-slate-400">Last updated {new Date().getFullYear()} · Policy version 1.0</p>
+      <p className="mt-2 text-sm text-slate-400">Last updated {SITE.policyLastUpdated} · Policy version {SITE.policyVersion}</p>
       <div className="mt-8 space-y-7">
         {c.body.map(([h, p]) => (
           <div key={h}>

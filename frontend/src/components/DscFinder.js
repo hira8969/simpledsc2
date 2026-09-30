@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import api from "@/lib/api";
+import { SITE } from "@/lib/site";
 import { track } from "@/lib/analytics";
-import { ArrowRight, ArrowLeft, Sparkles, Check } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, Check, Info } from "lucide-react";
 
 const PURPOSES = [
   { key: "individual", label: "Individual", desc: "Personal use, ITR filing, etc." },
@@ -33,9 +34,13 @@ export function DscFinder({ onBuy }) {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm" data-testid="dsc-finder">
-      <div className="mb-6 flex items-center gap-2">
+      <div className="mb-4 flex items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700"><Sparkles className="h-3.5 w-3.5" /> DSC Finder</span>
         <span className="text-xs text-slate-400">Step {step} of 2</span>
+      </div>
+      <div className="mb-6 flex items-start gap-2 rounded-xl bg-lavender-50 p-3 text-xs text-slate-600">
+        <Info className="h-4 w-4 shrink-0 text-purple-600" />
+        <span><strong className="text-navy-900">What is the DSC Finder?</strong> A free 2-step guide that recommends the exact Digital Signature Certificate you need based on how you'll use it — so you never buy the wrong one.</span>
       </div>
 
       {step === 1 && (
@@ -76,7 +81,7 @@ export function DscFinder({ onBuy }) {
             ))}
           </div>
           <div className="mt-4 rounded-xl bg-lavender-50 p-3 text-xs text-slate-500 flex items-center gap-2">
-            <Check className="h-4 w-4 text-purple-600" /> Not sure? Call our experts free at +91 98765 43210.
+            <Check className="h-4 w-4 text-purple-600" /> Not sure? Call our experts free at {SITE.phone}.
           </div>
         </div>
       )}
