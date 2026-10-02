@@ -3,6 +3,7 @@ import os
 import uuid
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+import certifi
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import ReturnDocument
@@ -10,9 +11,12 @@ from pymongo import ReturnDocument
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+mongo_url = os.environ.get('MONGODB_URI') or os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+try:
+    client = AsyncIOMotorClient(mongo_url, tlsCAFile=certifi.where())
+except Exception:
+    client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ.get('DB_NAME', 'test_database')]
 
 
 def now_iso() -> str:
