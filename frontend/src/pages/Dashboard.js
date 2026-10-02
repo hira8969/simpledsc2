@@ -73,6 +73,12 @@ export default function Dashboard() {
             <button onClick={() => nav("/")}><Logo /></button>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={() => nav("/products")}
+              className="bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 hover:to-navy-900 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm flex items-center gap-1.5"
+            >
+              <span>+</span> Buy New DSC
+            </Button>
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-sm font-semibold text-navy-900">{user.name}</span>
               <span className="font-mono text-[11px] text-purple-600">{user.simplDscId}</span>
@@ -88,6 +94,14 @@ export default function Dashboard() {
       <div className="flex">
         {/* Sidebar */}
         <aside className={`fixed lg:sticky top-16 z-20 h-[calc(100vh-4rem)] w-64 shrink-0 border-r bg-white p-4 transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+          <div className="mb-4">
+            <Button
+              onClick={() => nav("/products")}
+              className="w-full bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 hover:to-navy-900 text-white rounded-xl py-2.5 font-semibold shadow-sm flex items-center justify-center gap-2"
+            >
+              <span>+</span> Buy New DSC
+            </Button>
+          </div>
           <nav className="space-y-1">
             {NAV.map((n) => (
               <button key={n.key} data-testid={`dash-nav-${n.key}`} onClick={() => { setTab(n.key); setSidebarOpen(false); }}
@@ -136,7 +150,17 @@ export default function Dashboard() {
           )}
 
           {tab === "orders" && (
-            <Section title="My Orders">
+            <Section
+              title="My Orders"
+              action={
+                <Button
+                  onClick={() => nav("/products")}
+                  className="bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl text-xs sm:text-sm font-semibold"
+                >
+                  + Buy New DSC
+                </Button>
+              }
+            >
               <div className="space-y-3">
                 {orders.map((o) => (
                   <div key={o.orderId} data-testid={`order-item-${o.orderId}`} onClick={() => setOpenOrder(o)}
@@ -213,7 +237,15 @@ const Card = ({ title, action, children }) => (
 const Row = ({ children, onClick, testId }) => (
   <div data-testid={testId} onClick={onClick} className={`flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 p-3 ${onClick ? "cursor-pointer hover:bg-purple-50" : ""}`}>{children}</div>
 );
-const Section = ({ title, children }) => (<div><h1 className="font-display text-2xl font-bold text-navy-900 mb-5">{title}</h1>{children}</div>);
+const Section = ({ title, children, action }) => (
+  <div>
+    <div className="flex items-center justify-between mb-5">
+      <h1 className="font-display text-2xl font-bold text-navy-900">{title}</h1>
+      {action}
+    </div>
+    {children}
+  </div>
+);
 const Empty = ({ text, cta, onCta }) => (
   <div className="rounded-2xl border border-dashed border-slate-200 p-10 text-center">
     <p className="text-sm text-slate-400">{text}</p>

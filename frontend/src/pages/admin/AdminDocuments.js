@@ -32,7 +32,14 @@ export default function AdminDocuments() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <StatusBadge status={d.verificationStatus} />
-              <a href={`${api.defaults.baseURL}/admin/documents/${d.id}/file`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-purple-600 px-2">View</a>
+              <a
+                href={`${api.defaults.baseURL}/admin/documents/${d.id}/file?token=${encodeURIComponent(localStorage.getItem("sd_admin_token") || "")}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-semibold text-purple-600 hover:text-purple-800 hover:underline px-2.5 py-1.5 rounded-lg border border-purple-200 bg-purple-50/50"
+              >
+                View
+              </a>
               <Button size="sm" data-testid={`doc-verify-${d.id}`} onClick={() => act(d.id, "verify")} className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white h-8">Verify</Button>
               <Button size="sm" variant="outline" data-testid={`doc-reject-${d.id}`} onClick={() => act(d.id, "reject")} className="rounded-lg text-rose-600 h-8">Reject</Button>
             </div>

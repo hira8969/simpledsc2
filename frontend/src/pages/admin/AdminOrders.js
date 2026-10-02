@@ -119,9 +119,19 @@ function OrderDetail({ orderId, onClose, onReload }) {
               {d.documents.length === 0 && <p className="text-sm text-slate-400">No documents uploaded.</p>}
               {d.documents.map((doc) => (
                 <div key={doc.id} className="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
-                  <div><p className="font-medium text-navy-800">{doc.documentType}</p><StatusBadge status={doc.verificationStatus} /></div>
+                  <div>
+                    <p className="font-medium text-navy-800">{doc.documentType}</p>
+                    <StatusBadge status={doc.verificationStatus} />
+                  </div>
                   <div className="flex items-center gap-1">
-                    <a href={`${api.defaults.baseURL}/admin/documents/${doc.id}/file`} target="_blank" rel="noreferrer" className="text-xs text-purple-600 font-semibold px-2">View</a>
+                    <a
+                      href={`${api.defaults.baseURL}/admin/documents/${doc.id}/file?token=${encodeURIComponent(localStorage.getItem("sd_admin_token") || "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-purple-600 font-semibold px-2 hover:underline"
+                    >
+                      View
+                    </a>
                     <Button size="sm" variant="outline" data-testid={`verify-doc-${doc.id}`} onClick={() => verifyDoc(doc.id, "verify")} className="h-7 rounded-lg text-emerald-600">✓</Button>
                     <Button size="sm" variant="outline" data-testid={`reject-doc-${doc.id}`} onClick={() => { const r = prompt("Rejection reason?"); if (r) verifyDoc(doc.id, "reject", r); }} className="h-7 rounded-lg text-rose-600">✕</Button>
                   </div>

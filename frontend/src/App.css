@@ -1,6 +1,71 @@
 .App { text-align: left; }
+
 @media print {
-  body * { visibility: hidden; }
-  #invoice-print, #invoice-print * { visibility: visible; }
-  #invoice-print { position: absolute; left: 0; top: 0; width: 100%; padding: 24px; }
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm 8mm 10mm;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide main application contents */
+  body > *:not([data-radix-portal]) {
+    display: none !important;
+  }
+
+  /* Force Radix portal to be static full width */
+  [data-radix-portal] {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Remove dialog centering, transforms, borders and shadows */
+  div[role="dialog"] {
+    display: block !important;
+    position: static !important;
+    transform: none !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+
+  /* Hide backdrop overlay, no-print elements, buttons */
+  [data-radix-dialog-overlay],
+  .no-print,
+  button,
+  [data-testid="print-invoice-btn"] {
+    display: none !important;
+  }
+
+  #invoice-print {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  #invoice-print * {
+    visibility: visible !important;
+  }
 }

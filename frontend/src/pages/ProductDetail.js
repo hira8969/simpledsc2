@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { usePurchase } from "@/context/PurchaseContext";
 import api from "@/lib/api";
 import { track } from "@/lib/analytics";
-import { Check, ArrowLeft, ShieldCheck, FileText } from "lucide-react";
+import { Check, ArrowLeft, ShieldCheck, FileText, Star } from "lucide-react";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -16,7 +16,7 @@ export default function ProductDetail() {
   useEffect(() => {
     api.get(`/products/${slug}`).then((r) => { setProduct(r.data); track("product_view", { product: r.data.name }); })
       .catch(() => nav("/products"));
-  }, [slug]);
+  }, [slug, nav]);
 
   if (!product) return <div className="max-w-7xl mx-auto px-6 py-24 text-center text-slate-400">Loading…</div>;
 
@@ -34,8 +34,33 @@ export default function ProductDetail() {
           <img src={product.imageUrl} alt={product.name} className="w-full h-[340px] object-cover rounded-xl mix-blend-multiply" />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-purple-600">{product.category}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-purple-600">{product.category}</p>
+            {product.isPopular && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                <Star className="h-3 w-3 fill-white" /> {product.badgeText || "Most Popular"}
+              </span>
+            )}
+          </div>
           <h1 className="mt-1 font-display text-3xl lg:text-4xl font-extrabold text-navy-900">{product.name}</h1>
+          
+          <div className="mt-2 flex items-center gap-2">
+            <div className="flex items-center text-amber-400">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={`h-4 w-4 ${
+                    s <= (product.rating || 5)
+                      ? "fill-amber-400 text-amber-400"
+                      : "fill-slate-200 text-slate-200"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-sm font-bold text-slate-800">{Number(product.rating || 5).toFixed(1)}</span>
+            <span className="text-xs text-slate-400">· Trusted by 10,000+ applicants across India</span>
+          </div>
+
           <p className="mt-3 text-slate-600">{product.description}</p>
           <div className="mt-5 flex items-baseline gap-2">
             <span className="font-display text-4xl font-extrabold text-navy-900">₹{product.price.toLocaleString("en-IN")}</span>

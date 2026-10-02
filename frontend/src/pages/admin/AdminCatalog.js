@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, Star } from "lucide-react";
 
 export default function AdminCatalog() {
   return (
@@ -35,42 +35,232 @@ function Products() {
   const [edit, setEdit] = useState(null);
   const load = useCallback(async () => setItems((await api.get("/admin/products")).data), []);
   useEffect(() => { load(); }, [load]);
+
   const save = async (p) => {
-    const body = { ...p, price: Number(p.price), features: (p.featuresStr || "").split(",").map((s) => s.trim()).filter(Boolean), requiredDocuments: (p.docsStr || "").split(",").map((s) => s.trim()).filter(Boolean) };
-    if (p.id) await api.put(`/admin/products/${p.id}`, body); else await api.post("/admin/products", body);
-    toast.success("Saved"); setEdit(null); load();
+    const body = {
+      ...p,
+      price: Number(p.price),
+      isPopular: Boolean(p.isPopular),
+      rating: Number(p.rating || 5),
+      badgeText: p.badgeText || "Most Popular",
+      features: (p.featuresStr || "").split(",").map((s) => s.trim()).filter(Boolean),
+      requiredDocuments: (p.docsStr || "").split(",").map((s) => s.trim()).filter(Boolean)
+    };
+    if (p.id) await api.put(`/admin/products/${p.id}`, body);
+    else await api.post("/admin/products", body);
+    toast.success("Saved");
+    setEdit(null);
+    load();
   };
-  const del = async (id) => { if (window.confirm("Delete product?")) { await api.delete(`/admin/products/${id}`); toast.success("Deleted"); load(); } };
+
+  const del = async (id) => {
+    if (window.confirm("Delete product?")) {
+      await api.delete(`/admin/products/${id}`);
+      toast.success("Deleted");
+      load();
+    }
+  };
+
   return (
     <div>
-      <Button data-testid="add-product" onClick={() => setEdit({ name: "", category: "Class 3 DSC", slug: "", description: "", price: 0, validity: "1 Year", imageUrl: "", featuresStr: "", docsStr: "" })} className="mb-4 bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl"><Plus className="h-4 w-4 mr-1" /> Add Product</Button>
+      <Button
+        data-testid="add-product"
+        onClick={() => setEdit({
+          name: "",
+          category: "Class 3 DSC",
+          slug: "",
+          description: "",
+          price: 0,
+          validity: "1 Year",
+          imageUrl: "",
+          isPopular: false,
+          rating: 5,
+          badgeText: "Most Popular",
+          featuresStr: "",
+          docsStr: "",
+          active: true
+        })}
+        className="mb-4 bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl"
+      >
+        <Plus className="h-4 w-4 mr-1" /> Add Product
+      </Button>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((p) => (
-          <div key={p.id} className="rounded-2xl border border-slate-200 bg-white p-4">
-            <div className="flex justify-between"><span className="text-xs text-purple-600 font-semibold">{p.category}</span><span className="font-bold">₹{p.price}</span></div>
+          <div
+            key={p.id}
+            className={`rounded-2xl border bg-white p-4 transition-all ${
+              p.isPopular ? "border-amber-300 ring-2 ring-amber-300/30 shadow-md" : "border-slate-200"
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="text-xs text-purple-600 font-semibold">{p.category}</span>
+                {p.isPopular && (
+                  <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 text-[10px] font-bold">
+                    <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" /> {p.badgeText || "Most Popular"} ({p.rating || 5}★)
+                  </span>
+                )}
+              </div>
+              <span className="font-bold text-navy-900">₹{p.price}</span>
+            </div>
+
             <p className="mt-1 font-semibold text-navy-900">{p.name}</p>
-            <p className="text-xs text-slate-400">{p.active ? "Active" : "Disabled"} · {p.validity}</p>
+            <p className="text-xs text-slate-400">{p.active !== false ? "Active" : "Disabled"} · {p.validity}</p>
+
             <div className="mt-3 flex gap-2">
-              <Button size="sm" variant="outline" data-testid={`edit-product-${p.id}`} onClick={() => setEdit({ ...p, featuresStr: (p.features||[]).join(", "), docsStr: (p.requiredDocuments||[]).join(", ") })} className="rounded-lg flex-1"><Pencil className="h-3.5 w-3.5" /></Button>
-              <Button size="sm" variant="outline" onClick={() => del(p.id)} className="rounded-lg text-rose-600"><Trash2 className="h-3.5 w-3.5" /></Button>
+              <Button
+                size="sm"
+                variant="outline"
+                data-testid={`edit-product-${p.id}`}
+                onClick={() => setEdit({
+                  ...p,
+                  isPopular: Boolean(p.isPopular),
+                  rating: p.rating ?? 5,
+                  badgeText: p.badgeText || "Most Popular",
+                  featuresStr: (p.features || []).join(", "),
+                  docsStr: (p.requiredDocuments || []).join(", ")
+                })}
+                className="rounded-lg flex-1"
+              >
+                <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => del(p.id)} className="rounded-lg text-rose-600">
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
           </div>
         ))}
       </div>
+
       <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader><DialogTitle>{edit?.id ? "Edit" : "Add"} Product</DialogTitle></DialogHeader>
           {edit && (
-            <div className="space-y-3">
-              {[["name","Name"],["slug","Slug"],["category","Category"],["validity","Validity"],["imageUrl","Image URL"]].map(([k,l]) => (
-                <div key={k}><Label className="text-xs">{l}</Label><Input data-testid={`product-${k}`} value={edit[k]||""} onChange={(e) => setEdit({ ...edit, [k]: e.target.value })} className="mt-1" /></div>
+            <div className="space-y-3.5">
+              {[
+                ["name", "Product Name"],
+                ["slug", "URL Slug"],
+                ["category", "Category"],
+                ["validity", "Validity (e.g. 1 Year, 2 Years)"],
+                ["imageUrl", "Image URL"]
+              ].map(([k, l]) => (
+                <div key={k}>
+                  <Label className="text-xs">{l}</Label>
+                  <Input
+                    data-testid={`product-${k}`}
+                    value={edit[k] || ""}
+                    onChange={(e) => setEdit({ ...edit, [k]: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
               ))}
-              <div><Label className="text-xs">Price</Label><Input data-testid="product-price" type="number" value={edit.price} onChange={(e) => setEdit({ ...edit, price: e.target.value })} className="mt-1" /></div>
-              <div><Label className="text-xs">Description</Label><Textarea value={edit.description||""} onChange={(e) => setEdit({ ...edit, description: e.target.value })} className="mt-1" /></div>
-              <div><Label className="text-xs">Features (comma separated)</Label><Input value={edit.featuresStr} onChange={(e) => setEdit({ ...edit, featuresStr: e.target.value })} className="mt-1" /></div>
-              <div><Label className="text-xs">Required Documents (comma separated)</Label><Input value={edit.docsStr} onChange={(e) => setEdit({ ...edit, docsStr: e.target.value })} className="mt-1" /></div>
-              <label className="flex items-center gap-2 text-sm"><Switch checked={edit.active !== false} onCheckedChange={(v) => setEdit({ ...edit, active: v })} /> Active</label>
-              <Button data-testid="save-product" onClick={() => save(edit)} className="w-full bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl">Save Product</Button>
+
+              <div>
+                <Label className="text-xs">Price (₹)</Label>
+                <Input
+                  data-testid="product-price"
+                  type="number"
+                  value={edit.price}
+                  onChange={(e) => setEdit({ ...edit, price: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Popularity & Star Rating Section */}
+              <div className="rounded-xl border border-amber-200/80 bg-amber-50/40 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-xs font-bold text-navy-900 cursor-pointer">
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-400" />
+                    <span>Mark as Most Popular / Featured</span>
+                  </label>
+                  <Switch
+                    checked={Boolean(edit.isPopular)}
+                    onCheckedChange={(v) => setEdit({ ...edit, isPopular: v })}
+                  />
+                </div>
+
+                {edit.isPopular && (
+                  <div className="pt-2 border-t border-amber-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-[11px] font-semibold text-slate-700">Star Rating ({edit.rating || 5} Stars)</Label>
+                      <div className="flex items-center gap-1 mt-1 bg-white p-1.5 rounded-lg border border-slate-200">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setEdit({ ...edit, rating: star })}
+                            className="p-1 focus:outline-none transition-transform hover:scale-125"
+                            title={`${star} Star`}
+                          >
+                            <Star
+                              className={`h-5 w-5 ${
+                                star <= (edit.rating || 5)
+                                  ? "fill-amber-400 text-amber-400"
+                                  : "fill-slate-100 text-slate-300"
+                              }`}
+                            />
+                          </button>
+                        ))}
+                        <span className="text-xs font-bold text-slate-800 ml-1.5">{edit.rating || 5}★</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-[11px] font-semibold text-slate-700">Badge Label</Label>
+                      <Input
+                        placeholder="e.g. Most Popular"
+                        value={edit.badgeText ?? "Most Popular"}
+                        onChange={(e) => setEdit({ ...edit, badgeText: e.target.value })}
+                        className="mt-1 h-9 text-xs bg-white"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-xs">Description</Label>
+                <Textarea
+                  value={edit.description || ""}
+                  onChange={(e) => setEdit({ ...edit, description: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs">Features (comma separated)</Label>
+                <Input
+                  value={edit.featuresStr}
+                  onChange={(e) => setEdit({ ...edit, featuresStr: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs">Required Documents (comma separated)</Label>
+                <Input
+                  value={edit.docsStr}
+                  onChange={(e) => setEdit({ ...edit, docsStr: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 text-sm pt-1">
+                <Switch
+                  checked={edit.active !== false}
+                  onCheckedChange={(v) => setEdit({ ...edit, active: v })}
+                />
+                Active (Visible in Store)
+              </label>
+
+              <Button
+                data-testid="save-product"
+                onClick={() => save(edit)}
+                className="w-full bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl py-6 font-semibold"
+              >
+                Save Product
+              </Button>
             </div>
           )}
         </DialogContent>

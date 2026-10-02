@@ -16,10 +16,12 @@ export default function AdminLeads() {
       <Tabs defaultValue="partners">
         <TabsList>
           <TabsTrigger value="partners" data-testid="leads-tab-partners">Partnership Leads</TabsTrigger>
+          <TabsTrigger value="agents" data-testid="leads-tab-agents">Registered Agents</TabsTrigger>
           <TabsTrigger value="contacts" data-testid="leads-tab-contacts">Contact Enquiries</TabsTrigger>
           <TabsTrigger value="tickets" data-testid="leads-tab-tickets">Support Tickets</TabsTrigger>
         </TabsList>
         <TabsContent value="partners" className="mt-4"><Partners /></TabsContent>
+        <TabsContent value="agents" className="mt-4"><Agents /></TabsContent>
         <TabsContent value="contacts" className="mt-4"><Contacts /></TabsContent>
         <TabsContent value="tickets" className="mt-4"><Tickets /></TabsContent>
       </Tabs>
@@ -89,6 +91,63 @@ function Tickets() {
           <Button data-testid="send-reply" onClick={send} className="bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl">Send Reply</Button>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function Agents() {
+  const [rows, setRows] = useState([]);
+  const load = useCallback(async () => {
+    try {
+      const res = await api.get("/admin/agents");
+      setRows(res.data);
+    } catch (e) {
+      toast.error("Failed to load agents");
+    }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const setStatus = async (id, status) => {
+    await api.put(`/admin/agents/${id}`, { status });
+    toast.success("Agent status updated");
+    load();
+  };
+
+  return (
+    <div>
+      <div className="space-y-2.5">
+        {rows.map((r) => (
+          <div key={r.id} className="rounded-2xl border border-slate-200 bg-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-navy-900">{r.name} {r.business ? `· ${r.business}` : ""}</p>
+                <span className="font-mono text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-bold">{r.agentCode}</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">{r.commissionRate || 15}% Comm.</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                📱 {r.mobile} · ✉️ {r.email || "—"} · {r.city || "—"}, {r.state || "—"}
+              </p>
+              <div className="flex items-center gap-4 text-xs font-medium text-slate-600 mt-1.5">
+                <span>Total Clients: <strong>{r.clientCount || 0}</strong></span>
+                <span>Completed: <strong className="text-emerald-600">{r.completedCount || 0}</strong></span>
+                <span>Earned: <strong className="text-navy-900">₹{r.totalCommission || 0}</strong></span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Select value={r.status || "Active"} onValueChange={(v) => setStatus(r.id, v)}>
+                <SelectTrigger className="w-32 h-9 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active" className="text-xs">Active</SelectItem>
+                  <SelectItem value="Suspended" className="text-xs">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        ))}
+        {rows.length === 0 && <p className="p-10 text-center text-slate-400">No registered agents yet.</p>}
+      </div>
     </div>
   );
 }

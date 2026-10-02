@@ -3,6 +3,7 @@ import { Seo } from "@/components/Seo";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DscFinder } from "@/components/DscFinder";
+import { ProductCard } from "@/components/ProductCard";
 import { usePurchase } from "@/context/PurchaseContext";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
@@ -42,8 +43,8 @@ export default function Home() {
   const nav = useNavigate();
 
   useEffect(() => {
-    api.get("/products").then((r) => setProducts(r.data));
-    api.get("/partner-cas").then((r) => setCas(r.data));
+    api.get("/products").then((r) => setProducts(r.data)).catch((err) => console.error("Failed to load products", err));
+    api.get("/partner-cas").then((r) => setCas(r.data)).catch((err) => console.error("Failed to load CAs", err));
     track("page_view", { page: "home" });
   }, []);
 
@@ -134,19 +135,9 @@ export default function Home() {
           </div>
           <Link to="/products" className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-purple-700">View all <ArrowRight className="h-4 w-4" /></Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.slice(0, 3).map((p, i) => (
-            <div key={p.id} className="animate-rise rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-lg transition-all" style={{ animationDelay: `${i * 60}ms` }}>
-              <div className="h-36 rounded-xl bg-gradient-to-br from-lavender-50 to-slate-50 overflow-hidden mb-4">
-                <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover mix-blend-multiply" />
-              </div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-purple-600">{p.category}</p>
-              <h3 className="mt-1 font-display text-lg font-bold text-navy-900">{p.name}</h3>
-              <div className="mt-2 flex items-center justify-between">
-                <span className="font-display text-xl font-extrabold text-navy-900">₹{p.price.toLocaleString("en-IN")}</span>
-                <Button size="sm" data-testid={`home-buy-${p.slug}`} onClick={() => startPurchase(p)} className="bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-lg">Buy Now</Button>
-              </div>
-            </div>
+            <ProductCard key={p.id} product={p} onBuy={startPurchase} index={i} />
           ))}
         </div>
       </section>

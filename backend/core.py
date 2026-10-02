@@ -69,6 +69,11 @@ async def gen_ticket_id() -> str:
     return f"TKT-{year}-{num:06d}"
 
 
+async def gen_agent_code() -> str:
+    num = await _next_counter("AGENT-CODE", 10101)
+    return f"AGT-{num}"
+
+
 def clean(doc: dict) -> dict:
     """Strip Mongo _id for JSON responses."""
     if doc and "_id" in doc:

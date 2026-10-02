@@ -81,11 +81,7 @@ export function DscFinder({ onBuy }) {
             ))}
           </div>
           <div className="mt-4 rounded-xl bg-lavender-50 p-3 text-xs text-slate-500 flex items-center gap-2">
-<<<<<<< HEAD
             <Check className="h-4 w-4 text-purple-600" /> Not sure? Call our experts free at {SITE.phone} or {SITE.phone2}.
-=======
-            <Check className="h-4 w-4 text-purple-600" /> Not sure? Call our experts free at +91 79929 99947 and we'll help you choose the right DSC.
->>>>>>> 6280311c0f7e6d841bf7e8496bfba978094a547f
           </div>
         </div>
       )}

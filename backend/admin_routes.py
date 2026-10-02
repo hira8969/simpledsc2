@@ -245,7 +245,10 @@ async def admin_document_file(doc_id: str, admin: dict = Depends(require_roles("
     d = await db.documents.find_one({"id": doc_id})
     if not d:
         raise HTTPException(404, "Document not found")
-    return Response(content=base64.b64decode(d["data"]), media_type=d["contentType"])
+    headers = {
+        "Content-Disposition": f'inline; filename="{d.get("fileName", "document")}"'
+    }
+    return Response(content=base64.b64decode(d["data"]), media_type=d.get("contentType", "application/pdf"), headers=headers)
 
 @admin_router.put("/admin/documents/{doc_id}/verify")
 async def verify_document(doc_id: str, payload: dict, request: Request,
@@ -399,6 +402,28 @@ async def partnership_leads(admin: dict = Depends(get_current_admin)):
 @admin_router.put("/admin/partnership-leads/{lid}")
 async def update_lead(lid: str, payload: dict, admin: dict = Depends(get_current_admin)):
     await db.partnership_applications.update_one({"id": lid}, {"$set": payload})
+    return {"ok": True}
+
+@admin_router.get("/admin/agents")
+async def admin_list_agents(admin: dict = Depends(get_current_admin)):
+    agents = await db.agents.find({}, {"_id": 0, "password": 0}).sort("createdAt", -1).to_list(500)
+    for a in agents:
+        orders = await db.orders.find({"agentCode": a.get("agentCode")}, {"_id": 0, "orderStatus": 1, "agentCommission": 1, "totalAmount": 1}).to_list(500)
+        a["clientCount"] = len(orders)
+        a["completedCount"] = sum(1 for o in orders if o.get("orderStatus") in ["DSC Ready", "Completed"])
+        a["totalCommission"] = sum(o.get("agentCommission", 0) for o in orders if o.get("orderStatus") in ["DSC Ready", "Completed"])
+    return agents
+
+@admin_router.put("/admin/agents/{agent_id}")
+async def admin_update_agent(agent_id: str, payload: dict, admin: dict = Depends(get_current_admin)):
+    allowed = {}
+    if "status" in payload:
+        allowed["status"] = payload["status"]
+    if "commissionRate" in payload:
+        allowed["commissionRate"] = float(payload["commissionRate"])
+    if allowed:
+        allowed["updatedAt"] = now_iso()
+        await db.agents.update_one({"id": agent_id}, {"$set": allowed})
     return {"ok": True}
 
 @admin_router.get("/admin/contact-enquiries")

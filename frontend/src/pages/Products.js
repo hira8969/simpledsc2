@@ -13,7 +13,9 @@ export default function Products() {
   const { startPurchase } = usePurchase();
 
   useEffect(() => {
-    api.get("/products", { params: cat === "All" ? {} : { category: cat } }).then((r) => setProducts(r.data));
+    api.get("/products", { params: cat === "All" ? {} : { category: cat } })
+      .then((r) => setProducts(r.data))
+      .catch((err) => console.error("Failed to load products", err));
     track("product_category_view", { category: cat });
   }, [cat]);
 

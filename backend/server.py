@@ -63,6 +63,7 @@ class AdminLogin(BaseModel):
 class CreateOrderReq(BaseModel):
     productId: str
     couponCode: Optional[str] = None
+    agentCode: Optional[str] = None
     applicant: dict = {}
     shipping: dict = {}
 
@@ -257,11 +258,26 @@ async def create_order(payload: CreateOrderReq, request: Request, user: dict = D
     else:
         rzp_order_id = f"order_mock_{new_id()[:16]}"
 
+    # Link Agent if referral code provided
+    agent_fields = {}
+    if payload.agentCode:
+        code_clean = payload.agentCode.strip()
+        agt = await db.agents.find_one({"$or": [{"agentCode": code_clean.upper()}, {"agentCode": code_clean}]})
+        if agt and agt.get("status") != "Suspended":
+            comm_rate = float(agt.get("commissionRate", 15.0)) / 100.0
+            agent_fields = {
+                "agentCode": agt["agentCode"],
+                "agentId": agt["id"],
+                "agentName": agt["name"],
+                "agentCommission": round(pricing["amount"] * comm_rate, 2),
+            }
+
     order = {
         "id": new_id(), "orderId": order_id, "simplDscId": user["simplDscId"], "userId": user["id"],
         "productId": product["id"], "productName": product["name"], "productCategory": product["category"],
         "customerName": user.get("name"), "mobile": user["mobile"], "email": user.get("email"),
         **pricing, "currency": "INR",
+        **agent_fields,
         "paymentStatus": "Payment Pending", "documentStatus": "Pending", "orderStatus": "Payment Pending",
         "workflowStage": "Application Created",
         "caId": product.get("preferredCA"), "razorpayOrderId": rzp_order_id,
@@ -468,6 +484,7 @@ async def validate_coupon(code: str, productId: str, user: dict = Depends(get_cu
 
 
 from admin_routes import admin_router  # noqa: E402
+from agent_routes import agent_router  # noqa: E402
 
 STATIC_PAGES = [("/", "1.0", "daily"), ("/products", "0.9", "daily"), ("/pricing", "0.8", "weekly"),
                 ("/use-cases", "0.7", "monthly"), ("/about", "0.6", "monthly"), ("/resources", "0.6", "monthly"),
@@ -499,6 +516,7 @@ async def robots_txt():
     return PlainTextResponse(content=txt)
 
 api.include_router(admin_router)
+api.include_router(agent_router)
 app.include_router(api)
 
 app.add_middleware(CORSMiddleware, allow_credentials=True,

@@ -46,10 +46,11 @@ def decode_token(token: str) -> dict:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
-async def get_current_customer(creds: HTTPAuthorizationCredentials = Depends(bearer)):
-    if not creds:
+async def get_current_customer(request: Request, creds: HTTPAuthorizationCredentials = Depends(bearer)):
+    token = creds.credentials if creds else request.query_params.get("token")
+    if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    payload = decode_token(creds.credentials)
+    payload = decode_token(token)
     if payload.get("kind") != "customer":
         raise HTTPException(status_code=401, detail="Customer auth required")
     user = await db.users.find_one({"id": payload["sub"]})
@@ -58,16 +59,30 @@ async def get_current_customer(creds: HTTPAuthorizationCredentials = Depends(bea
     return clean(user)
 
 
-async def get_current_admin(creds: HTTPAuthorizationCredentials = Depends(bearer)):
-    if not creds:
+async def get_current_admin(request: Request, creds: HTTPAuthorizationCredentials = Depends(bearer)):
+    token = creds.credentials if creds else request.query_params.get("token")
+    if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    payload = decode_token(creds.credentials)
+    payload = decode_token(token)
     if payload.get("kind") != "admin":
         raise HTTPException(status_code=401, detail="Admin auth required")
     admin = await db.admin_users.find_one({"id": payload["sub"]})
     if not admin or not admin.get("active", True):
         raise HTTPException(status_code=401, detail="Admin not found or disabled")
     return clean(admin)
+
+
+async def get_current_agent(request: Request, creds: HTTPAuthorizationCredentials = Depends(bearer)):
+    token = creds.credentials if creds else request.query_params.get("token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    payload = decode_token(token)
+    if payload.get("kind") != "agent":
+        raise HTTPException(status_code=401, detail="Agent auth required")
+    agent = await db.agents.find_one({"id": payload["sub"]})
+    if not agent or agent.get("status") == "Suspended":
+        raise HTTPException(status_code=401, detail="Agent not found or suspended")
+    return clean(agent)
 
 
 def require_roles(*allowed):

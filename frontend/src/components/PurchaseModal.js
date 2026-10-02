@@ -35,8 +35,8 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const createOrder = async () => {
     setBusy(true);
     try {
-      track("checkout_started", { product: product.name });
-      const { data } = await api.post("/orders", { productId: product.id, couponCode: pricing ? coupon : null, applicant, shipping });
+      const agentCode = localStorage.getItem("sd_agent_ref") || undefined;
+      const { data } = await api.post("/orders", { productId: product.id, couponCode: pricing ? coupon : null, agentCode, applicant, shipping });
       setOrder(data.order); setRzp(data.razorpay);
       return data;
     } catch (e) { toast.error(e.response?.data?.detail || "Could not create order"); }

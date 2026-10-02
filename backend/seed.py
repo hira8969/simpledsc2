@@ -24,6 +24,7 @@ PRODUCTS = [
         "name": "Class 3 Individual DSC", "category": "Class 3 DSC", "slug": "class-3-dsc",
         "description": "For directors, professionals and high-security usage. Legally valid Class 3 signing certificate.",
         "price": 1999, "validity": "1 Year", "imageUrl": TOK_CLASS3,
+        "isPopular": True, "rating": 5, "badgeText": "Most Popular",
         "features": ["Aadhaar eKYC", "PAN Verification", "Video Verification", "Priority Support", "Free Reissuance"],
         "requiredDocuments": ["PAN", "Aadhaar", "Photograph", "Address Proof"], "sortOrder": 2,
         "purposeTags": ["individual", "business", "document_signing"],
