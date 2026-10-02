@@ -19,7 +19,7 @@ Build a production-ready full-stack Digital Signature Certificate (DSC) platform
 - Customer (individual/business) buying & managing DSCs.
 - Super Admin, Staff, Document Verification Staff, Order Staff (role-gated server-side).
 
-## Implemented (2026-09-24)
+## Implemented (2024-09-24)
 - Public site: Home, Products (+detail, category filter), Use Cases, Pricing, About, Resources, Contact, Partner, Agent, FAQs, Terms/Privacy/Refund. DSC Finder wizard. No maps / no social icons.
 - Customer: OTP login + profile, purchase flow (details→docs→review→coupon→mock Razorpay→success), dashboard (overview, orders + timeline + doc upload/re-upload, DSCs + renew, invoices + printable, support tickets, profile, notifications).
 - Admin: dashboard stats + revenue + 15-day expiry widget, orders (filter/search/detail with verify/reject docs, assign CA, status/workflow, issue DSC, shipping, refund), customers, document inbox, DSC mgmt + expiry dashboard (15/30/60/expired/renewing) + reminders + renewals, catalog (products/CAs/FAQs/coupons CRUD), leads (partnership/contact/tickets), system (analytics/staff/audit/SEO settings), global search, CSV export.
