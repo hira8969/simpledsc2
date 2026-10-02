@@ -9,7 +9,8 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
-from fastapi.responses import Response, PlainTextResponse
+from fastapi.responses import Response, PlainTextResponse, HTMLResponse, FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, Field
 
@@ -21,6 +22,14 @@ import seed as seed_module
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("simpldsc")
+
+def sanitize_mobile(raw: str) -> str:
+    cleaned = ''.join(filter(str.isdigit, raw or ''))
+    if len(cleaned) == 12 and cleaned.startswith('91'):
+        cleaned = cleaned[2:]
+    elif len(cleaned) == 11 and cleaned.startswith('0'):
+        cleaned = cleaned[1:]
+    return cleaned
 
 app = FastAPI(title="SimplDSC API")
 api = APIRouter(prefix="/api")
@@ -75,6 +84,7 @@ class VerifyPaymentReq(BaseModel):
 
 
 # ================= PUBLIC =================
+@api.get("")
 @api.get("/")
 async def root():
     return {"service": "SimplDSC", "status": "ok"}
@@ -142,13 +152,13 @@ async def submit_partnership(payload: dict):
 # ================= CUSTOMER AUTH =================
 @api.post("/auth/send-otp")
 async def send_otp(payload: SendOtp, request: Request):
-    mobile = payload.mobile.strip()
-    if not mobile or len(mobile) < 10:
-        raise HTTPException(400, "Invalid mobile number")
-    # rate limit: max 5 per mobile per hour
+    mobile = sanitize_mobile(payload.mobile)
+    if not mobile or len(mobile) != 10:
+        raise HTTPException(400, "Please provide a valid 10-digit mobile number")
+    # rate limit: max 25 per mobile per hour (generous for testing)
     since = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     recent = await db.otp_sessions.count_documents({"mobile": mobile, "createdAt": {"$gt": since}})
-    if recent >= 5:
+    if recent >= 25:
         raise HTTPException(429, "Too many OTP requests. Please try again later.")
     otp = f"{random.randint(0, 999999):06d}"
     session_id = new_id()
@@ -158,25 +168,27 @@ async def send_otp(payload: SendOtp, request: Request):
         "expiresAt": (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat(),
     })
     logger.info(f"[DEV OTP] mobile={mobile} otp={otp}")
-    # dev mode: return otp so flow is testable without Firebase
+    # dev mode: return otp so flow is testable without external SMS/Firebase
     return {"sessionId": session_id, "devOtp": otp, "devMode": True}
 
 @api.post("/auth/verify-otp")
 async def verify_otp(payload: VerifyOtp):
-    sess = await db.otp_sessions.find_one({"id": payload.sessionId, "mobile": payload.mobile.strip()})
+    mobile = sanitize_mobile(payload.mobile)
+    otp_code = payload.otp.strip()
+    sess = await db.otp_sessions.find_one({"id": payload.sessionId, "mobile": mobile})
     if not sess:
-        raise HTTPException(400, "Invalid session")
+        raise HTTPException(400, "Invalid or expired session. Please request a new OTP.")
     if sess.get("verified"):
-        raise HTTPException(400, "OTP already used")
+        raise HTTPException(400, "OTP already used. Please request a new OTP.")
     if sess["expiresAt"] < now_iso():
-        raise HTTPException(400, "OTP expired")
+        raise HTTPException(400, "OTP expired. Please request a new OTP.")
     if sess.get("attempts", 0) >= 5:
-        raise HTTPException(429, "Too many attempts")
-    if payload.otp != sess["otp"]:
+        raise HTTPException(429, "Too many attempts. Please request a new OTP.")
+    if otp_code != sess["otp"]:
         await db.otp_sessions.update_one({"id": sess["id"]}, {"$inc": {"attempts": 1}})
         raise HTTPException(400, "Incorrect OTP")
     await db.otp_sessions.update_one({"id": sess["id"]}, {"$set": {"verified": True}})
-    return await _login_or_create(payload.mobile.strip())
+    return await _login_or_create(mobile)
 
 async def _login_or_create(mobile: str):
     user = await db.users.find_one({"mobile": mobile})
@@ -519,16 +531,100 @@ api.include_router(admin_router)
 api.include_router(agent_router)
 app.include_router(api)
 
-cors_origins_raw = os.environ.get('CORS_ORIGINS', '*').strip()
-if cors_origins_raw == '*' or not cors_origins_raw:
-    cors_origins = ['*']
-else:
-    cors_origins = [o.strip() for o in cors_origins_raw.split(',') if o.strip()]
+@app.get("/health")
+@api.get("/health")
+async def health_check():
+    return {"status": "ok", "service": "SimplDSC API", "time": now_iso()}
 
-app.add_middleware(CORSMiddleware, allow_credentials=True,
-                   allow_origins=cors_origins,
-                   allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|.*\.vercel\.app)(:\d+)?$",
-                   allow_methods=["*"], allow_headers=["*"])
+# Locate frontend build directory if present (e.g. unified deployment)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+POSSIBLE_BUILD_DIRS = [
+    os.path.join(BASE_DIR, "..", "frontend", "build"),
+    os.path.join(BASE_DIR, "frontend", "build"),
+    os.path.abspath("frontend/build"),
+    os.path.abspath("../frontend/build"),
+]
+FRONTEND_BUILD_DIR = None
+for p in POSSIBLE_BUILD_DIRS:
+    if os.path.isdir(p) and os.path.isfile(os.path.join(p, "index.html")):
+        FRONTEND_BUILD_DIR = os.path.abspath(p)
+        break
+
+if FRONTEND_BUILD_DIR:
+    logger.info(f"Serving frontend SPA build from {FRONTEND_BUILD_DIR}")
+    static_folder = os.path.join(FRONTEND_BUILD_DIR, "static")
+    if os.path.isdir(static_folder):
+        app.mount("/static", StaticFiles(directory=static_folder), name="static")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api") or full_path in ["docs", "openapi.json", "redoc", "health"]:
+            raise HTTPException(404, "Not Found")
+        target_file = os.path.join(FRONTEND_BUILD_DIR, full_path)
+        if full_path and os.path.isfile(target_file):
+            return FileResponse(target_file)
+        return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "index.html"))
+else:
+    @app.get("/", response_class=HTMLResponse)
+    async def app_root(request: Request):
+        accept = request.headers.get("accept", "")
+        if "application/json" in accept and "text/html" not in accept:
+            return JSONResponse({"service": "SimplDSC API", "status": "online", "api": "/api", "docs": "/docs"})
+        html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimplDSC API Server</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #0b0f19; color: #f1f5f9; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: #111827; border: 1px solid #1f2937; border-radius: 20px; padding: 40px; max-width: 520px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); text-align: center; }
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); padding: 6px 16px; border-radius: 9999px; font-size: 13px; font-weight: 600; margin-bottom: 24px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 12px #22c55e; }
+        h1 { font-size: 26px; font-weight: 700; margin: 0 0 10px; color: #ffffff; letter-spacing: -0.02em; }
+        p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 28px; }
+        .links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s ease; }
+        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45); }
+        .btn-secondary { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+        .btn-secondary:hover { background: #334155; color: white; }
+        .meta { margin-top: 28px; padding-top: 20px; border-top: 1px solid #1f2937; font-size: 12px; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="status-badge"><span class="dot"></span> SimplDSC API Online</div>
+        <h1>SimplDSC Backend Service</h1>
+        <p>The backend API server is fully running and connected to MongoDB Atlas. API endpoints are available under <code>/api</code>.</p>
+        <div class="links">
+            <a href="/docs" class="btn btn-primary">Open Interactive API Docs</a>
+            <a href="/api" class="btn btn-secondary">API Health Check</a>
+        </div>
+        <div class="meta">Status: Operational &bull; Version: 1.0.0</div>
+    </div>
+</body>
+</html>"""
+        return HTMLResponse(content=html)
+
+cors_origins_raw = os.environ.get('CORS_ORIGINS', '').strip()
+if cors_origins_raw and cors_origins_raw != '*':
+    cors_origins = [o.strip() for o in cors_origins_raw.split(',') if o.strip()]
+    allow_regex = None
+else:
+    # Allow any origin with credentials without triggering browser CORS errors
+    cors_origins = []
+    allow_regex = r"^https?://.*"
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_origin_regex=allow_regex,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # ================= EXPIRY REMINDER JOB =================
