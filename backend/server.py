@@ -519,8 +519,15 @@ api.include_router(admin_router)
 api.include_router(agent_router)
 app.include_router(api)
 
+cors_origins_raw = os.environ.get('CORS_ORIGINS', '*').strip()
+if cors_origins_raw == '*' or not cors_origins_raw:
+    cors_origins = ['*']
+else:
+    cors_origins = [o.strip() for o in cors_origins_raw.split(',') if o.strip()]
+
 app.add_middleware(CORSMiddleware, allow_credentials=True,
-                   allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+                   allow_origins=cors_origins,
+                   allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|.*\.vercel\.app)(:\d+)?$",
                    allow_methods=["*"], allow_headers=["*"])
 
 
