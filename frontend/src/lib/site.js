@@ -12,5 +12,5 @@ export const SITE = {
   footerYear: 2024,
   policyLastUpdated: "2024",
   policyVersion: "1.6",
-  logoUrl: "https://customer-assets-cm19k8pv.emergentagent.net/job_fff586d8-1118-40d6-9983-2a1d993a6b3e/artifacts/65rm7kj2_BB7182AE-0D95-4B92-B116-FBD45B6CED03.png",
+  logoUrl: "/logo.png",
 };

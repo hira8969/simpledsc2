@@ -86,9 +86,12 @@ export function Chatbot() {
       {open && (
         <div data-testid="chatbot-panel"
           className="fixed bottom-24 right-5 z-50 w-[92vw] max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-rise">
-          <div className="bg-gradient-to-r from-purple-700 to-navy-800 px-4 py-3 text-white">
-            <p className="font-display font-bold">SimplDSC Assistant</p>
-            <p className="text-xs text-lavender-200">Quick answers about DSCs, orders & more</p>
+          <div className="bg-gradient-to-r from-purple-700 to-navy-800 px-4 py-3 text-white flex items-center gap-2.5">
+            <img src="/logo-icon.png" alt="" className="h-7 w-7 object-contain rounded-lg bg-white/10 p-0.5 shrink-0" />
+            <div>
+              <p className="font-display font-bold leading-tight">SimplDSC Assistant</p>
+              <p className="text-[11px] text-lavender-200">Quick answers about DSCs, orders & more</p>
+            </div>
           </div>
 
           <div className="max-h-72 space-y-3 overflow-y-auto p-4">
