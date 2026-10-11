@@ -12,5 +12,5 @@ export const SITE = {
   footerYear: 2024,
   policyLastUpdated: "2024",
   policyVersion: "1.6",
-  logoUrl: "/logo.png",
+  logoUrl: "/logo1.jpeg",
 };
