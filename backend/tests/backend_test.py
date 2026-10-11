@@ -100,7 +100,7 @@ def test_send_otp_and_verify_new_user():
     assert "token" in body and body["isNew"] is True
     assert body["user"]["simplDscId"].startswith("SPLDSC-")
     parts = body["user"]["simplDscId"].split("-")
-    assert len(parts) == 4 and int(parts[3]) >= 157535
+    assert len(parts) == 4 and int(parts[3]) >= 105225
     _state["token"] = body["token"]
     _state["user"] = body["user"]
 

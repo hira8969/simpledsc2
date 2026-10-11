@@ -66,7 +66,7 @@ export default function Home() {
                 Get your Digital Signature Certificate quickly, securely and conveniently. Class 3, DGFT, eTender & MCA DSCs delivered fast.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button data-testid="hero-get-dsc-btn" onClick={() => { track("get_dsc_click"); requireAuth(() => nav("/dashboard")); }}
+                <Button data-testid="hero-get-dsc-btn" onClick={() => { track("get_dsc_click"); requireAuth(() => nav("/client")); }}
                   className="bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 text-white rounded-xl px-7 py-6 text-base">
                   Get Your DSC <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
@@ -184,7 +184,7 @@ export default function Home() {
           <div className="relative">
             <h2 className="font-display text-3xl lg:text-4xl font-bold">Go Paperless. Go Digital with SimplDSC.</h2>
             <p className="mt-3 text-lavender-200">Join thousands of professionals and businesses across India.</p>
-            <Button data-testid="cta-get-started-btn" onClick={() => requireAuth(() => nav("/dashboard"))}
+            <Button data-testid="cta-get-started-btn" onClick={() => requireAuth(() => nav("/client"))}
               className="mt-7 bg-white text-purple-800 hover:bg-lavender-100 rounded-xl px-8 py-6 text-base font-semibold">Get Started</Button>
           </div>
         </div>

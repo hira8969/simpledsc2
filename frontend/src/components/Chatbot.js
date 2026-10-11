@@ -33,12 +33,12 @@ const TOPICS = [
   {
     key: "orders", q: "How do I track my order?",
     a: "Log in to your dashboard to see a live timeline — from payment to document verification, CA submission, DSC issuance and token dispatch. Invoices are available there too.",
-    link: { label: "Go to dashboard", to: "/dashboard" },
+    link: { label: "Go to dashboard", to: "/client" },
   },
   {
     key: "agent", q: "How do I become a DSC Agent?",
     a: "Become a DSC Agent in 4 steps: apply → submit the application form → our team reviews it → you're approved and onboarded. Grow your business by offering DSCs to your clients.",
-    link: { label: "Become an Agent", to: "/agent" },
+    link: { label: "Become an Agent", to: "/partner" },
   },
   {
     key: "contact", q: "How do I contact support?",

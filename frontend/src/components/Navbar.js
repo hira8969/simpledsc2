@@ -16,7 +16,7 @@ const NAV = [
   { label: "Pricing", to: "/pricing" },
   { label: "About", to: "/about" },
   { label: "Resources", to: "/resources" },
-  { label: "Become a DSC Agent", to: "/agent" },
+  { label: "Become a DSC Agent", to: "/partner" },
 ];
 
 export function Navbar() {
@@ -35,7 +35,7 @@ export function Navbar() {
 
   const getDsc = () => {
     track("get_dsc_click");
-    requireAuth(() => nav("/dashboard"));
+    requireAuth(() => nav("/client"));
   };
   const active = (to) => loc.pathname === to;
 
@@ -68,7 +68,7 @@ export function Navbar() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => nav("/agent/dashboard")}
+                onClick={() => nav("/agent")}
                 className="hidden sm:inline-flex text-xs font-bold border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100 rounded-xl h-9"
               >
                 Agent Portal ({agent.agentCode})
@@ -80,7 +80,7 @@ export function Navbar() {
                   <User className="h-4 w-4" /> {user.name?.split(" ")[0] || "Account"}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => nav("/dashboard")} data-testid="nav-dashboard-link">
+                  <DropdownMenuItem onClick={() => nav("/client")} data-testid="nav-dashboard-link">
                     <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={logout} data-testid="nav-logout-btn">
@@ -121,7 +121,7 @@ export function Navbar() {
                   ))}
                   {agent && (
                     <Link
-                      to="/agent/dashboard"
+                      to="/agent"
                       onClick={() => setMobileOpen(false)}
                       className="px-3 py-2.5 rounded-lg font-bold text-purple-700 bg-purple-50 flex items-center justify-between"
                     >
@@ -131,7 +131,7 @@ export function Navbar() {
                   )}
                   {user && (
                     <Link
-                      to="/dashboard"
+                      to="/client"
                       onClick={() => setMobileOpen(false)}
                       className="px-3 py-2.5 rounded-lg text-purple-700 font-semibold"
                     >

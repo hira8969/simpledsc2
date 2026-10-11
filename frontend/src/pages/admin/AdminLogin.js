@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { Seo } from "@/components/Seo";
@@ -11,11 +11,17 @@ import { toast } from "sonner";
 import { Lock, ShieldCheck } from "lucide-react";
 
 export default function AdminLogin() {
-  const { login } = useAdminAuth();
+  const { login, admin, loading: authLoading } = useAdminAuth();
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && admin) {
+      nav("/admin", { replace: true });
+    }
+  }, [admin, authLoading, nav]);
 
   const submit = async () => {
     setBusy(true);

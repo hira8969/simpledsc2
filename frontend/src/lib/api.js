@@ -30,4 +30,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const url = error.config?.url || "";
+      if (url.includes("/admin")) {
+        localStorage.removeItem("sd_admin_token");
+      } else if (url.includes("/agent")) {
+        localStorage.removeItem("sd_agent_token");
+      } else if (url.includes("/customer") || url.includes("/auth")) {
+        localStorage.removeItem("sd_token");
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

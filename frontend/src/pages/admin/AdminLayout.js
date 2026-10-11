@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import api from "@/lib/api";
 import {
   LayoutDashboard, ShoppingCart, Users, FileCheck2, ShieldCheck, Package,
-  MessageSquare, Settings2, LogOut, Search, Menu, Bell,
+  MessageSquare, Settings2, LogOut, Search, Menu, Bell, Handshake, CreditCard,
 } from "lucide-react";
 
 const NAV = [
@@ -17,6 +17,8 @@ const NAV = [
   { to: "/admin/dscs", label: "DSC & Expiry", icon: ShieldCheck },
   { to: "/admin/catalog", label: "Catalog", icon: Package },
   { to: "/admin/leads", label: "Leads & Support", icon: MessageSquare },
+  { to: "/admin/partners", label: "Partners", icon: Handshake },
+  { to: "/admin/payments", label: "Payments", icon: CreditCard },
   { to: "/admin/system", label: "System", icon: Settings2 },
 ];
 
@@ -39,10 +41,18 @@ export default function AdminLayout() {
     return () => clearTimeout(t);
   }, [q]);
 
+  const handleLogout = () => {
+    logout();
+    nav("/admin/login");
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading…</div>;
   if (!admin) return <Navigate to="/admin/login" replace />;
 
-  const active = (n) => n.exact ? loc.pathname === n.to : loc.pathname.startsWith(n.to);
+  const active = (n) =>
+    n.exact
+      ? loc.pathname === n.to || loc.pathname === `${n.to}/dashboard`
+      : loc.pathname.startsWith(n.to);
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -57,7 +67,7 @@ export default function AdminLayout() {
               </button>
             ))}
           </nav>
-          <button onClick={logout} data-testid="admin-logout" className="mt-6 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-300 hover:bg-rose-500/10"><LogOut className="h-4 w-4" /> Logout</button>
+          <button onClick={handleLogout} data-testid="admin-logout" className="mt-6 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-300 hover:bg-rose-500/10"><LogOut className="h-4 w-4" /> Logout</button>
           <div className="absolute bottom-4 left-4 right-4 rounded-xl bg-white/5 p-3 text-xs">
             <p className="font-semibold text-white truncate">{admin.email}</p>
             <p className="text-lavender-300 capitalize">{admin.role.replace("_", " ")}</p>

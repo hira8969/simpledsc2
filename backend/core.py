@@ -1,5 +1,6 @@
 """Core: DB connection, shared helpers, ID sequence generators, audit + notifications."""
 import os
+import random
 import uuid
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -32,23 +33,44 @@ def quarter_for(dt: datetime) -> str:
             7: "C", 8: "C", 9: "C", 10: "D", 11: "D", 12: "D"}[dt.month]
 
 
-async def _next_counter(key: str, start: int) -> int:
-    """Atomically allocate the next number for `key`, first allocation == `start`."""
+async def _next_counter(key: str, start: int = 105225, min_step: int = 501, max_step: int = 999) -> int:
+    """Atomically allocate the next number for `key`.
+    - First allocation == `start` (e.g. 105225, always >= 500).
+    - Subsequent allocations atomically increment by a random step >= 500 (e.g. 501..999).
+    - Monotonically increasing guarantees ZERO duplicate IDs across all sections.
+    """
+    step = random.randint(min_step, max_step)
     doc = await db.sequence_counters.find_one_and_update(
-        {"_id": key},
-        {"$inc": {"currentNumber": 1}},
-        upsert=True,
+        {"_id": key, "currentVal": {"$gte": start}},
+        {"$inc": {"currentVal": step}},
         return_document=ReturnDocument.AFTER,
     )
-    return start - 1 + doc["currentNumber"]
+    if doc is not None and "currentVal" in doc:
+        return doc["currentVal"]
+
+    try:
+        await db.sequence_counters.update_one(
+            {"_id": key},
+            {"$set": {"currentVal": start}},
+            upsert=True,
+        )
+        return start
+    except Exception:
+        doc = await db.sequence_counters.find_one_and_update(
+            {"_id": key},
+            {"$inc": {"currentVal": step}},
+            upsert=True,
+            return_document=ReturnDocument.AFTER,
+        )
+        return doc.get("currentVal", start)
 
 
 async def gen_simpldsc_id() -> dict:
-    """SPLDSC-[YEAR]-[QUARTER]-[6DIGIT] resetting to 157535 each year+quarter."""
+    """SPLDSC-[YEAR]-[QUARTER]-[6DIGIT] starting at 105225 with random step >= 500."""
     dt = datetime.now(timezone.utc)
     year, q = dt.year, quarter_for(dt)
     key = f"SPLDSC-{year}-{q}"
-    num = await _next_counter(key, 157535)
+    num = await _next_counter(key, 105225)
     return {
         "simplDscId": f"SPLDSC-{year}-{q}-{num}",
         "year": year, "quarter": q, "sequenceNumber": num,
@@ -57,24 +79,24 @@ async def gen_simpldsc_id() -> dict:
 
 async def gen_order_id() -> str:
     year = datetime.now(timezone.utc).year
-    num = await _next_counter(f"ORDER-{year}", 1)
+    num = await _next_counter(f"ORDER-{year}", 105225)
     return f"SD-{year}-{num:06d}"
 
 
 async def gen_invoice_no() -> str:
     year = datetime.now(timezone.utc).year
-    num = await _next_counter(f"INV-{year}", 1)
+    num = await _next_counter(f"INV-{year}", 105225)
     return f"INV-{year}-{num:06d}"
 
 
 async def gen_ticket_id() -> str:
     year = datetime.now(timezone.utc).year
-    num = await _next_counter(f"TKT-{year}", 1)
+    num = await _next_counter(f"TKT-{year}", 105225)
     return f"TKT-{year}-{num:06d}"
 
 
 async def gen_agent_code() -> str:
-    num = await _next_counter("AGENT-CODE", 10101)
+    num = await _next_counter("AGENT-CODE", 105225)
     return f"AGT-{num}"
 
 

@@ -1,0 +1,857 @@
+{
+  "metadata": {
+    "exportedAt": "2026-10-08T05:09:44.604831Z",
+    "database": "test_database",
+    "collectionsCount": 17,
+    "totalDocuments": 57
+  },
+  "collections": {
+    "admin_login_attempts": [
+      {
+        "_id": "6abfed0abc10e4df8225c689",
+        "email": "imamitk17@gmail.com",
+        "ok": true,
+        "ip": "127.0.0.1",
+        "at": "2026-10-02T17:42:34.486559+00:00"
+      },
+      {
+        "_id": "6ac530346cac959592ad2438",
+        "email": "imamitk17@gmail.com",
+        "ok": true,
+        "ip": "106.216.118.58",
+        "at": "2026-10-06T17:30:28.252835+00:00"
+      }
+    ],
+    "admin_users": [
+      {
+        "_id": "6abfeb286ef1fe1ec92e83d5",
+        "id": "1c8a548b-adb9-4b48-b012-89b34ea25a71",
+        "email": "admin@simpldsc.in",
+        "passwordHash": "$2b$12$ymRkkAbyUAWv0VbpXSvWIeI2V5gWynK1oE5.B4LPI6J2z03p06C.K",
+        "name": "SimplDSC Admin",
+        "role": "super_admin",
+        "active": true,
+        "createdAt": "2026-10-02T17:34:32.531850+00:00"
+      },
+      {
+        "_id": "6abfeb2a6ef1fe1ec92e83d6",
+        "id": "9f383e79-0b98-4902-8fec-ed8b59b69f36",
+        "email": "imamitk17@gmail.com",
+        "passwordHash": "$2b$12$oyvGK2ltZKbhCYFHsiZ8MunKNYbVdTzn9uWFZTOmkqyjZX/qQlzhu",
+        "name": "Owner",
+        "role": "super_admin",
+        "active": true,
+        "createdAt": "2026-10-02T17:34:34.214522+00:00"
+      }
+    ],
+    "agents": [
+      {
+        "_id": "6ac4bdc271999690c9aaccf8",
+        "id": "3ecad3d3-ce54-41a3-b2cf-0a5deca679af",
+        "agentCode": "AGT-104500",
+        "name": "Poonam Mahasuar",
+        "business": "TSMTX",
+        "mobile": "7978268352",
+        "email": "poonammahasuar0@gmail.com",
+        "password": "$2b$12$n2qPB5CNiFjrrVDMEWfwwOavdHzsKJTVMGfV2R/S4hOrn4xNo62pa",
+        "city": "Bhubaneswar",
+        "state": "Odisha",
+        "commissionRate": 15.0,
+        "totalEarned": 0.0,
+        "status": "Active",
+        "payoutUpi": null,
+        "payoutBank": {},
+        "createdAt": "2026-10-06T09:22:10.690414+00:00",
+        "updatedAt": "2026-10-06T09:22:10.690445+00:00"
+      },
+      {
+        "_id": "6ac531d36cac959592ad2439",
+        "id": "8c7860e8-a7bd-43cc-9033-240656950b2b",
+        "agentCode": "AGT-105225",
+        "name": "Hira lal Kumar",
+        "business": "Centurion university of technology and management",
+        "mobile": "07970836127",
+        "email": "hk2493200@gmail.com",
+        "password": "$2b$12$jwQW7sbz8ysvIPfWyP0bxek5PON58Wd6LdeRQ5.Lxa7PVA34RlFqy",
+        "city": "Sitamarhi",
+        "state": "Bihar",
+        "commissionRate": 15.0,
+        "totalEarned": 0.0,
+        "status": "Active",
+        "payoutUpi": null,
+        "payoutBank": {},
+        "createdAt": "2026-10-06T17:37:23.649710+00:00",
+        "updatedAt": "2026-10-06T17:37:23.649733+00:00"
+      }
+    ],
+    "coupons": [
+      {
+        "_id": "6abfeb3a6ef1fe1ec92e83f4",
+        "id": "acd4c633-e480-45de-92e4-3872812c0b37",
+        "code": "WELCOME10",
+        "discountType": "percentage",
+        "value": 10,
+        "startDate": null,
+        "endDate": null,
+        "usageLimit": 1000,
+        "perCustomerLimit": 1,
+        "productRestriction": [],
+        "minOrderValue": 0,
+        "active": true,
+        "usedCount": 0,
+        "createdAt": "2026-10-02T17:34:50.829326+00:00"
+      }
+    ],
+    "documents": [],
+    "dscs": [],
+    "faqs": [
+      {
+        "_id": "6abfeb356ef1fe1ec92e83e7",
+        "id": "eac002e0-7928-40d5-9d47-a1d8a807ded0",
+        "question": "What is a DSC?",
+        "answer": "A Digital Signature Certificate (DSC) is the electronic equivalent of a physical signature, legally valid under the IT Act 2000, used to sign documents and authenticate identity online.",
+        "active": true,
+        "sortOrder": 1,
+        "createdAt": "2026-10-02T17:34:45.038629+00:00"
+      },
+      {
+        "_id": "6abfeb356ef1fe1ec92e83e8",
+        "id": "9c4290e3-b4d4-4650-9207-24b63b8f443a",
+        "question": "Which DSC do I need?",
+        "answer": "It depends on your purpose. Use our DSC Finder to get a personalised recommendation based on whether you are an individual, business, exporter or bidding on tenders.",
+        "active": true,
+        "sortOrder": 2,
+        "createdAt": "2026-10-02T17:34:45.358314+00:00"
+      },
+      {
+        "_id": "6abfeb356ef1fe1ec92e83e9",
+        "id": "3ccead06-0357-435b-ba93-607d2bbca312",
+        "question": "What documents are required?",
+        "answer": "Typically PAN, Aadhaar, a photograph and address proof for individuals. Organizations need additional company documents. Exact requirements are shown per product.",
+        "active": true,
+        "sortOrder": 3,
+        "createdAt": "2026-10-02T17:34:45.678320+00:00"
+      },
+      {
+        "_id": "6abfeb366ef1fe1ec92e83ea",
+        "id": "b31e0c0c-396c-41bb-9c48-1b993d4cc6fa",
+        "question": "How long does processing take?",
+        "answer": "Most Class 3 DSCs are processed within a few hours to 24 hours after successful eKYC and document verification.",
+        "active": true,
+        "sortOrder": 4,
+        "createdAt": "2026-10-02T17:34:46.000542+00:00"
+      },
+      {
+        "_id": "6abfeb366ef1fe1ec92e83eb",
+        "id": "b7ae9a4b-0d09-4d33-a989-117e9e7a4fe0",
+        "question": "Can I use DSC for GST?",
+        "answer": "Yes. A Class 3 Individual DSC can be used for GST registration and return filing.",
+        "active": true,
+        "sortOrder": 5,
+        "createdAt": "2026-10-02T17:34:46.316882+00:00"
+      },
+      {
+        "_id": "6abfeb366ef1fe1ec92e83ec",
+        "id": "5edeeb23-38b0-4e1b-a26e-b9077a466a97",
+        "question": "Can I use DSC for MCA?",
+        "answer": "Yes. Directors and professionals use Class 3 / MCA DSC for MCA-21 and ROC filings.",
+        "active": true,
+        "sortOrder": 6,
+        "createdAt": "2026-10-02T17:34:46.639090+00:00"
+      },
+      {
+        "_id": "6abfeb366ef1fe1ec92e83ed",
+        "id": "d09a28f9-463c-4cf0-bd68-94c248e33a5e",
+        "question": "Can I use DSC for Income Tax?",
+        "answer": "Yes. DSCs are accepted for Income Tax e-Filing for individuals and organizations.",
+        "active": true,
+        "sortOrder": 7,
+        "createdAt": "2026-10-02T17:34:46.960180+00:00"
+      },
+      {
+        "_id": "6abfeb376ef1fe1ec92e83ee",
+        "id": "c8820ddb-5436-4bd3-aca9-01ffb40a6aa9",
+        "question": "Can I use DSC for eTender?",
+        "answer": "Yes, our eTender DSC includes signing and encryption for government procurement portals and GeM.",
+        "active": true,
+        "sortOrder": 8,
+        "createdAt": "2026-10-02T17:34:47.282107+00:00"
+      },
+      {
+        "_id": "6abfeb376ef1fe1ec92e83ef",
+        "id": "1547807b-94c3-4e0d-9fc6-0151519f8be0",
+        "question": "What happens after document upload?",
+        "answer": "Our team verifies your documents. If anything is unclear you will be asked to re-upload. Once verified, the DSC is submitted to the Certifying Authority.",
+        "active": true,
+        "sortOrder": 9,
+        "createdAt": "2026-10-02T17:34:47.609755+00:00"
+      },
+      {
+        "_id": "6abfeb376ef1fe1ec92e83f0",
+        "id": "e39d6467-4f9c-4f0f-9926-3b15972579b0",
+        "question": "How do I track my order?",
+        "answer": "Log in to your dashboard to see a live timeline of your order from payment to DSC issuance and token dispatch.",
+        "active": true,
+        "sortOrder": 10,
+        "createdAt": "2026-10-02T17:34:47.949495+00:00"
+      },
+      {
+        "_id": "6abfeb386ef1fe1ec92e83f1",
+        "id": "2c7f37e1-334c-45dd-8c84-5ec6c0e62327",
+        "question": "What happens if my document is rejected?",
+        "answer": "You will see the rejection reason in your dashboard and can re-upload the corrected document immediately.",
+        "active": true,
+        "sortOrder": 11,
+        "createdAt": "2026-10-02T17:34:48.558430+00:00"
+      },
+      {
+        "_id": "6abfeb396ef1fe1ec92e83f2",
+        "id": "98afa8cb-8bd5-4d3e-9569-22cdc09798e1",
+        "question": "How does Razorpay payment work?",
+        "answer": "Payments are processed securely via Razorpay. Your order is only marked paid after server-side verification of the payment signature.",
+        "active": true,
+        "sortOrder": 12,
+        "createdAt": "2026-10-02T17:34:49.199953+00:00"
+      },
+      {
+        "_id": "6abfeb396ef1fe1ec92e83f3",
+        "id": "0b8e008c-adb2-4df4-ae10-fe08bf396df1",
+        "question": "How can I renew my DSC?",
+        "answer": "From the My DSCs section in your dashboard, click Renew on any expiring certificate to start a fast-track renewal.",
+        "active": true,
+        "sortOrder": 13,
+        "createdAt": "2026-10-02T17:34:49.869402+00:00"
+      }
+    ],
+    "notifications": [
+      {
+        "_id": "6ac006e767a65025e05f81fd",
+        "id": "b4965590-85f0-4d55-b5f5-69303582f4cb",
+        "recipientType": "customer",
+        "recipientId": "3e9ae4c4-ffd0-4704-94a5-2467daae74ac",
+        "type": "welcome",
+        "title": "Welcome to SimplDSC",
+        "message": "Your account has been created. Complete your profile to get started.",
+        "relatedEntity": null,
+        "relatedEntityId": null,
+        "read": false,
+        "createdAt": "2026-10-02T19:32:55.771909+00:00"
+      },
+      {
+        "_id": "6ac008d9dd73a68c93fa19e8",
+        "id": "196a0d58-434a-42f4-b9ec-2825dfeef66d",
+        "recipientType": "customer",
+        "recipientId": "df48d0ca-0a65-4c2b-b0d3-6fc5237c73d9",
+        "type": "welcome",
+        "title": "Welcome to SimplDSC",
+        "message": "Your account has been created. Complete your profile to get started.",
+        "relatedEntity": null,
+        "relatedEntityId": null,
+        "read": false,
+        "createdAt": "2026-10-02T19:41:13.289818+00:00"
+      },
+      {
+        "_id": "6ac4be8171999690c9aaccfc",
+        "id": "0c703cc6-fee5-49d4-85f8-3d93b75b131e",
+        "recipientType": "customer",
+        "recipientId": "28269136-7fb6-4269-bdc7-893483841097",
+        "type": "welcome",
+        "title": "Welcome to SimplDSC",
+        "message": "Your account has been created. Complete your profile to get started.",
+        "relatedEntity": null,
+        "relatedEntityId": null,
+        "read": false,
+        "createdAt": "2026-10-06T09:25:21.207757+00:00"
+      }
+    ],
+    "orders": [],
+    "otp_sessions": [
+      {
+        "_id": "6ac00376dd73a68c93fa19e4",
+        "id": "c2e1736f-1b50-411e-8c24-36bda76d253c",
+        "mobile": "9876543210",
+        "otp": "215281",
+        "attempts": 0,
+        "verified": false,
+        "createdAt": "2026-10-02T19:18:14.936786+00:00",
+        "expiresAt": "2026-10-02T19:28:14.936805+00:00"
+      },
+      {
+        "_id": "6ac00596dd73a68c93fa19e5",
+        "id": "44253577-4a39-405c-abb4-ba71738295ed",
+        "mobile": "9876543210",
+        "otp": "114066",
+        "attempts": 0,
+        "verified": false,
+        "createdAt": "2026-10-02T19:27:18.350196+00:00",
+        "expiresAt": "2026-10-02T19:37:18.350214+00:00"
+      },
+      {
+        "_id": "6ac006cde6a427ee8a1e0eec",
+        "id": "c11df6bb-3576-42eb-9406-4819a9b5aa65",
+        "mobile": "9876543210",
+        "otp": "164872",
+        "attempts": 0,
+        "verified": false,
+        "createdAt": "2026-10-02T19:32:29.820087+00:00",
+        "expiresAt": "2026-10-02T19:42:29.820105+00:00"
+      },
+      {
+        "_id": "6ac006e667a65025e05f81fb",
+        "id": "c90f2d6b-53d6-42f4-b6b2-f675098a3f86",
+        "mobile": "9876543210",
+        "otp": "404502",
+        "attempts": 0,
+        "verified": true,
+        "createdAt": "2026-10-02T19:32:54.929148+00:00",
+        "expiresAt": "2026-10-02T19:42:54.929170+00:00"
+      },
+      {
+        "_id": "6ac006e867a65025e05f81fe",
+        "id": "dd69d527-202e-4e63-a592-9e58cd6c150a",
+        "mobile": "9999988888",
+        "otp": "469589",
+        "attempts": 0,
+        "verified": false,
+        "createdAt": "2026-10-02T19:32:56.081575+00:00",
+        "expiresAt": "2026-10-02T19:42:56.081599+00:00"
+      },
+      {
+        "_id": "6ac008d4dd73a68c93fa19e6",
+        "id": "f3bfda5b-16bb-436e-91fc-65eb98e1949f",
+        "mobile": "7970836127",
+        "otp": "477852",
+        "attempts": 0,
+        "verified": true,
+        "createdAt": "2026-10-02T19:41:08.077756+00:00",
+        "expiresAt": "2026-10-02T19:51:08.077769+00:00"
+      },
+      {
+        "_id": "6ac3cb17aba721a3a753c0f1",
+        "id": "14ac1ab7-503c-4163-ae48-491ae983acc9",
+        "mobile": "7970836127",
+        "otp": "107220",
+        "attempts": 0,
+        "verified": true,
+        "createdAt": "2026-10-05T16:06:47.336984+00:00",
+        "expiresAt": "2026-10-05T16:16:47.337000+00:00"
+      },
+      {
+        "_id": "6ac4af263e747a6a47d3d667",
+        "id": "1c06fd97-65a2-4111-b8b4-67792c20c72c",
+        "mobile": "7970836127",
+        "otp": "727052",
+        "attempts": 0,
+        "verified": true,
+        "createdAt": "2026-10-06T08:19:50.990233+00:00",
+        "expiresAt": "2026-10-06T08:29:50.990247+00:00"
+      },
+      {
+        "_id": "6ac4be7c71999690c9aaccfa",
+        "id": "5539d8f7-c874-4533-abb1-6fa6da4dfd8f",
+        "mobile": "7978268352",
+        "otp": "833749",
+        "attempts": 0,
+        "verified": true,
+        "createdAt": "2026-10-06T09:25:16.282074+00:00",
+        "expiresAt": "2026-10-06T09:35:16.282089+00:00"
+      },
+      {
+        "_id": "6ac7194ddcef521f81ac4f2b",
+        "id": "cff4636c-8c20-459f-816e-9bba8b1afa18",
+        "mobile": "7970836127",
+        "otp": "861050",
+        "attempts": 0,
+        "verified": true,
+        "createdAt": "2026-10-08T04:17:17.054910+00:00",
+        "expiresAt": "2026-10-08T04:27:17.054927+00:00"
+      }
+    ],
+    "partner_cas": [
+      {
+        "_id": "6abfeb2b6ef1fe1ec92e83d7",
+        "id": "ad7d9eeb-d72c-45c8-98cb-968d14eb5e79",
+        "name": "Safescrypt CA",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 1,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:35.148291+00:00"
+      },
+      {
+        "_id": "6abfeb2b6ef1fe1ec92e83d8",
+        "id": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+        "name": "eMudhra CA",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 2,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:35.788088+00:00"
+      },
+      {
+        "_id": "6abfeb2c6ef1fe1ec92e83d9",
+        "id": "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+        "name": "Capricorn CA",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 3,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:36.747416+00:00"
+      },
+      {
+        "_id": "6abfeb2d6ef1fe1ec92e83da",
+        "id": "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c",
+        "name": "Verasys (VSign CA)",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 4,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:37.360000+00:00"
+      },
+      {
+        "_id": "6abfeb2d6ef1fe1ec92e83db",
+        "id": "e8ebe825-d617-4661-a171-a090ca94fe72",
+        "name": "PANTSign CA",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 5,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:37.713100+00:00"
+      },
+      {
+        "_id": "6abfeb2e6ef1fe1ec92e83dc",
+        "id": "ce0bea03-4e89-4f9e-a54a-1db503f40a3c",
+        "name": "IDSign CA",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 6,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:38.349058+00:00"
+      },
+      {
+        "_id": "6abfeb2e6ef1fe1ec92e83dd",
+        "id": "2839cd66-af0f-45fa-bf47-5b55c08133e2",
+        "name": "XtraTrust CA",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 7,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:38.639889+00:00"
+      },
+      {
+        "_id": "6abfeb2e6ef1fe1ec92e83de",
+        "id": "6f3bb04f-e43b-4d33-af36-95b2f42a96d5",
+        "name": "ProDigiSign CA",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 8,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:38.957800+00:00"
+      },
+      {
+        "_id": "6abfeb2f6ef1fe1ec92e83df",
+        "id": "3a5d1ba6-5a89-4d81-b4c5-d77083b1d1b3",
+        "name": "SignX CA",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 9,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:39.919677+00:00"
+      },
+      {
+        "_id": "6abfeb306ef1fe1ec92e83e0",
+        "id": "584a3d34-1c89-4eb3-9f15-3cad6116f906",
+        "name": "Care4Sign CA",
+        "logoUrl": "",
+        "websiteUrl": "",
+        "displayOrder": 10,
+        "active": true,
+        "createdAt": "2026-10-02T17:34:40.879279+00:00"
+      }
+    ],
+    "partnership_applications": [
+      {
+        "_id": "6ac4bdc271999690c9aaccf9",
+        "id": "50afe301-b2b1-4578-8e11-43362371235b",
+        "agentId": "3ecad3d3-ce54-41a3-b2cf-0a5deca679af",
+        "agentCode": "AGT-104500",
+        "name": "Poonam Mahasuar",
+        "business": "TSMTX",
+        "mobile": "7978268352",
+        "email": "poonammahasuar0@gmail.com",
+        "city": "Bhubaneswar",
+        "state": "Odisha",
+        "businessType": "Registered DSC Agent",
+        "status": "Approved",
+        "createdAt": "2026-10-06T09:22:10.952057+00:00"
+      },
+      {
+        "_id": "6ac531d36cac959592ad243a",
+        "id": "adb6faf6-0e94-43ce-bfc9-a56ade10f5eb",
+        "agentId": "8c7860e8-a7bd-43cc-9033-240656950b2b",
+        "agentCode": "AGT-105225",
+        "name": "Hira lal Kumar",
+        "business": "Centurion university of technology and management",
+        "mobile": "07970836127",
+        "email": "hk2493200@gmail.com",
+        "city": "Sitamarhi",
+        "state": "Bihar",
+        "businessType": "Registered DSC Agent",
+        "status": "Approved",
+        "createdAt": "2026-10-06T17:37:23.897701+00:00"
+      }
+    ],
+    "products": [
+      {
+        "_id": "6abfeb326ef1fe1ec92e83e1",
+        "id": "11014563-f1e1-454f-ac1b-f407e0c5eddb",
+        "name": "Class 2 Individual DSC",
+        "category": "Class 2 DSC",
+        "slug": "class-2-dsc",
+        "description": "For individuals and small businesses. Ideal for basic e-filing and personal document signing.",
+        "price": 1499,
+        "validity": "1 Year",
+        "imageUrl": "https://images.unsplash.com/photo-1587145820098-23e484e69816?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+        "features": [
+          "Aadhaar eKYC",
+          "PAN Verification",
+          "Email Support",
+          "Free Reissuance"
+        ],
+        "requiredDocuments": [
+          "PAN",
+          "Aadhaar",
+          "Photograph"
+        ],
+        "sortOrder": 1,
+        "purposeTags": [
+          "individual",
+          "document_signing"
+        ],
+        "active": true,
+        "issuingCAs": [
+          "e89f612c-f1b3-4dcf-943d-c9497b708292",
+          "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+          "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+        ],
+        "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+        "seo": {
+          "title": "Class 2 Individual DSC | SimplDSC",
+          "metaDescription": "For individuals and small businesses. Ideal for basic e-filing and personal document signing.",
+          "slug": "class-2-dsc",
+          "ogImage": "https://images.unsplash.com/photo-1587145820098-23e484e69816?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+          "index": true
+        },
+        "createdAt": "2026-10-02T17:34:42.798653+00:00",
+        "updatedAt": "2026-10-02T17:34:42.798666+00:00"
+      },
+      {
+        "_id": "6abfeb336ef1fe1ec92e83e2",
+        "id": "10c9e37b-9f3f-41f7-acd4-76b27301f2ab",
+        "name": "Class 3 Individual DSC",
+        "category": "Class 3 DSC",
+        "slug": "class-3-dsc",
+        "description": "For directors, professionals and high-security usage. Legally valid Class 3 signing certificate.",
+        "price": 1999,
+        "validity": "1 Year",
+        "imageUrl": "https://images.unsplash.com/photo-1551818014-7c8ace9c1b5c?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+        "isPopular": true,
+        "rating": 5,
+        "badgeText": "Most Popular",
+        "features": [
+          "Aadhaar eKYC",
+          "PAN Verification",
+          "Video Verification",
+          "Priority Support",
+          "Free Reissuance"
+        ],
+        "requiredDocuments": [
+          "PAN",
+          "Aadhaar",
+          "Photograph",
+          "Address Proof"
+        ],
+        "sortOrder": 2,
+        "purposeTags": [
+          "individual",
+          "business",
+          "document_signing"
+        ],
+        "active": true,
+        "issuingCAs": [
+          "e89f612c-f1b3-4dcf-943d-c9497b708292",
+          "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+          "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+        ],
+        "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+        "seo": {
+          "title": "Class 3 Individual DSC | SimplDSC",
+          "metaDescription": "For directors, professionals and high-security usage. Legally valid Class 3 signing certificate.",
+          "slug": "class-3-dsc",
+          "ogImage": "https://images.unsplash.com/photo-1551818014-7c8ace9c1b5c?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+          "index": true
+        },
+        "createdAt": "2026-10-02T17:34:43.119129+00:00",
+        "updatedAt": "2026-10-02T17:34:43.119141+00:00"
+      },
+      {
+        "_id": "6abfeb336ef1fe1ec92e83e3",
+        "id": "13edf612-3a20-40b7-93bb-d27dc4cfe60d",
+        "name": "DGFT DSC (Import/Export)",
+        "category": "DGFT DSC",
+        "slug": "dgft-dsc",
+        "description": "For import/export (IEC) code and DGFT / ICEGATE foreign trade filings.",
+        "price": 1999,
+        "validity": "1 Year",
+        "imageUrl": "https://images.pexels.com/photos/10336136/pexels-photo-10336136.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "features": [
+          "Aadhaar eKYC",
+          "IEC Mapping",
+          "DGFT Portal Ready",
+          "Priority Support"
+        ],
+        "requiredDocuments": [
+          "PAN",
+          "Aadhaar",
+          "IEC Certificate",
+          "Organization Documents"
+        ],
+        "sortOrder": 3,
+        "purposeTags": [
+          "import_export",
+          "business"
+        ],
+        "active": true,
+        "issuingCAs": [
+          "e89f612c-f1b3-4dcf-943d-c9497b708292",
+          "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+          "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+        ],
+        "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+        "seo": {
+          "title": "DGFT DSC (Import/Export) | SimplDSC",
+          "metaDescription": "For import/export (IEC) code and DGFT / ICEGATE foreign trade filings.",
+          "slug": "dgft-dsc",
+          "ogImage": "https://images.pexels.com/photos/10336136/pexels-photo-10336136.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+          "index": true
+        },
+        "createdAt": "2026-10-02T17:34:43.440330+00:00",
+        "updatedAt": "2026-10-02T17:34:43.440344+00:00"
+      },
+      {
+        "_id": "6abfeb336ef1fe1ec92e83e4",
+        "id": "e6285505-2969-4a92-a872-a251ff06a959",
+        "name": "eTender DSC",
+        "category": "eTender DSC",
+        "slug": "etender-dsc",
+        "description": "For government tenders, GeM and e-procurement bidding portals.",
+        "price": 2499,
+        "validity": "1 Year",
+        "imageUrl": "https://images.pexels.com/photos/5474301/pexels-photo-5474301.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "features": [
+          "Class 3 Signing + Encryption",
+          "GeM Ready",
+          "eProcurement Ready",
+          "Priority Support"
+        ],
+        "requiredDocuments": [
+          "PAN",
+          "Aadhaar",
+          "Photograph",
+          "Organization Documents"
+        ],
+        "sortOrder": 4,
+        "purposeTags": [
+          "government",
+          "business"
+        ],
+        "active": true,
+        "issuingCAs": [
+          "e89f612c-f1b3-4dcf-943d-c9497b708292",
+          "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+          "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+        ],
+        "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+        "seo": {
+          "title": "eTender DSC | SimplDSC",
+          "metaDescription": "For government tenders, GeM and e-procurement bidding portals.",
+          "slug": "etender-dsc",
+          "ogImage": "https://images.pexels.com/photos/5474301/pexels-photo-5474301.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+          "index": true
+        },
+        "createdAt": "2026-10-02T17:34:43.788243+00:00",
+        "updatedAt": "2026-10-02T17:34:43.788257+00:00"
+      },
+      {
+        "_id": "6abfeb346ef1fe1ec92e83e5",
+        "id": "bd76c565-e9fa-49c8-8726-e1a58f667679",
+        "name": "MCA DSC",
+        "category": "MCA DSC",
+        "slug": "mca-dsc",
+        "description": "For company filings (DIN, ROC) and MCA-21 incorporation compliance.",
+        "price": 2499,
+        "validity": "1 Year",
+        "imageUrl": "https://images.unsplash.com/photo-1477949331575-2763034b5fb5?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+        "features": [
+          "Class 3 Signing",
+          "MCA-21 Ready",
+          "DIN Mapping",
+          "Priority Support"
+        ],
+        "requiredDocuments": [
+          "PAN",
+          "Aadhaar",
+          "Photograph",
+          "Company Documents"
+        ],
+        "sortOrder": 5,
+        "purposeTags": [
+          "business"
+        ],
+        "active": true,
+        "issuingCAs": [
+          "e89f612c-f1b3-4dcf-943d-c9497b708292",
+          "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+          "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+        ],
+        "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+        "seo": {
+          "title": "MCA DSC | SimplDSC",
+          "metaDescription": "For company filings (DIN, ROC) and MCA-21 incorporation compliance.",
+          "slug": "mca-dsc",
+          "ogImage": "https://images.unsplash.com/photo-1477949331575-2763034b5fb5?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+          "index": true
+        },
+        "createdAt": "2026-10-02T17:34:44.109076+00:00",
+        "updatedAt": "2026-10-02T17:34:44.109087+00:00"
+      },
+      {
+        "_id": "6abfeb346ef1fe1ec92e83e6",
+        "id": "2d565853-4cb6-4d73-99c0-ec0e48738a74",
+        "name": "Document Signer Certificate",
+        "category": "Document Signer DSC",
+        "slug": "document-signer-dsc",
+        "description": "For bulk / automated document signing by organizations.",
+        "price": 2999,
+        "validity": "1 Year",
+        "imageUrl": "https://images.unsplash.com/photo-1477949331575-2763034b5fb5?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+        "features": [
+          "Organization Certificate",
+          "Bulk PDF Signing",
+          "API Automation Ready",
+          "Priority Support"
+        ],
+        "requiredDocuments": [
+          "Organization Documents",
+          "Authorized Signatory PAN",
+          "Authorization Letter"
+        ],
+        "sortOrder": 6,
+        "purposeTags": [
+          "business",
+          "document_signing"
+        ],
+        "active": true,
+        "issuingCAs": [
+          "e89f612c-f1b3-4dcf-943d-c9497b708292",
+          "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+          "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+        ],
+        "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+        "seo": {
+          "title": "Document Signer Certificate | SimplDSC",
+          "metaDescription": "For bulk / automated document signing by organizations.",
+          "slug": "document-signer-dsc",
+          "ogImage": "https://images.unsplash.com/photo-1477949331575-2763034b5fb5?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+          "index": true
+        },
+        "createdAt": "2026-10-02T17:34:44.427904+00:00",
+        "updatedAt": "2026-10-02T17:34:44.427917+00:00"
+      }
+    ],
+    "sequence_counters": [
+      {
+        "_id": "SPLDSC-2026-D",
+        "currentVal": 105225
+      },
+      {
+        "_id": "AGENT-CODE",
+        "currentVal": 105225
+      }
+    ],
+    "users": [
+      {
+        "_id": "6ac006e767a65025e05f81fc",
+        "id": "3e9ae4c4-ffd0-4704-94a5-2467daae74ac",
+        "mobile": "9876543210",
+        "name": null,
+        "email": null,
+        "profile": {},
+        "billing": {},
+        "createdAt": "2026-10-02T19:32:55.632861+00:00",
+        "updatedAt": "2026-10-02T19:32:55.632878+00:00",
+        "simplDscId": "SPLDSC-2026-D-157535",
+        "year": 2026,
+        "quarter": "D",
+        "sequenceNumber": 157535
+      },
+      {
+        "_id": "6ac008d9dd73a68c93fa19e7",
+        "id": "df48d0ca-0a65-4c2b-b0d3-6fc5237c73d9",
+        "mobile": "7970836127",
+        "name": "Hiralal kumar",
+        "email": "hk2493200@gmail.com",
+        "profile": {},
+        "billing": {},
+        "createdAt": "2026-10-02T19:41:13.055960+00:00",
+        "updatedAt": "2026-10-05T16:07:02.344430+00:00",
+        "simplDscId": "SPLDSC-2026-D-105225",
+        "year": 2026,
+        "quarter": "D",
+        "sequenceNumber": 157536
+      },
+      {
+        "_id": "6ac4be8071999690c9aaccfb",
+        "id": "28269136-7fb6-4269-bdc7-893483841097",
+        "mobile": "7978268352",
+        "name": "fdg",
+        "email": "",
+        "profile": {},
+        "billing": {},
+        "createdAt": "2026-10-06T09:25:20.970103+00:00",
+        "updatedAt": "2026-10-06T09:25:33.169529+00:00",
+        "simplDscId": "SPLDSC-2026-D-157537",
+        "year": 2026,
+        "quarter": "D",
+        "sequenceNumber": 157537
+      }
+    ],
+    "website_settings": [
+      {
+        "_id": "singleton",
+        "contact": {
+          "address": "Mallick Complex, Plot No. A/69, Kharavela Nagar, Unit 3, Bhubaneswar, Odisha – 751001",
+          "phone": "7992999947, 7992777799",
+          "email": "support@simpldsc.in"
+        },
+        "seoDefaults": {
+          "title": "SimplDSC – Digital Signatures, Made Simple.",
+          "description": "Get your Digital Signature Certificate quickly, securely and conveniently across India.",
+          "ogImage": "https://images.unsplash.com/photo-1587145820098-23e484e69816?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+          "canonicalBase": "https://simpldsc.in"
+        },
+        "analytics": {
+          "gaMeasurementId": "",
+          "enabled": false
+        },
+        "email": {
+          "configured": false
+        },
+        "whatsapp": {
+          "configured": false
+        },
+        "updatedAt": "2026-10-02T17:34:51.440956+00:00"
+      }
+    ]
+  }
+}

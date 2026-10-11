@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Seo } from "@/components/Seo";
 import api from "@/lib/api";
@@ -32,7 +32,36 @@ const NAV = [
 export default function Dashboard() {
   const { user, logout, loading } = useAuth();
   const nav = useNavigate();
-  const [tab, setTab] = useState("overview");
+  const loc = useLocation();
+
+  const getTabFromPath = (pathname) => {
+    const sub = pathname.replace(/^\/client\/?/, "").replace(/^\/dashboard\/?/, "").split("/")[0];
+    const validTabs = ["overview", "orders", "dscs", "invoices", "support", "profile", "notifications"];
+    const aliases = {
+      applications: "orders",
+      services: "dscs",
+      settings: "profile",
+      dashboard: "overview",
+    };
+    if (aliases[sub]) return aliases[sub];
+    if (validTabs.includes(sub)) return sub;
+    return "overview";
+  };
+
+  const [tab, setTab] = useState(() => getTabFromPath(loc.pathname));
+
+  useEffect(() => {
+    setTab(getTabFromPath(loc.pathname));
+  }, [loc.pathname]);
+
+  const switchTab = (newTab) => {
+    setTab(newTab);
+    const targetUrl = newTab === "overview" ? "/client" : `/client/${newTab}`;
+    if (loc.pathname !== targetUrl) {
+      nav(targetUrl);
+    }
+  };
+
   const [orders, setOrders] = useState([]);
   const [dscs, setDscs] = useState([]);
   const [invoices, setInvoices] = useState([]);
@@ -50,8 +79,13 @@ export default function Dashboard() {
     setOrders(o.data); setDscs(d.data); setInvoices(i.data); setTickets(t.data); setNotifs(n.data);
   }, []);
 
+  const handleLogout = () => {
+    logout();
+    nav("/client/login");
+  };
+
   useEffect(() => {
-    if (!loading && !user) { nav("/"); return; }
+    if (!loading && !user) { nav("/client/login"); return; }
     if (user) load();
   }, [user, loading, load, nav]);
 
@@ -83,7 +117,7 @@ export default function Dashboard() {
               <span className="text-sm font-semibold text-navy-900">{user.name}</span>
               <span className="font-mono text-[11px] text-purple-600">{user.simplDscId}</span>
             </div>
-            <button onClick={() => setTab("notifications")} className="relative p-2" data-testid="dash-bell">
+            <button onClick={() => switchTab("notifications")} className="relative p-2" data-testid="dash-bell">
               <Bell className="h-5 w-5 text-navy-700" />
               {unread > 0 && <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center">{unread}</span>}
             </button>
@@ -104,13 +138,13 @@ export default function Dashboard() {
           </div>
           <nav className="space-y-1">
             {NAV.map((n) => (
-              <button key={n.key} data-testid={`dash-nav-${n.key}`} onClick={() => { setTab(n.key); setSidebarOpen(false); }}
+              <button key={n.key} data-testid={`dash-nav-${n.key}`} onClick={() => { switchTab(n.key); setSidebarOpen(false); }}
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${tab === n.key ? "bg-gradient-to-r from-purple-700 to-navy-800 text-white" : "text-navy-700 hover:bg-purple-50"}`}>
                 <n.icon className="h-4 w-4" /> {n.label}
                 {n.key === "notifications" && unread > 0 && <span className="ml-auto rounded-full bg-rose-500 px-1.5 text-[10px] text-white">{unread}</span>}
               </button>
             ))}
-            <button onClick={logout} data-testid="dash-logout" className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 mt-4"><LogOut className="h-4 w-4" /> Logout</button>
+            <button onClick={handleLogout} data-testid="dash-logout" className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 mt-4"><LogOut className="h-4 w-4" /> Logout</button>
           </nav>
         </aside>
 
@@ -127,7 +161,7 @@ export default function Dashboard() {
                 <Stat label="Total Orders" value={orders.length} icon={Package} color="purple" />
               </div>
               <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card title="Recent Orders" action={() => setTab("orders")}>
+                <Card title="Recent Orders" action={() => switchTab("orders")}>
                   {orders.slice(0, 4).map((o) => (
                     <Row key={o.orderId} onClick={() => setOpenOrder(o)} testId={`overview-order-${o.orderId}`}>
                       <div><p className="font-mono text-sm font-semibold text-navy-900">{o.orderId}</p><p className="text-xs text-slate-400">{o.productName}</p></div>
@@ -136,7 +170,7 @@ export default function Dashboard() {
                   ))}
                   {orders.length === 0 && <Empty text="No orders yet." cta="Browse products" onCta={() => nav("/products")} />}
                 </Card>
-                <Card title="My DSCs" action={() => setTab("dscs")}>
+                <Card title="My DSCs" action={() => switchTab("dscs")}>
                   {dscs.slice(0, 4).map((d) => (
                     <Row key={d.id}>
                       <div><p className="text-sm font-semibold text-navy-900">{d.dscType}</p><p className="text-xs text-slate-400">Expires {d.expiryDate?.slice(0, 10)}</p></div>

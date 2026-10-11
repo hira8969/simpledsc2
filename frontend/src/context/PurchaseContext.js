@@ -22,7 +22,7 @@ export function PurchaseProvider({ children }) {
     <PurchaseContext.Provider value={{ startPurchase }}>
       {children}
       <PurchaseModal open={open} onOpenChange={setOpen} product={product}
-        onComplete={() => nav("/dashboard")} />
+        onComplete={() => nav("/client")} />
     </PurchaseContext.Provider>
   );
 }

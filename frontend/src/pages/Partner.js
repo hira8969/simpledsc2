@@ -54,7 +54,7 @@ export default function Partner({ agent = false }) {
         login(data.token, data.agent);
         track("agent_direct_registered", { agentCode: data.agent.agentCode });
         toast.success(`Agent registered successfully! Your Agent Code is ${data.agent.agentCode}`);
-        navigate("/agent/dashboard");
+        navigate("/agent");
       } else {
         // Partnership Lead
         await api.post("/partnership", { ...form, businessType: agent ? "DSC Agent" : form.businessType });
@@ -102,7 +102,7 @@ export default function Partner({ agent = false }) {
                 asChild
                 className="bg-purple-700 hover:bg-purple-800 text-white rounded-xl px-5 h-11 shadow-md font-semibold text-sm"
               >
-                <Link to="/agent/dashboard">
+                <Link to="/agent">
                   <LayoutDashboard className="h-4 w-4 mr-2" />
                   Go to Agent Dashboard ({agentData.agentCode}) &rarr;
                 </Link>

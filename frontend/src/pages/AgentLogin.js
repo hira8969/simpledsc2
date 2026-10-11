@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,13 @@ import { ShieldCheck, Handshake, ArrowRight, UserPlus, LogIn, Lock, Phone, User,
 
 export default function AgentLogin() {
   const navigate = useNavigate();
-  const { login } = useAgentAuth();
+  const { login, agent, loading: authLoading } = useAgentAuth();
+
+  useEffect(() => {
+    if (!authLoading && agent) {
+      navigate("/agent", { replace: true });
+    }
+  }, [agent, authLoading, navigate]);
 
   // Login form state
   const [loginIdent, setLoginIdent] = useState("");
@@ -45,7 +51,7 @@ export default function AgentLogin() {
       });
       login(data.token, data.agent);
       toast.success(`Welcome back, ${data.agent.name}!`);
-      navigate("/agent/dashboard");
+      navigate("/agent");
     } catch (err) {
       toast.error(err.response?.data?.detail || "Login failed. Check your credentials.");
     } finally {
@@ -77,7 +83,7 @@ export default function AgentLogin() {
       });
       login(data.token, data.agent);
       toast.success(`Agent Account Created! Your Agent Code is ${data.agent.agentCode}`);
-      navigate("/agent/dashboard");
+      navigate("/agent");
     } catch (err) {
       toast.error(err.response?.data?.detail || "Registration failed. Try again.");
     } finally {
@@ -100,7 +106,7 @@ export default function AgentLogin() {
             </div>
           </Link>
           <div className="flex items-center gap-4 text-sm">
-            <Link to="/agent" className="text-slate-600 hover:text-navy-900 font-medium hidden sm:inline">
+            <Link to="/partner" className="text-slate-600 hover:text-navy-900 font-medium hidden sm:inline">
               Partner Benefits
             </Link>
             <Link to="/" className="text-purple-700 hover:text-purple-800 font-semibold">
@@ -177,7 +183,7 @@ export default function AgentLogin() {
                     <Label className="text-xs font-semibold text-slate-700">Mobile / Agent Code / Email</Label>
                     <div className="relative mt-1">
                       <Input
-                        placeholder="e.g. 9876543210 or AGT-10101"
+                        placeholder="e.g. 9876543210 or AGT-105225"
                         value={loginIdent}
                         onChange={(e) => setLoginIdent(e.target.value)}
                         className="h-10 text-sm pl-9"

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAgentAuth } from "@/context/AgentAuthContext";
 import api from "@/lib/api";
 import { Logo } from "@/components/Logo";
@@ -27,11 +27,29 @@ export default function AgentDashboard() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   // Modal states
+  const location = useLocation();
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [uploadDocType, setUploadDocType] = useState("PAN Card");
   const [uploadingDoc, setUploadingDoc] = useState(false);
+
+  useEffect(() => {
+    if (location.pathname.endsWith("/profile") || location.pathname.endsWith("/settings")) {
+      setProfileModalOpen(true);
+    } else if (
+      location.pathname.endsWith("/clients") ||
+      location.pathname.endsWith("/orders") ||
+      location.pathname.endsWith("/applications")
+    ) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById("client-tracking");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, loading]);
 
   // New Client Form
   const [clientForm, setClientForm] = useState({
@@ -217,6 +235,43 @@ export default function AgentDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            <nav className="hidden md:flex items-center gap-1">
+              <button
+                onClick={() => navigate("/agent")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  location.pathname === "/agent" || location.pathname === "/agent/dashboard"
+                    ? "bg-purple-100 text-purple-800"
+                    : "text-slate-600 hover:text-navy-900 hover:bg-slate-100"
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  navigate("/agent/clients");
+                  const el = document.getElementById("client-tracking");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  location.pathname.includes("/clients") || location.pathname.includes("/orders") || location.pathname.includes("/applications")
+                    ? "bg-purple-100 text-purple-800"
+                    : "text-slate-600 hover:text-navy-900 hover:bg-slate-100"
+                }`}
+              >
+                Clients & Orders
+              </button>
+              <button
+                onClick={() => navigate("/agent/profile")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  location.pathname.includes("/profile")
+                    ? "bg-purple-100 text-purple-800"
+                    : "text-slate-600 hover:text-navy-900 hover:bg-slate-100"
+                }`}
+              >
+                Agent Profile
+              </button>
+            </nav>
+
             <Button
               onClick={() => setOrderModalOpen(true)}
               className="bg-gradient-to-r from-purple-700 to-navy-900 text-white font-semibold text-xs rounded-xl h-9 px-3.5 shadow-sm hover:from-purple-800 hover:to-navy-950 flex items-center gap-1.5"
@@ -367,7 +422,7 @@ export default function AgentDashboard() {
         </div>
 
         {/* Client Tracking Section ("Kaam Kahan Tak Pahucha") */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div id="client-tracking" className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-20">
           {/* Header & Filters */}
           <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -843,6 +898,93 @@ export default function AgentDashboard() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Agent Profile Dialog */}
+      <Dialog
+        open={profileModalOpen}
+        onOpenChange={(open) => {
+          setProfileModalOpen(open);
+          if (!open && (location.pathname.endsWith("/profile") || location.pathname.endsWith("/settings"))) {
+            navigate("/agent");
+          }
+        }}
+      >
+        <DialogContent className="max-w-md rounded-2xl p-6">
+          <DialogHeader className="mb-4">
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700">
+              <User className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-center font-display text-xl text-navy-900">
+              Agent Partner Profile
+            </DialogTitle>
+            <DialogDescription className="text-center text-xs text-slate-500">
+              Your registered DSC partner details and authorized privileges
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3.5 text-xs">
+            <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-100 flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-navy-900">{agent?.name}</p>
+                <p className="text-[11px] text-slate-500">{agent?.business || "Authorized Partner"}</p>
+              </div>
+              <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-purple-200 text-purple-900">
+                {agent?.agentCode}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[11px] text-slate-500">Mobile</span>
+                <p className="font-semibold text-navy-900 mt-0.5">{agent?.mobile || "—"}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[11px] text-slate-500">Email</span>
+                <p className="font-semibold text-navy-900 mt-0.5 truncate">{agent?.email || "—"}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[11px] text-slate-500">City / State</span>
+                <p className="font-semibold text-navy-900 mt-0.5">{agent?.city ? `${agent.city}, ${agent?.state || ""}` : "India"}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[11px] text-slate-500">Commission Rate</span>
+                <p className="font-semibold text-emerald-600 mt-0.5">{stats?.commissionRate || 15}% Direct Payout</p>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span className="text-[11px] text-slate-500">Your Referral Link</span>
+              <div className="mt-1 flex items-center gap-2">
+                <input
+                  readOnly
+                  value={referralLink}
+                  className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-slate-700 outline-none truncate"
+                />
+                <Button size="sm" onClick={copyReferralLink} className="h-7 text-[11px] px-2.5 rounded-lg bg-navy-900 text-white">
+                  <Copy className="h-3 w-3 mr-1" /> Copy
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 flex gap-2">
+            <Button
+              onClick={() => {
+                setProfileModalOpen(false);
+                if (location.pathname.endsWith("/profile") || location.pathname.endsWith("/settings")) {
+                  navigate("/agent");
+                }
+              }}
+              className="w-full bg-gradient-to-r from-purple-700 to-navy-900 text-white rounded-xl h-10 text-xs font-semibold"
+            >
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
