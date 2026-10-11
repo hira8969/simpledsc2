@@ -9,6 +9,7 @@ import { useAgentAuth } from "@/context/AgentAuthContext";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { ShieldCheck, Handshake, ArrowRight, UserPlus, LogIn, Lock, Phone, User, Building, MapPin, Mail, Award, CheckCircle } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 export default function AgentLogin() {
   const navigate = useNavigate();
@@ -96,15 +97,14 @@ export default function AgentLogin() {
       {/* Top Bar */}
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-purple-700 to-navy-800 text-white flex items-center justify-center font-black text-lg shadow-sm">
-              S
-            </div>
-            <div>
-              <span className="font-display font-black text-xl text-navy-900 tracking-tight">SimplDSC</span>
-              <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">Agent Portal</span>
-            </div>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link to="/" data-testid="agent-login-logo">
+              <Logo />
+            </Link>
+            <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800">
+              Agent Portal
+            </span>
+          </div>
           <div className="flex items-center gap-4 text-sm">
             <Link to="/partner" className="text-slate-600 hover:text-navy-900 font-medium hidden sm:inline">
               Partner Benefits
