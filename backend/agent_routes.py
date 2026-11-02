@@ -431,6 +431,7 @@ async def agent_create_client_order(payload: AgentClientOrderReq, agent: dict = 
         "productId": product["id"],
         "productName": product["name"],
         "productCategory": product["category"],
+        "productImageUrl": product.get("imageUrl") or "/img/epass2003-token.png",
         "customerName": payload.clientName.strip(),
         "mobile": client_mobile,
         "email": payload.clientEmail or user.get("email"),

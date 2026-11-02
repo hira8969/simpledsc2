@@ -287,6 +287,7 @@ async def create_order(payload: CreateOrderReq, request: Request, user: dict = D
     order = {
         "id": new_id(), "orderId": order_id, "simplDscId": user["simplDscId"], "userId": user["id"],
         "productId": product["id"], "productName": product["name"], "productCategory": product["category"],
+        "productImageUrl": product.get("imageUrl") or "/img/epass2003-token.png",
         "customerName": user.get("name"), "mobile": user["mobile"], "email": user.get("email"),
         **pricing, "currency": "INR",
         **agent_fields,

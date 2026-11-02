@@ -70,7 +70,15 @@ export function DscFinder({ onBuy }) {
           <div className="mt-5 space-y-3">
             {recos.map((r) => (
               <div key={r.id} data-testid={`finder-reco-${r.slug}`} className="flex items-center gap-4 rounded-xl border border-slate-200 p-3 hover:border-purple-300 transition-colors">
-                <img src={r.imageUrl} alt={r.name} className="h-16 w-16 rounded-lg object-cover bg-slate-50" />
+                <img
+                  src={r.imageUrl || "/img/epass2003-token.png"}
+                  alt={r.name}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/img/epass2003-token.png";
+                  }}
+                  className="h-16 w-16 rounded-lg object-contain bg-slate-50 p-1"
+                />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-navy-900 truncate">{r.name}</p>
                   <p className="text-xs text-slate-500 flex items-center gap-2"><span className="font-bold text-purple-700">₹{r.price.toLocaleString("en-IN")}</span> · {r.validity}</p>

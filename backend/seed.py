@@ -3,11 +3,14 @@ import os
 from core import db, new_id, now_iso
 from security import hash_password
 
-TOK_HERO = "https://images.unsplash.com/photo-1587145820098-23e484e69816?crop=entropy&cs=srgb&fm=jpg&q=85&w=800"
-TOK_CLASS3 = "https://images.unsplash.com/photo-1551818014-7c8ace9c1b5c?crop=entropy&cs=srgb&fm=jpg&q=85&w=800"
-TOK_DGFT = "https://images.pexels.com/photos/10336136/pexels-photo-10336136.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
-TOK_ETENDER = "https://images.pexels.com/photos/5474301/pexels-photo-5474301.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
-TOK_SIGNER = "https://images.unsplash.com/photo-1477949331575-2763034b5fb5?crop=entropy&cs=srgb&fm=jpg&q=85&w=800"
+TOK_HERO = "/img/hero-tokens.png"
+TOK_CLASS3 = "/img/epass2003-token.png"
+TOK_DGFT = "/img/mtoken-blue.png"
+TOK_ETENDER = "/img/proxkey-token.png"
+TOK_SIGNER = "/img/innait-token.png"
+TOK_ORG = "/img/blue-token.png"
+TOK_MCA = "/img/mtoken-purple.png"
+
 
 CATEGORIES = ["Class 2 DSC", "Class 3 DSC", "DGFT DSC", "eTender DSC", "MCA DSC", "Document Signer DSC"]
 

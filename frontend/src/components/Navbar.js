@@ -16,7 +16,6 @@ const NAV = [
   { label: "Pricing", to: "/pricing" },
   { label: "About", to: "/about" },
   { label: "Resources", to: "/resources" },
-  { label: "Become a DSC Agent", to: "/partner" },
 ];
 
 export function Navbar() {

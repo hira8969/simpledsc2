@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAgentAuth } from "@/context/AgentAuthContext";
 import api from "@/lib/api";
+import { getTokenImage } from "@/pages/Dashboard";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -535,8 +536,16 @@ export default function AgentDashboard() {
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
                       {/* Client Info */}
                       <div className="flex items-start gap-3.5">
-                        <div className="h-10 w-10 rounded-2xl bg-purple-100 text-purple-800 font-black text-sm flex items-center justify-center shrink-0 mt-0.5">
-                          {c.clientName.charAt(0).toUpperCase()}
+                        <div className="h-11 w-11 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
+                          <img
+                            src={c.productImageUrl || getTokenImage(c.productName)}
+                            alt={c.productName}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = "/img/epass2003-token.png";
+                            }}
+                            className="h-full w-full object-cover mix-blend-multiply"
+                          />
                         </div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">

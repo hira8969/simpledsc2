@@ -85,8 +85,9 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-tr from-purple-600/20 to-navy-800/10 rounded-[2rem] blur-2xl" />
                 <div className="relative rounded-[2rem] border border-purple-100 bg-white p-3 shadow-2xl">
-                  <img src="https://images.unsplash.com/photo-1587145820098-23e484e69816?crop=entropy&cs=srgb&fm=jpg&q=85&w=900"
-                    alt="Digital signature USB token" className="w-full h-[360px] object-cover rounded-[1.5rem]" />
+                  <img src="/img/hero-tokens.png"
+                    alt="Class 3 Digital Signature USB Crypto Token" className="w-full h-[360px] object-cover rounded-[1.5rem]"
+                    onError={(e) => { e.target.src = "/img/epass2003-token.png"; }} />
                   <div className="absolute bottom-6 left-6 rounded-2xl bg-white/95 backdrop-blur px-4 py-3 shadow-lg border border-slate-100">
                     <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="text-xs font-semibold text-navy-800">DSC Issued & Verified</span></div>
                     <p className="text-[11px] text-slate-400 mt-0.5">Class 3 · FIPS Token</p>
@@ -170,8 +171,16 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {cas.map((c) => (
-            <div key={c.id} className="flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-6 text-center hover:border-purple-200 transition-colors">
-              <span className="font-display text-sm font-bold text-navy-800">{c.name}</span>
+            <div key={c.id} className="group flex flex-col items-center justify-center rounded-2xl border border-slate-200/90 bg-white p-5 text-center hover:border-purple-300 hover:shadow-md transition-all">
+              {c.logoUrl ? (
+                <img src={c.logoUrl} alt={c.name} className="h-9 w-auto object-contain mb-2" />
+              ) : (
+                <div className="h-10 w-10 rounded-xl bg-purple-50 group-hover:bg-purple-100 text-purple-700 flex items-center justify-center mb-2 transition-colors">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+              )}
+              <span className="font-display text-sm font-bold text-navy-900 group-hover:text-purple-700 transition-colors">{c.name}</span>
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 mt-0.5">Licensed CA</span>
             </div>
           ))}
         </div>

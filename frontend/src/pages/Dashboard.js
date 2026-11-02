@@ -19,6 +19,16 @@ import {
   User, Bell, LogOut, Upload, ChevronRight, Clock, AlertTriangle, Menu,
 } from "lucide-react";
 
+export const getTokenImage = (nameOrCategory = "") => {
+  const s = String(nameOrCategory || "").toLowerCase();
+  if (s.includes("etender") || s.includes("proxkey")) return "/img/proxkey-token.png";
+  if (s.includes("dgft") || s.includes("import") || s.includes("icegate")) return "/img/mtoken-blue.png";
+  if (s.includes("mca") || s.includes("director") || s.includes("roc")) return "/img/mtoken-purple.png";
+  if (s.includes("signer") || s.includes("document") || s.includes("innait")) return "/img/innait-token.png";
+  if (s.includes("org") || s.includes("class 2") || s.includes("blue")) return "/img/blue-token.png";
+  return "/img/epass2003-token.png";
+};
+
 const NAV = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "orders", label: "My Orders", icon: Package },
@@ -200,7 +210,17 @@ export default function Dashboard() {
                   <div key={o.orderId} data-testid={`order-item-${o.orderId}`} onClick={() => setOpenOrder(o)}
                     className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 cursor-pointer hover:border-purple-300 transition-colors">
                     <div className="flex items-center gap-4 min-w-0">
-                      <img src={/* product img fallback */ ""} alt="" className="hidden" />
+                      <div className="h-12 w-12 rounded-xl bg-purple-50/70 border border-purple-100 flex items-center justify-center overflow-hidden shrink-0">
+                        <img
+                          src={o.productImageUrl || getTokenImage(o.productName || o.productCategory)}
+                          alt={o.productName}
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "/img/epass2003-token.png";
+                          }}
+                          className="h-full w-full object-cover mix-blend-multiply"
+                        />
+                      </div>
                       <div className="min-w-0">
                         <p className="font-mono text-sm font-semibold text-navy-900">{o.orderId}</p>
                         <p className="text-sm text-slate-600 truncate">{o.productName}</p>
@@ -299,7 +319,23 @@ function DscCard({ dsc, onRenewed }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5" data-testid={`dsc-card-${dsc.id}`}>
       <div className="flex items-start justify-between">
-        <div><p className="font-display font-bold text-navy-900">{dsc.dscType}</p><p className="font-mono text-[11px] text-purple-600">{dsc.simplDscId}</p></div>
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center overflow-hidden shrink-0">
+            <img
+              src={getTokenImage(dsc.dscType)}
+              alt={dsc.dscType}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/img/epass2003-token.png";
+              }}
+              className="h-full w-full object-cover mix-blend-multiply"
+            />
+          </div>
+          <div>
+            <p className="font-display font-bold text-navy-900">{dsc.dscType}</p>
+            <p className="font-mono text-[11px] text-purple-600">{dsc.simplDscId}</p>
+          </div>
+        </div>
         <StatusBadge status={dsc.computedStatus} />
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -332,7 +368,23 @@ function OrderDetailDialog({ order, onOpenChange, onReload }) {
   return (
     <Dialog open={!!order} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl" data-testid="order-detail-dialog">
-        <DialogHeader><DialogTitle className="font-mono">{o.orderId}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <img
+              src={o.productImageUrl || getTokenImage(o.productName || o.productCategory)}
+              alt={o.productName}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/img/epass2003-token.png";
+              }}
+              className="h-11 w-11 rounded-xl object-contain bg-purple-50 border border-purple-100 p-1 shrink-0 mix-blend-multiply"
+            />
+            <div>
+              <DialogTitle className="font-mono text-lg">{o.orderId}</DialogTitle>
+              <p className="text-xs text-slate-500 font-medium">{o.productName}</p>
+            </div>
+          </div>
+        </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <div className="flex flex-wrap gap-2 mb-4">

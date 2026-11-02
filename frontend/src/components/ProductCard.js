@@ -31,9 +31,13 @@ export function ProductCard({ product, onBuy, index = 0 }) {
       {/* Image Preview */}
       <div className="relative mb-4 flex h-40 items-center justify-center rounded-xl bg-gradient-to-br from-lavender-50 to-slate-50 overflow-hidden">
         <img
-          src={product.imageUrl}
+          src={product.imageUrl || "/img/epass2003-token.png"}
           alt={`${product.name} USB token`}
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/img/epass2003-token.png";
+          }}
           className="h-full w-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
         />
       </div>

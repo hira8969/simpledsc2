@@ -93,20 +93,34 @@ function Products() {
               p.isPopular ? "border-amber-300 ring-2 ring-amber-300/30 shadow-md" : "border-slate-200"
             }`}
           >
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-xs text-purple-600 font-semibold">{p.category}</span>
-                {p.isPopular && (
-                  <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 text-[10px] font-bold">
-                    <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" /> {p.badgeText || "Most Popular"} ({p.rating || 5}★)
-                  </span>
-                )}
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-14 w-14 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                <img
+                  src={p.imageUrl || "/img/epass2003-token.png"}
+                  alt={p.name}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/img/epass2003-token.png";
+                  }}
+                  className="h-full w-full object-contain mix-blend-multiply"
+                />
               </div>
-              <span className="font-bold text-navy-900">₹{p.price}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex justify-between items-start">
+                  <span className="text-xs text-purple-600 font-semibold truncate">{p.category}</span>
+                  <span className="font-bold text-navy-900 shrink-0">₹{p.price}</span>
+                </div>
+                <p className="mt-0.5 font-semibold text-navy-900 text-sm truncate">{p.name}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-xs text-slate-400">{p.active !== false ? "Active" : "Disabled"} · {p.validity}</span>
+                  {p.isPopular && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 text-[10px] font-bold">
+                      <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" /> {p.badgeText || "Most Popular"} ({p.rating || 5}★)
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-
-            <p className="mt-1 font-semibold text-navy-900">{p.name}</p>
-            <p className="text-xs text-slate-400">{p.active !== false ? "Active" : "Disabled"} · {p.validity}</p>
 
             <div className="mt-3 flex gap-2">
               <Button
@@ -153,6 +167,48 @@ function Products() {
                     onChange={(e) => setEdit({ ...edit, [k]: e.target.value })}
                     className="mt-1"
                   />
+                  {k === "imageUrl" && (
+                    <div className="mt-2 space-y-1.5">
+                      <p className="text-[11px] text-slate-500 font-medium">Quick Pick DSC Token Model:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { label: "ePass2003 (Purple)", url: "/img/epass2003-token.png" },
+                          { label: "PROXKey (Black)", url: "/img/proxkey-token.png" },
+                          { label: "mToken (Blue)", url: "/img/mtoken-blue.png" },
+                          { label: "mToken (Purple)", url: "/img/mtoken-purple.png" },
+                          { label: "Innait (Signer)", url: "/img/innait-token.png" },
+                          { label: "Blue Token (Org)", url: "/img/blue-token.png" },
+                        ].map((tok) => (
+                          <button
+                            key={tok.url}
+                            type="button"
+                            onClick={() => setEdit({ ...edit, imageUrl: tok.url })}
+                            className={`text-[10px] font-semibold px-2 py-1 rounded-md border transition-all ${
+                              edit.imageUrl === tok.url
+                                ? "bg-purple-100 border-purple-400 text-purple-900"
+                                : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-purple-50"
+                            }`}
+                          >
+                            {tok.label}
+                          </button>
+                        ))}
+                      </div>
+                      {edit.imageUrl && (
+                        <div className="mt-2 flex items-center gap-2 rounded-lg bg-slate-50 border border-slate-200 p-2">
+                          <img
+                            src={edit.imageUrl}
+                            alt="Token preview"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = "/img/epass2003-token.png";
+                            }}
+                            className="h-10 w-10 rounded object-contain bg-white border border-slate-200 p-0.5 mix-blend-multiply"
+                          />
+                          <span className="text-xs text-slate-600 font-mono truncate">{edit.imageUrl}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
 

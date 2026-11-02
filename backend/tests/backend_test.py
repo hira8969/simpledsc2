@@ -7,13 +7,14 @@ import pytest
 
 BASE = os.environ.get("REACT_APP_BACKEND_URL")
 if not BASE:
-    # fallback: read from frontend/.env
-    with open("/app/frontend/.env") as f:
-        for line in f:
-            if line.startswith("REACT_APP_BACKEND_URL="):
-                BASE = line.split("=", 1)[1].strip()
-                break
-BASE = BASE.rstrip("/")
+    env_path = "/app/frontend/.env" if os.path.exists("/app/frontend/.env") else os.path.join(os.path.dirname(__file__), "..", "..", "frontend", ".env")
+    if os.path.exists(env_path):
+        with open(env_path) as f:
+            for line in f:
+                if line.startswith("REACT_APP_BACKEND_URL="):
+                    BASE = line.split("=", 1)[1].strip()
+                    break
+BASE = (BASE or "https://simpledsc2.onrender.com").rstrip("/")
 API = BASE + "/api"
 
 ADMIN_EMAIL = "admin@simpldsc.in"
