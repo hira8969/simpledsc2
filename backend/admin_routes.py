@@ -690,3 +690,37 @@ async def razorpay_webhook(request: Request):
         return {"status": "duplicate"}
     await db.webhook_events.insert_one({"eventId": event_id, "event": event, "at": now_iso()})
     return {"status": "processed", "event": event}
+
+
+# ---------- AGENT & PAYOUT MANAGEMENT ----------
+@admin_router.get("/admin/agent-payouts")
+async def admin_get_agent_payouts(admin: dict = Depends(get_current_admin)):
+    return await db.payout_requests.find({}, {"_id": 0}).sort("requestedAt", -1).to_list(1000)
+
+
+@admin_router.put("/admin/agent-payouts/{pid}")
+async def admin_update_agent_payout(pid: str, payload: dict, request: Request, admin: dict = Depends(require_roles("staff"))):
+    req = await db.payout_requests.find_one({"id": pid})
+    if not req:
+        raise HTTPException(404, "Payout request not found")
+    status = payload.get("status")
+    updates = {
+        "status": status,
+        "processedAt": now_iso(),
+        "processedBy": admin["email"],
+        "transactionRef": payload.get("transactionRef"),
+        "notes": payload.get("notes") or req.get("notes"),
+    }
+    await db.payout_requests.update_one({"id": pid}, {"$set": updates})
+    await audit(admin, "agent_payout_processed", "payout_request", pid, req.get("status"), status, client_ip(request))
+    return {"ok": True, "status": status}
+
+
+@admin_router.get("/admin/agents")
+async def admin_get_agents(search: str = "", admin: dict = Depends(get_current_admin)):
+    q = {}
+    if search:
+        rx = {"$regex": search, "$options": "i"}
+        q["$or"] = [{"name": rx}, {"agentCode": rx}, {"mobile": rx}, {"email": rx}, {"business": rx}]
+    agents = await db.agents.find(q, {"_id": 0, "password": 0}).sort("createdAt", -1).to_list(1000)
+    return agents

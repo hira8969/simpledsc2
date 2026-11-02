@@ -38,6 +38,19 @@ class AgentProfileUpdateReq(BaseModel):
     payoutBank: Optional[dict] = None
 
 
+class AgentPayoutReq(BaseModel):
+    amount: float
+    payoutMode: str = "UPI"  # "UPI" or "Bank Transfer"
+    upiId: Optional[str] = None
+    bankDetails: Optional[dict] = None
+    notes: Optional[str] = None
+
+
+class AgentPasswordChangeReq(BaseModel):
+    currentPassword: str
+    newPassword: str
+
+
 class AgentClientOrderReq(BaseModel):
     clientName: str
     clientMobile: str
@@ -287,6 +300,11 @@ async def agent_dashboard_stats(agent: dict = Depends(get_current_agent)):
             pending_docs += 1
             pending_commission += comm
 
+    payouts = await db.payout_requests.find({"agentCode": agent_code}, {"_id": 0}).to_list(1000)
+    paid_out = sum(p.get("amount", 0.0) for p in payouts if p.get("status") == "Processed")
+    pending_payouts = sum(p.get("amount", 0.0) for p in payouts if p.get("status") == "Pending")
+    available_balance = max(0.0, round(total_commission - paid_out - pending_payouts, 2))
+
     return {
         "agentCode": agent_code,
         "commissionRate": agent.get("commissionRate", 15.0),
@@ -296,6 +314,11 @@ async def agent_dashboard_stats(agent: dict = Depends(get_current_agent)):
         "pendingDocsOrders": pending_docs,
         "totalCommissionEarned": round(total_commission, 2),
         "pendingCommission": round(pending_commission, 2),
+        "totalPaidOut": round(paid_out, 2),
+        "pendingPayouts": round(pending_payouts, 2),
+        "availableBalance": available_balance,
+        "payoutUpi": agent.get("payoutUpi"),
+        "payoutBank": agent.get("payoutBank"),
     }
 
 
@@ -599,3 +622,85 @@ async def agent_get_order_details(order_id: str, agent: dict = Depends(get_curre
         "history": history,
         "progress": progress,
     }
+
+
+# ================= PAYOUT REQUESTS =================
+@agent_router.post("/payout-request")
+async def agent_request_payout(payload: AgentPayoutReq, agent: dict = Depends(get_current_agent)):
+    if payload.amount < 100:
+        raise HTTPException(400, "Minimum payout request amount is ₹100")
+
+    agent_code = agent["agentCode"]
+    # Re-calculate available balance
+    orders = await db.orders.find({"agentCode": agent_code}, {"_id": 0}).to_list(1000)
+    completed_comm = sum(
+        o.get("agentCommission", round(o.get("totalAmount", 0) * (agent.get("commissionRate", 15.0) / 100.0)))
+        for o in orders if o.get("orderStatus") in ["DSC Ready", "Completed"]
+    )
+    payouts = await db.payout_requests.find({"agentCode": agent_code}, {"_id": 0}).to_list(1000)
+    paid_out = sum(p.get("amount", 0.0) for p in payouts if p.get("status") == "Processed")
+    pending_payouts = sum(p.get("amount", 0.0) for p in payouts if p.get("status") == "Pending")
+    available = max(0.0, round(completed_comm - paid_out - pending_payouts, 2))
+
+    if payload.amount > available:
+        raise HTTPException(400, f"Requested amount (₹{payload.amount}) exceeds your available balance (₹{available})")
+
+    mode = payload.payoutMode or "UPI"
+    upi_id = (payload.upiId or agent.get("payoutUpi") or "").strip()
+    bank = payload.bankDetails or agent.get("payoutBank") or {}
+
+    if mode == "UPI" and not upi_id:
+        raise HTTPException(400, "Please provide a valid UPI ID (e.g. name@okhdfcbank) for payout")
+    if mode == "Bank Transfer" and not (bank.get("accountNo") and bank.get("ifsc")):
+        raise HTTPException(400, "Please provide complete bank account details (Account No & IFSC)")
+
+    req_id = f"PAY-{agent_code[-4:]}-{new_id()[:6].upper()}"
+    destination_str = upi_id if mode == "UPI" else f"{bank.get('bankName', 'Bank')} - A/C {bank.get('accountNo')}"
+    payout_doc = {
+        "id": new_id(),
+        "requestId": req_id,
+        "agentId": agent["id"],
+        "agentCode": agent_code,
+        "agentName": agent["name"],
+        "agentMobile": agent["mobile"],
+        "amount": round(payload.amount, 2),
+        "payoutMode": mode,
+        "upiId": upi_id if mode == "UPI" else None,
+        "bankDetails": bank if mode == "Bank Transfer" else None,
+        "destination": destination_str,
+        "status": "Pending",
+        "notes": payload.notes or "Agent commission withdrawal",
+        "requestedAt": now_iso(),
+        "processedAt": None,
+        "transactionRef": None,
+    }
+    await db.payout_requests.insert_one(payout_doc)
+
+    return {
+        "ok": True,
+        "payout": clean(payout_doc),
+        "message": f"Payout request for ₹{payload.amount} submitted successfully! Processing time: 24 business hours.",
+    }
+
+
+@agent_router.get("/payout-requests")
+async def agent_get_payout_requests(agent: dict = Depends(get_current_agent)):
+    requests = await db.payout_requests.find(
+        {"agentCode": agent["agentCode"]},
+        {"_id": 0}
+    ).sort("requestedAt", -1).to_list(200)
+    return requests
+
+
+# ================= CHANGE PASSWORD =================
+@agent_router.put("/change-password")
+async def agent_change_password(payload: AgentPasswordChangeReq, agent: dict = Depends(get_current_agent)):
+    if not verify_password(payload.currentPassword, agent.get("password", "")):
+        raise HTTPException(400, "Current password does not match")
+    if len(payload.newPassword) < 6:
+        raise HTTPException(400, "New password must be at least 6 characters")
+    await db.agents.update_one(
+        {"id": agent["id"]},
+        {"$set": {"password": hash_password(payload.newPassword), "updatedAt": now_iso()}}
+    )
+    return {"ok": True, "message": "Password updated successfully"}
