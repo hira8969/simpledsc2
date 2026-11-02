@@ -16,7 +16,7 @@ CATEGORIES = ["Class 2 DSC", "Class 3 DSC", "DGFT DSC", "eTender DSC", "MCA DSC"
 
 PRODUCTS = [
     {
-        "name": "Class 3 Individual DSC", "category": "Class 3 DSC", "slug": "class-3-dsc",
+        "name": "Class 3 Individual DSC", "brand": "ePass2003", "category": "Class 3 DSC", "slug": "class-3-dsc",
         "description": "India's most trusted Class 3 Digital Signature Certificate. Pre-loaded on a certified high-security USB crypto token for ITR filing, MCA-21, GST portal, trademark filings, and digital PDF signing.",
         "price": 1999, "validity": "1 Year", "imageUrl": "/img/epass2003-token.png",
         "isPopular": True, "rating": 5.0, "badgeText": "Most Popular",
@@ -25,7 +25,7 @@ PRODUCTS = [
         "purposeTags": ["individual", "business", "document_signing"],
     },
     {
-        "name": "Class 3 eTender DSC", "category": "eTender DSC", "slug": "etender-dsc",
+        "name": "Class 3 eTender DSC", "brand": "Watchdata ProxKey", "category": "eTender DSC", "slug": "etender-dsc",
         "description": "High-security combo Digital Signature Certificate engineered for government e-tendering. Includes Signing and Encryption certificates on a Watchdata PROXKey USB dongle for GeM, CPPP, defense, and PSU bids.",
         "price": 2499, "validity": "1 Year", "imageUrl": "/img/proxkey-token.png",
         "isPopular": False, "rating": 4.9, "badgeText": "eProcurement Ready",
@@ -34,7 +34,7 @@ PRODUCTS = [
         "purposeTags": ["government", "business"],
     },
     {
-        "name": "DGFT Digital Signature (Import / Export)", "category": "DGFT DSC", "slug": "dgft-dsc",
+        "name": "DGFT Digital Signature (Import / Export)", "brand": "mToken", "category": "DGFT DSC", "slug": "dgft-dsc",
         "description": "Specially configured Digital Signature for Indian exporters and importers. Pre-mapped with your IEC code on a certified mToken crypto key for quick DGFT licensing and ICEGATE customs clearance.",
         "price": 2499, "validity": "1 Year", "imageUrl": "/img/mtoken-blue.png",
         "isPopular": False, "rating": 4.8, "badgeText": "ICEGATE Ready",
@@ -43,7 +43,7 @@ PRODUCTS = [
         "purposeTags": ["import_export", "business"],
     },
     {
-        "name": "MCA / ROC Director DSC", "category": "MCA DSC", "slug": "mca-dsc",
+        "name": "MCA / ROC Director DSC", "brand": "mToken", "category": "MCA DSC", "slug": "mca-dsc",
         "description": "Designed specifically for Company Directors and Partners. Seamlessly submit ROC annual returns, DIR-3 KYC, DIN approvals, and SPICe+ incorporation forms on the Ministry of Corporate Affairs portal.",
         "price": 1999, "validity": "1 Year", "imageUrl": "/img/mtoken-purple.png",
         "isPopular": False, "rating": 4.9, "badgeText": "Director Essential",
@@ -52,7 +52,7 @@ PRODUCTS = [
         "purposeTags": ["business", "individual"],
     },
     {
-        "name": "Document Signer Certificate (Bulk / Automated)", "category": "Document Signer DSC", "slug": "document-signer-dsc",
+        "name": "Document Signer Certificate (Bulk / Automated)", "brand": "Innait", "category": "Document Signer DSC", "slug": "document-signer-dsc",
         "description": "Heavy-duty organizational certificate for automated, high-volume digital signing. Integrates directly with ERPs, invoicing pipelines, and accounting software for tamper-proof corporate document signing.",
         "price": 3999, "validity": "1 Year", "imageUrl": "/img/innait-token.png",
         "isPopular": False, "rating": 5.0, "badgeText": "Enterprise Ready",
@@ -61,7 +61,7 @@ PRODUCTS = [
         "purposeTags": ["business", "document_signing"],
     },
     {
-        "name": "Class 3 Organization DSC (Signing + Token)", "category": "Class 2 DSC", "slug": "class-2-dsc",
+        "name": "Class 3 Organization DSC (Signing + Token)", "brand": "ePass2003", "category": "Class 2 DSC", "slug": "class-2-dsc",
         "description": "Authenticates both the individual representative and the company name. Includes a premium blue cryptographic USB token, ideal for corporate banking, GST return signing, and legal compliance.",
         "price": 1799, "validity": "1 Year", "imageUrl": "/img/blue-token.png",
         "isPopular": False, "rating": 4.8, "badgeText": "Corporate Authorized",

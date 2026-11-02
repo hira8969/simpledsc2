@@ -109,22 +109,46 @@ async def list_products(category: Optional[str] = None):
 @api.get("/products/filter")
 async def filter_products(
     category: Optional[str] = None,
-    search: str = Query("", max_length=100),
-    brands: List[str] = Query(default=[]),
+    search: Optional[str] = Query(None, max_length=100),
+    name: Optional[str] = Query(None, max_length=100),
+    brands: Optional[List[str]] = Query(default=None),
     min_price: Optional[float] = Query(None, ge=0),
+    minPrice: Optional[float] = Query(None, ge=0),
     max_price: Optional[float] = Query(None, ge=0),
-    min_rating: Optional[float] = Query(None, ge=1, le=5),
-    sort_by: str = Query("recommended", regex="^(recommended|price|name|rating)$"),
-    sort_dir: str = Query("asc", regex="^(asc|desc)$"),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(9, ge=1, le=50),
+    maxPrice: Optional[float] = Query(None, ge=0),
+    min_rating: Optional[float] = Query(None, ge=0, le=5),
+    minRating: Optional[float] = Query(None, ge=0, le=5),
+    sort_by: Optional[str] = Query(None),
+    sortBy: Optional[str] = Query(None),
+    sort_dir: Optional[str] = Query(None),
+    sortDirection: Optional[str] = Query(None),
+    page: Optional[int] = Query(1),
+    page_size: Optional[int] = Query(None, ge=1, le=100),
+    pageSize: Optional[int] = Query(None, ge=1, le=100),
+    size: Optional[int] = Query(None, ge=1, le=100),
 ):
     """Filter active products in MongoDB and return dynamic catalog facets."""
+    eff_search = (name if name is not None else search) or ""
+    eff_min_price = minPrice if minPrice is not None else min_price
+    eff_max_price = maxPrice if maxPrice is not None else max_price
+    eff_min_rating = minRating if minRating is not None else min_rating
+    eff_sort_by = (sortBy if sortBy is not None else sort_by) or "recommended"
+    eff_sort_dir = (sortDirection if sortDirection is not None else sort_dir) or "asc"
+    eff_page = max(1, page if page is not None and page > 0 else 1)
+    eff_page_size = pageSize or size or page_size or 9
     try:
         return await filter_catalog_products(
-            db.products, category=category, search=search, brands=brands,
-            min_price=min_price, max_price=max_price, min_rating=min_rating,
-            sort_by=sort_by, sort_dir=sort_dir, page=page, page_size=page_size,
+            db.products,
+            category=category,
+            search=eff_search,
+            brands=brands,
+            min_price=eff_min_price,
+            max_price=eff_max_price,
+            min_rating=eff_min_rating,
+            sort_by=eff_sort_by,
+            sort_dir=eff_sort_dir,
+            page=eff_page,
+            page_size=eff_page_size,
         )
     except ValueError as error:
         raise HTTPException(422, str(error)) from error

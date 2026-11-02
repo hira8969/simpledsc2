@@ -47,9 +47,10 @@ class ProductsCollection:
         return self.cursor
 
     def aggregate(self, pipeline):
-        rows = self.facets[self.aggregate_calls]
+        rows = self.facets[self.aggregate_calls % len(self.facets)]
         self.aggregate_calls += 1
         return Cursor(rows)
+
 
 
 def test_filter_service_builds_combined_query_and_dynamic_facets():
@@ -91,3 +92,44 @@ def test_filter_service_rejects_inverted_price_range():
         assert False, "Expected the inverted price range to be rejected"
     except ValueError as error:
         assert "min_price" in str(error)
+
+
+def test_filter_service_handles_comma_separated_and_multiple_brands():
+    collection = ProductsCollection()
+    asyncio.run(filter_catalog_products(
+        collection,
+        brands=["ePass2003,mToken", "Watchdata ProxKey"],
+    ))
+    query = collection.query
+    assert "ePass2003" in query["brand"]["$in"]
+    assert "mToken" in query["brand"]["$in"]
+    assert "Watchdata ProxKey" in query["brand"]["$in"]
+
+
+def test_filter_service_handles_zero_indexed_page():
+    collection = ProductsCollection()
+    result = asyncio.run(filter_catalog_products(
+        collection,
+        page=0,
+        page_size=5,
+    ))
+    assert result["page"] == 1
+    assert collection.cursor.skip_amount == 0
+
+
+def test_filter_service_handles_price_sorting():
+    collection = ProductsCollection()
+    asyncio.run(filter_catalog_products(
+        collection,
+        sort_by="price",
+        sort_dir="asc",
+    ))
+    assert collection.cursor.sort_fields == [("price", 1), ("_id", 1)]
+
+    asyncio.run(filter_catalog_products(
+        collection,
+        sort_by="price",
+        sort_dir="desc",
+    ))
+    assert collection.cursor.sort_fields == [("price", -1), ("_id", 1)]
+
