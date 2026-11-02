@@ -404,28 +404,6 @@ async def update_lead(lid: str, payload: dict, admin: dict = Depends(get_current
     await db.partnership_applications.update_one({"id": lid}, {"$set": payload})
     return {"ok": True}
 
-@admin_router.get("/admin/agents")
-async def admin_list_agents(admin: dict = Depends(get_current_admin)):
-    agents = await db.agents.find({}, {"_id": 0, "password": 0}).sort("createdAt", -1).to_list(500)
-    for a in agents:
-        orders = await db.orders.find({"agentCode": a.get("agentCode")}, {"_id": 0, "orderStatus": 1, "agentCommission": 1, "totalAmount": 1}).to_list(500)
-        a["clientCount"] = len(orders)
-        a["completedCount"] = sum(1 for o in orders if o.get("orderStatus") in ["DSC Ready", "Completed"])
-        a["totalCommission"] = sum(o.get("agentCommission", 0) for o in orders if o.get("orderStatus") in ["DSC Ready", "Completed"])
-    return agents
-
-@admin_router.put("/admin/agents/{agent_id}")
-async def admin_update_agent(agent_id: str, payload: dict, admin: dict = Depends(get_current_admin)):
-    allowed = {}
-    if "status" in payload:
-        allowed["status"] = payload["status"]
-    if "commissionRate" in payload:
-        allowed["commissionRate"] = float(payload["commissionRate"])
-    if allowed:
-        allowed["updatedAt"] = now_iso()
-        await db.agents.update_one({"id": agent_id}, {"$set": allowed})
-    return {"ok": True}
-
 @admin_router.get("/admin/contact-enquiries")
 async def contact_enquiries(admin: dict = Depends(get_current_admin)):
     return await db.contact_enquiries.find({}, {"_id": 0}).sort("createdAt", -1).to_list(1000)
@@ -723,4 +701,83 @@ async def admin_get_agents(search: str = "", admin: dict = Depends(get_current_a
         rx = {"$regex": search, "$options": "i"}
         q["$or"] = [{"name": rx}, {"agentCode": rx}, {"mobile": rx}, {"email": rx}, {"business": rx}]
     agents = await db.agents.find(q, {"_id": 0, "password": 0}).sort("createdAt", -1).to_list(1000)
+
+    # Enrich agents with orders and commission metrics
+    for a in agents:
+        agent_code = a.get("agentCode")
+        orders = await db.orders.find(
+            {"agentCode": agent_code},
+            {"_id": 0, "totalAmount": 1, "orderStatus": 1, "agentCommission": 1}
+        ).to_list(1000)
+        rate = float(a.get("commissionRate", 15.0))
+        a["commissionRate"] = rate
+        a["totalOrders"] = len(orders)
+        a["clientCount"] = len(orders)
+        a["completedOrders"] = sum(1 for o in orders if o.get("orderStatus") in ["DSC Ready", "Completed"])
+        a["completedCount"] = a["completedOrders"]
+        a["totalCommissionEarned"] = round(sum(
+            o.get("agentCommission", round(o.get("totalAmount", 0) * (rate / 100.0)))
+            for o in orders if o.get("orderStatus") in ["DSC Ready", "Completed"]
+        ), 2)
+        a["totalCommission"] = a["totalCommissionEarned"]
     return agents
+
+
+@admin_router.put("/admin/agents/{agent_id}/commission")
+async def admin_set_agent_commission(
+    agent_id: str,
+    payload: dict,
+    request: Request,
+    admin: dict = Depends(require_roles("staff")),
+):
+    rate = float(payload.get("commissionRate", 15.0))
+    if rate < 0 or rate > 100:
+        raise HTTPException(400, "Commission rate must be between 0% and 100%")
+
+    agent = await db.agents.find_one({"$or": [{"id": agent_id}, {"agentCode": agent_id}]})
+    if not agent:
+        raise HTTPException(404, "Agent not found")
+
+    old_rate = agent.get("commissionRate", 15.0)
+    await db.agents.update_one(
+        {"id": agent["id"]},
+        {"$set": {"commissionRate": round(rate, 2), "updatedAt": now_iso()}}
+    )
+
+    await audit(admin, "agent_commission_updated", "agent", agent["id"], f"{old_rate}%", f"{rate}%", client_ip(request))
+    return {
+        "ok": True,
+        "agentCode": agent["agentCode"],
+        "commissionRate": round(rate, 2),
+        "message": f"Commission rate for {agent['name']} ({agent['agentCode']}) updated to {round(rate, 2)}%",
+    }
+
+
+@admin_router.put("/admin/agents/{agent_id}")
+async def admin_update_agent(
+    agent_id: str,
+    payload: dict,
+    request: Request,
+    admin: dict = Depends(require_roles("staff")),
+):
+    agent = await db.agents.find_one({"$or": [{"id": agent_id}, {"agentCode": agent_id}]})
+    if not agent:
+        raise HTTPException(404, "Agent not found")
+
+    updates = {"updatedAt": now_iso()}
+    if "commissionRate" in payload:
+        r = float(payload["commissionRate"])
+        if r < 0 or r > 100:
+            raise HTTPException(400, "Commission rate must be between 0% and 100%")
+        updates["commissionRate"] = round(r, 2)
+    if "status" in payload:
+        updates["status"] = payload["status"]
+    if "name" in payload:
+        updates["name"] = payload["name"]
+    if "business" in payload:
+        updates["business"] = payload["business"]
+
+    await db.agents.update_one({"id": agent["id"]}, {"$set": updates})
+    await audit(admin, "agent_updated", "agent", agent["id"], agent.get("status"), payload.get("status", agent.get("status")), client_ip(request))
+    updated = await db.agents.find_one({"id": agent["id"]}, {"_id": 0, "password": 0})
+    return {"ok": True, "agent": updated}

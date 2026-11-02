@@ -955,7 +955,7 @@ export default function AgentDashboard() {
                 Book a Digital Signature for Your Client
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                Directly register the application on behalf of your client. You receive 15% instant commission, and the order will appear immediately in your pipeline.
+                Directly register the application on behalf of your client. You receive {stats?.commissionRate || 15}% instant commission, and the order will appear immediately in your pipeline.
               </p>
 
               <form onSubmit={handleCreateClientOrder} className="mt-6 space-y-5">
