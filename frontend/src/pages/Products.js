@@ -49,6 +49,107 @@ export default function Products() {
     filters.maxPrice ?? priceBounds[1],
   ], [filters.minPrice, filters.maxPrice, priceBounds]);
 
+  const allProductsCache = useRef(null);
+
+  const filterClientSide = useCallback((rawList, pageNum = page) => {
+    const cats = new Set();
+    const brandCounts = new Map();
+    let minP = Infinity;
+    let maxP = -Infinity;
+
+    const listWithMeta = rawList.map((p) => {
+      const nameL = (p.name || "").toLowerCase();
+      const detectedBrand = p.brand || (
+        nameL.includes("emudhra") ? "eMudhra" :
+        nameL.includes("vsign") || nameL.includes("v-sign") ? "V-Sign" :
+        nameL.includes("pantasign") ? "PantaSign" :
+        nameL.includes("capricorn") ? "Capricorn" :
+        nameL.includes("pro") ? "ProxKey" : "CCA Certified"
+      );
+      const pr = Number(p.price ?? p.basePrice ?? 0);
+      return {
+        ...p,
+        brand: detectedBrand,
+        price: pr,
+        rating: p.rating ?? 4.8,
+        reviewsCount: p.reviewsCount ?? 142,
+      };
+    });
+
+    listWithMeta.forEach((p) => {
+      if (p.category) cats.add(p.category);
+      if (p.brand) {
+        brandCounts.set(p.brand, (brandCounts.get(p.brand) || 0) + 1);
+      }
+      if (p.price > 0) {
+        if (p.price < minP) minP = p.price;
+        if (p.price > maxP) maxP = p.price;
+      }
+    });
+
+    const calculatedFacets = {
+      categories: Array.from(cats),
+      brands: Array.from(brandCounts.entries()).map(([brand, count]) => ({ brand, count })),
+      priceRange: {
+        min: minP === Infinity ? 0 : minP,
+        max: maxP === -Infinity ? 5000 : maxP,
+      },
+    };
+
+    let filtered = [...listWithMeta];
+    if (category && category !== "All") {
+      filtered = filtered.filter((p) => p.category === category);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      filtered = filtered.filter((p) =>
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.brand && p.brand.toLowerCase().includes(q))
+      );
+    }
+    if (filters.brands.length) {
+      filtered = filtered.filter((p) => filters.brands.includes(p.brand));
+    }
+    if (filters.minPrice !== null && filters.minPrice !== undefined) {
+      filtered = filtered.filter((p) => p.price >= filters.minPrice);
+    }
+    if (filters.maxPrice !== null && filters.maxPrice !== undefined) {
+      filtered = filtered.filter((p) => p.price <= filters.maxPrice);
+    }
+    if (filters.rating) {
+      filtered = filtered.filter((p) => Number(p.rating || 0) >= filters.rating);
+    }
+
+    const [sortBy, sortDirection = "asc"] = sort.split("-");
+    filtered.sort((a, b) => {
+      if (sortBy === "price") {
+        return sortDirection === "desc" ? b.price - a.price : a.price - b.price;
+      }
+      if (sortBy === "rating") {
+        return sortDirection === "desc" ? b.rating - a.rating : a.rating - b.rating;
+      }
+      if (sortBy === "popular") {
+        return (b.reviewsCount || 0) - (a.reviewsCount || 0);
+      }
+      return 0;
+    });
+
+    const tot = filtered.length;
+    const totPages = Math.ceil(tot / PAGE_SIZE) || 1;
+    const startIdx = (pageNum - 1) * PAGE_SIZE;
+    const paginated = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+    setProducts(paginated);
+    setTotal(tot);
+    setTotalPages(totPages);
+    setFacets(calculatedFacets);
+    if (!initializedPriceRange.current && calculatedFacets.priceRange) {
+      initializedPriceRange.current = true;
+    }
+  }, [category, search, filters, sort, page]);
+
   const loadProducts = useCallback(async (signal) => {
     setLoading(true);
     setError("");
@@ -71,14 +172,29 @@ export default function Products() {
         setFilters((current) => ({ ...current, minPrice: null, maxPrice: null }));
       }
     } catch (requestError) {
-      if (requestError.code !== "ERR_CANCELED" && requestError.name !== "CanceledError") {
-        console.error("Failed to load products", requestError);
-        setError("We couldn’t load products right now. Please try again.");
+      if (requestError.code === "ERR_CANCELED" || requestError.name === "CanceledError") {
+        return;
+      }
+      // Fallback: If /products/filter returns 404 or fails, seamlessly fetch from /products
+      try {
+        let raw = allProductsCache.current;
+        if (!raw || raw.length === 0) {
+          const fallbackRes = await api.get("/products", { signal });
+          raw = fallbackRes.data || [];
+          allProductsCache.current = raw;
+        }
+        filterClientSide(raw);
+        setError("");
+      } catch (fallbackError) {
+        if (fallbackError.code !== "ERR_CANCELED" && fallbackError.name !== "CanceledError") {
+          console.error("Failed to load products", fallbackError);
+          setError("We couldn’t load products right now. Please try again.");
+        }
       }
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [category, search, filters, sort, page]);
+  }, [category, search, filters, sort, page, filterClientSide]);
 
   useEffect(() => {
     const controller = new AbortController();

@@ -49,13 +49,35 @@ export function ProductSort({ value, onChange }) {
 }
 
 export function CategoryFilter({ categories = [], value, onChange }) {
+  const normalized = useMemo(() => {
+    return categories
+      .map((c) => {
+        if (typeof c === "string") return { name: c, count: null };
+        return { name: c.name || c.category || "", count: c.count ?? null };
+      })
+      .filter((c) => c.name && c.name !== "All");
+  }, [categories]);
+
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar" aria-label="Product categories">
-      {[{ name: "All" }, ...categories].map((category) => (
-        <button key={category.name} type="button" onClick={() => onChange(category.name)} aria-pressed={value === category.name}
-          className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${value === category.name ? "bg-gradient-to-r from-purple-700 to-navy-800 text-white shadow" : "border border-slate-200 bg-white text-navy-800 hover:border-purple-300"}`}>
+      {[{ name: "All", count: null }, ...normalized].map((category) => (
+        <button
+          key={category.name}
+          type="button"
+          onClick={() => onChange(category.name)}
+          aria-pressed={value === category.name}
+          className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
+            value === category.name
+              ? "bg-gradient-to-r from-purple-700 to-navy-800 text-white shadow"
+              : "border border-slate-200 bg-white text-navy-800 hover:border-purple-300"
+          }`}
+        >
           {category.name}
-          {category.name !== "All" && <span className={`ml-1.5 text-xs ${value === category.name ? "text-white/70" : "text-slate-400"}`}>{category.count}</span>}
+          {category.name !== "All" && category.count !== null && (
+            <span className={`ml-1.5 text-xs ${value === category.name ? "text-white/70" : "text-slate-400"}`}>
+              {category.count}
+            </span>
+          )}
         </button>
       ))}
     </div>
@@ -65,7 +87,10 @@ export function CategoryFilter({ categories = [], value, onChange }) {
 export function BrandFilter({ brands = [], selected = [], onChange }) {
   const allBrands = useMemo(() => {
     const map = new Map();
-    brands.forEach((b) => map.set(b.name, b.count));
+    brands.forEach((b) => {
+      const bName = typeof b === "string" ? b : (b?.name || b?.brand);
+      if (bName) map.set(bName, b?.count ?? 0);
+    });
     selected.forEach((name) => {
       if (!map.has(name)) map.set(name, 0);
     });
