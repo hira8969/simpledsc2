@@ -9,7 +9,9 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="lg:col-span-1">
-            <Logo dark />
+            <Link to="/" data-testid="footer-logo-link" className="inline-block transition-opacity hover:opacity-90">
+              <Logo dark />
+            </Link>
             <p className="mt-4 text-sm text-slate-400 leading-relaxed">Digital Signatures, Made Simple. A digital-first platform to get and manage your DSC securely across India.</p>
             <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-purple-900/60 bg-purple-950/40 px-3 py-1 text-xs text-lavender-200">
               <ShieldCheck className="h-3.5 w-3.5" /> Secure & Encrypted Process

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate, useLocation, Navigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation, Navigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { Logo } from "@/components/Logo";
 import { Input } from "@/components/ui/input";
@@ -58,7 +58,11 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-slate-100">
       <div className="flex">
         <aside className={`fixed lg:sticky top-0 z-30 h-screen w-60 shrink-0 dark-mesh text-slate-300 p-4 transition-transform ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
-          <div className="px-2 py-3"><Logo dark /></div>
+          <div className="px-2 py-3">
+            <Link to="/" data-testid="admin-logo-link" className="inline-block transition-opacity hover:opacity-90">
+              <Logo dark />
+            </Link>
+          </div>
           <nav className="mt-4 space-y-1">
             {NAV.map((n) => (
               <button key={n.to} data-testid={`admin-nav-${n.label.toLowerCase().replace(/\s+|&/g, "-")}`} onClick={() => { nav(n.to); setOpen(false); }}

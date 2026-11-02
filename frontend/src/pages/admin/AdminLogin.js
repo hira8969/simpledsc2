@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { Seo } from "@/components/Seo";
 import { Logo } from "@/components/Logo";
@@ -38,7 +38,11 @@ export default function AdminLogin() {
     <div className="min-h-screen dark-mesh flex items-center justify-center p-4">
       <Seo title="Admin Portal | SimplDSC" index={false} />
       <div className="w-full max-w-md rounded-2xl border border-purple-900/40 bg-white/5 backdrop-blur-xl p-8 shadow-2xl">
-        <div className="flex justify-center mb-6"><Logo dark /></div>
+        <div className="flex justify-center mb-6">
+          <Link to="/" data-testid="admin-login-logo" className="transition-opacity hover:opacity-90">
+            <Logo dark />
+          </Link>
+        </div>
         <div className="text-center mb-6">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-600/30 text-lavender-200"><Lock className="h-6 w-6" /></div>
           <h1 className="font-display text-2xl font-bold text-white">Admin Portal</h1>
