@@ -28,7 +28,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
       </div>
 
       {/* Image Preview */}
-      <div className="product-card-image relative mb-4 flex h-52 w-full shrink-0 items-center justify-center rounded-2xl overflow-hidden p-3.5 shadow-sm">
+      <div className="product-card-image relative mb-4 flex h-52 w-full shrink-0 items-center justify-center rounded-2xl overflow-hidden shadow-xs">
         <img
           src={product.imageUrl || "/img/epass2003-token.png"}
           alt={`${product.name} USB token`}
@@ -37,7 +37,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
             e.currentTarget.onerror = null;
             e.currentTarget.src = "/img/epass2003-token.png";
           }}
-          className="h-full w-full object-contain object-center rounded-xl transition-transform duration-300 ease-out group-hover:scale-105"
+          className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
         />
       </div>
 

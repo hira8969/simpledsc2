@@ -79,12 +79,12 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible {
 .hero-token-image { display: block; width: 100%; height: auto; }
 .product-grid { align-items: stretch; }
 .product-card-image {
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  border: 1px solid #e2e8f0;
+  background: radial-gradient(circle at 50% 50%, #f4f8fe 0%, #e1eefe 100%);
+  border: 1px solid rgba(219, 234, 254, 0.8);
 }
 .product-detail-image {
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  border: 1px solid #e2e8f0;
+  background: radial-gradient(circle at 50% 50%, #f4f8fe 0%, #e1eefe 100%);
+  border: 1px solid rgba(219, 234, 254, 0.8);
 }
 .dark-mesh {
   background:
