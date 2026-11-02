@@ -20,6 +20,8 @@ export default function ProductDetail() {
 
   if (!product) return <div className="max-w-7xl mx-auto px-6 py-24 text-center text-slate-400">Loading…</div>;
 
+  const isMcaDirector = product.slug === "mca-dsc";
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <Seo
@@ -29,8 +31,8 @@ export default function ProductDetail() {
         index={product.seo?.index !== false}
       />
       <button onClick={() => nav("/products")} className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-purple-700"><ArrowLeft className="h-4 w-4" /> All Products</button>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        <div className="product-detail-image rounded-2xl border border-blue-100 p-6 flex items-center justify-center">
+      <div className={`grid grid-cols-1 items-start ${isMcaDirector ? "gap-8 md:grid-cols-2 lg:gap-10" : "gap-10 lg:grid-cols-2"}`}>
+        <div className={`product-detail-image mx-auto flex aspect-square w-full max-w-[640px] min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 ${isMcaDirector ? "p-0" : "p-5 sm:p-8"}`}>
           <img
             src={product.imageUrl || "/img/epass2003-token.png"}
             alt={product.name}
@@ -38,10 +40,10 @@ export default function ProductDetail() {
               e.currentTarget.onerror = null;
               e.currentTarget.src = "/img/epass2003-token.png";
             }}
-            className="w-full h-[300px] sm:h-[360px] object-contain object-center rounded-xl mix-blend-multiply"
+            className={`h-full w-full object-contain object-center ${isMcaDirector ? "rounded-[inherit]" : "rounded-xl mix-blend-multiply"}`}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-purple-600">{product.category}</p>
             {product.isPopular && (
@@ -76,7 +78,7 @@ export default function ProductDetail() {
           </div>
           <div className="mt-6 rounded-2xl border border-slate-200 p-5">
             <h3 className="font-display font-bold text-navy-900 mb-3">Features</h3>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <ul className={`grid grid-cols-1 gap-2 ${isMcaDirector ? "lg:grid-cols-2" : "sm:grid-cols-2"}`}>
               {(product.features || []).map((f) => (
                 <li key={f} className="flex items-center gap-2 text-sm text-slate-600"><Check className="h-4 w-4 text-emerald-500" /> {f}</li>
               ))}

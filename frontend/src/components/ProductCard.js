@@ -29,7 +29,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
       </div>
 
       {/* Image Preview */}
-      <div className="product-card-image relative mb-4 flex h-48 shrink-0 items-center justify-center rounded-xl overflow-hidden">
+      <div className="product-card-image relative mb-4 flex h-48 w-full shrink-0 items-center justify-center rounded-xl overflow-hidden">
         <img
           src={product.imageUrl || "/img/epass2003-token.png"}
           alt={`${product.name} USB token`}
@@ -61,7 +61,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
         </div>
       </div>
 
-      <h3 className="mt-1 font-display text-lg font-bold text-navy-900">{product.name}</h3>
+      <h3 className="mt-1 min-w-0 break-words font-display text-lg font-bold text-navy-900">{product.name}</h3>
       <p className="mt-1 text-sm text-slate-500">{product.description}</p>
 
       {/* Features list */}
@@ -82,18 +82,18 @@ export function ProductCard({ product, onBuy, index = 0 }) {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2 sm:flex-nowrap">
+      <div className="mt-4 flex w-full flex-wrap gap-2 sm:flex-nowrap">
         <Link
           to={`/products/${product.slug}`}
           data-testid={`view-${product.slug}`}
-          className="flex-1 rounded-xl border border-slate-200 py-2 text-center text-sm font-semibold text-navy-800 hover:bg-slate-50 transition-colors"
+          className="min-w-0 flex-1 rounded-xl border border-slate-200 py-2 text-center text-sm font-semibold text-navy-800 hover:bg-slate-50 transition-colors"
         >
           View Details
         </Link>
         <Button
           data-testid={`buy-${product.slug}`}
           onClick={() => onBuy(product)}
-          className="flex-1 bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 text-white rounded-xl"
+          className="min-w-0 flex-1 whitespace-nowrap bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 text-white rounded-xl"
         >
           Buy Now <ArrowRight className="ml-1 h-4 w-4" />
         </Button>
