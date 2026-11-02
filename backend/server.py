@@ -8,7 +8,7 @@ import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, UploadFile, File, Form, Query
 from fastapi.responses import Response, PlainTextResponse, HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
@@ -16,6 +16,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 from core import (db, new_id, now_iso, clean, gen_simpldsc_id, gen_order_id,
                   gen_invoice_no, gen_ticket_id, audit, notify)
+from product_catalog import filter_catalog_products
 from security import (hash_password, verify_password, make_token, get_current_customer,
                       get_current_admin, require_roles, client_ip)
 import seed as seed_module
@@ -103,6 +104,30 @@ async def list_products(category: Optional[str] = None):
         q["category"] = category
     items = await db.products.find(q, {"_id": 0}).sort("sortOrder", 1).to_list(200)
     return items
+
+
+@api.get("/products/filter")
+async def filter_products(
+    category: Optional[str] = None,
+    search: str = Query("", max_length=100),
+    brands: List[str] = Query(default=[]),
+    min_price: Optional[float] = Query(None, ge=0),
+    max_price: Optional[float] = Query(None, ge=0),
+    min_rating: Optional[float] = Query(None, ge=1, le=5),
+    sort_by: str = Query("recommended", regex="^(recommended|price|name|rating)$"),
+    sort_dir: str = Query("asc", regex="^(asc|desc)$"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(9, ge=1, le=50),
+):
+    """Filter active products in MongoDB and return dynamic catalog facets."""
+    try:
+        return await filter_catalog_products(
+            db.products, category=category, search=search, brands=brands,
+            min_price=min_price, max_price=max_price, min_rating=min_rating,
+            sort_by=sort_by, sort_dir=sort_dir, page=page, page_size=page_size,
+        )
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
 
 @api.get("/products/{slug}")
 async def get_product(slug: str):
