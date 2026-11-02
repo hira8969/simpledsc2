@@ -79,13 +79,13 @@ export function Chatbot() {
   return (
     <>
       <button data-testid="chatbot-toggle" onClick={() => setOpen((o) => !o)} aria-label="Open help assistant"
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-purple-700 to-navy-800 text-white shadow-xl shadow-purple-900/30 hover:scale-105 active:scale-95 transition-transform">
+        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-purple-700 to-navy-800 text-white shadow-xl shadow-purple-900/30 hover:scale-105 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2">
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </button>
 
       {open && (
         <div data-testid="chatbot-panel"
-          className="fixed bottom-24 right-5 z-50 w-[92vw] max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-rise">
+          className="fixed bottom-24 right-5 z-50 flex max-h-[calc(100dvh-7rem)] w-[calc(100vw-2.5rem)] max-w-sm flex-col overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl animate-rise sm:w-[92vw]">
           <div className="bg-gradient-to-r from-purple-700 to-navy-800 px-4 py-3 text-white flex items-center gap-2.5">
             <img src="/logo-icon.png" alt="" className="h-7 w-7 object-contain rounded-lg bg-white/10 p-0.5 shrink-0" />
             <div>
@@ -94,7 +94,7 @@ export function Chatbot() {
             </div>
           </div>
 
-          <div className="max-h-72 space-y-3 overflow-y-auto p-4">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
             {thread.map((m, i) => (
               <div key={i} className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.from === "user" ? "bg-purple-600 text-white rounded-br-sm" : "bg-slate-100 text-navy-900 rounded-bl-sm"}`}>

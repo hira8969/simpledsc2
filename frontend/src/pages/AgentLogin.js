@@ -101,7 +101,7 @@ export default function AgentLogin() {
             <Link to="/" data-testid="agent-login-logo">
               <Logo />
             </Link>
-            <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800">
+            <span className="hidden rounded-md bg-purple-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-purple-800 sm:inline">
               Agent Portal
             </span>
           </div>
@@ -110,7 +110,7 @@ export default function AgentLogin() {
               Partner Benefits
             </Link>
             <Link to="/" className="text-purple-700 hover:text-purple-800 font-semibold">
-              Customer Storefront &rarr;
+              Customer Storefront <span className="hidden sm:inline">&rarr;</span>
             </Link>
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function AgentLogin() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold uppercase tracking-wider mb-4">
             <Handshake className="h-3.5 w-3.5" /> DSC Partner Network
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-navy-900 tracking-tight leading-tight">
+          <h1 className="responsive-compact-title font-display text-3xl sm:text-4xl font-extrabold text-navy-900 tracking-tight leading-tight">
             Manage your DSC clients with 100% transparency.
           </h1>
           <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">

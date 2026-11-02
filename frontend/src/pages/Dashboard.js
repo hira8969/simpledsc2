@@ -113,15 +113,15 @@ export default function Dashboard() {
       <header className="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
         <div className="flex h-16 items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <button className="lg:hidden p-2" onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="dash-menu-toggle"><Menu className="h-5 w-5" /></button>
-            <button onClick={() => nav("/")}><Logo /></button>
+            <button className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-purple-50 lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="dash-menu-toggle"><Menu className="h-5 w-5" /></button>
+            <button onClick={() => nav("/")} className="shrink-0"><Logo className="[&_img]:h-7 sm:[&_img]:h-9" /></button>
           </div>
           <div className="flex items-center gap-3">
             <Button
               onClick={() => nav("/products")}
               className="bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 hover:to-navy-900 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm flex items-center gap-1.5"
             >
-              <span>+</span> Buy New DSC
+              <span>+</span><span className="hidden sm:inline">Buy New DSC</span><span className="sm:hidden"> DSC</span>
             </Button>
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-sm font-semibold text-navy-900">{user.name}</span>
@@ -218,7 +218,7 @@ export default function Dashboard() {
                             e.currentTarget.onerror = null;
                             e.currentTarget.src = "/img/epass2003-token.png";
                           }}
-                          className="h-full w-full object-cover mix-blend-multiply"
+                          className="h-full w-full object-contain object-center mix-blend-multiply"
                         />
                       </div>
                       <div className="min-w-0">
@@ -328,7 +328,7 @@ function DscCard({ dsc, onRenewed }) {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = "/img/epass2003-token.png";
               }}
-              className="h-full w-full object-cover mix-blend-multiply"
+              className="h-full w-full object-contain object-center mix-blend-multiply"
             />
           </div>
           <div>

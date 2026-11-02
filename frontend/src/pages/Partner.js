@@ -86,7 +86,7 @@ export default function Partner({ agent = false }) {
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700">
             <Handshake className="h-6 w-6" />
           </div>
-          <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-navy-900">
+          <h1 className="responsive-page-title font-display text-4xl lg:text-5xl font-extrabold text-navy-900">
             {agent ? "Become a SimplDSC Agent" : "Become a SimplDSC Partner"}
           </h1>
           <p className="mt-3 text-lg text-slate-600 max-w-2xl mx-auto">
@@ -147,7 +147,7 @@ export default function Partner({ agent = false }) {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 lg:p-8 max-w-3xl mx-auto shadow-sm">
           <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
             <div>
-              <h2 className="font-display text-xl font-bold text-navy-900">
+              <h2 className="min-w-0 font-display text-xl font-bold text-navy-900">
                 {agent ? "Agent Registration & Partnership" : "Submit Partnership Request"}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">

@@ -127,7 +127,7 @@ export default function ClientLogin() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <Logo />
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 ml-2">
+            <span className="ml-2 hidden rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 sm:inline">
               Client Portal
             </span>
           </Link>
@@ -149,7 +149,7 @@ export default function ClientLogin() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold uppercase tracking-wider mb-4">
             <ShieldCheck className="h-3.5 w-3.5 text-purple-700" /> Digital Signature Portal
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-navy-900 tracking-tight leading-tight">
+          <h1 className="responsive-compact-title font-display text-3xl sm:text-4xl font-extrabold text-navy-900 tracking-tight leading-tight">
             Manage your DSCs, orders & documents in one place.
           </h1>
           <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">

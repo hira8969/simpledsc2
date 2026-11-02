@@ -14,7 +14,7 @@ export default function Faqs() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700"><HelpCircle className="h-6 w-6" /></div>
-          <h1 className="font-display text-4xl font-extrabold text-navy-900">Frequently Asked Questions</h1>
+          <h1 className="responsive-compact-title font-display text-4xl font-extrabold text-navy-900">Frequently Asked Questions</h1>
           <p className="mt-2 text-slate-500">Answers to common questions about Digital Signature Certificates.</p>
         </div>
         <Accordion type="single" collapsible className="mt-10 space-y-3" data-testid="faq-accordion">

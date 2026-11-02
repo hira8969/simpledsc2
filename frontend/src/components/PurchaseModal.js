@@ -133,7 +133,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
         {step === 0 && (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="PAN" v={applicant.pan} on={(v) => setApplicant({ ...applicant, pan: v.toUpperCase() })} testId="applicant-pan" />
               <Field label="Aadhaar / ID" v={applicant.aadhaar} on={(v) => setApplicant({ ...applicant, aadhaar: v })} testId="applicant-aadhaar" />
               <Field label="Date of Birth" type="date" v={applicant.dob} on={(v) => setApplicant({ ...applicant, dob: v })} testId="applicant-dob" />
@@ -151,8 +151,8 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
           <div className="space-y-3">
             <p className="text-sm text-slate-500">Upload required documents (PDF, JPG, PNG · max 5MB each).</p>
             {(product.requiredDocuments || []).map((d) => (
-              <div key={d} className="flex items-center justify-between rounded-xl border border-slate-200 p-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-navy-800"><Upload className="h-4 w-4 text-purple-600" /> {d}</div>
+              <div key={d} className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 p-3">
+                <div className="flex min-w-0 items-center gap-2 text-sm font-medium text-navy-800"><Upload className="h-4 w-4 shrink-0 text-purple-600" /> <span className="break-words">{d}</span></div>
                 {uploaded[d] ? (
                   <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1"><CheckCircle2 className="h-4 w-4" /> {uploaded[d].slice(0, 18)}</span>
                 ) : (
@@ -174,10 +174,10 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
         {step === 2 && (
           <div className="space-y-4">
             <div className="rounded-xl border border-slate-200 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Tag className="h-4 w-4 text-purple-600" />
-                <Input data-testid="coupon-input" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Coupon code (try WELCOME10)" className="h-9" />
-                <Button data-testid="apply-coupon-btn" variant="outline" onClick={applyCoupon} className="h-9 rounded-lg">Apply</Button>
+              <div className="mb-3 flex min-w-0 items-center gap-2">
+                <Tag className="h-4 w-4 shrink-0 text-purple-600" />
+                <Input data-testid="coupon-input" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Coupon code (try WELCOME10)" className="h-9 min-w-0" />
+                <Button data-testid="apply-coupon-btn" variant="outline" onClick={applyCoupon} className="h-9 shrink-0 rounded-lg">Apply</Button>
               </div>
               <Separator className="my-3" />
               <Row l="Professional Fee" v={`₹${totalNow.professionalFee ?? Math.round(product.price/1.18)}`} />
@@ -211,7 +211,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 }
 
 const Field = ({ label, v, on, type = "text", testId, full }) => (
-  <div className={full ? "col-span-2" : ""}>
+  <div className={full ? "sm:col-span-2" : ""}>
     <Label className="text-xs">{label}</Label>
     <Input data-testid={testId} type={type} value={v} onChange={(e) => on(e.target.value)} className="mt-1 h-9" />
   </div>

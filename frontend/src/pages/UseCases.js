@@ -11,7 +11,7 @@ export default function UseCases() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div className="text-center max-w-2xl mx-auto">
-        <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-navy-900">One DSC. Multiple Possibilities.</h1>
+        <h1 className="responsive-page-title font-display text-4xl lg:text-5xl font-extrabold text-navy-900">One DSC. Multiple Possibilities.</h1>
         <p className="mt-3 text-slate-500">A single Digital Signature Certificate unlocks dozens of compliance and signing use cases.</p>
       </div>
       <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

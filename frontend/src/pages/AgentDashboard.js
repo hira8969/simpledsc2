@@ -544,7 +544,7 @@ export default function AgentDashboard() {
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = "/img/epass2003-token.png";
                             }}
-                            className="h-full w-full object-cover mix-blend-multiply"
+                            className="h-full w-full object-contain object-center mix-blend-multiply"
                           />
                         </div>
                         <div>
@@ -613,7 +613,7 @@ export default function AgentDashboard() {
 
                     {/* Visual 5-Stage Stepper ("Kaam Kahan Tak Pahucha") */}
                     <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
-                      <div className="flex items-center justify-between text-xs mb-3">
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
                         <span className="font-bold text-navy-900 flex items-center gap-1.5">
                           <span className="h-2 w-2 rounded-full bg-purple-600 animate-pulse" />
                           Current Status: <span className="text-purple-700 font-extrabold">{stepLabel}</span>

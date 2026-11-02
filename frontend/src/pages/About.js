@@ -14,7 +14,7 @@ export default function About() {
       <section className="brand-mesh">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-purple-600">About SimplDSC</p>
-          <h1 className="mt-3 font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Enabling a Secure and Digital India</h1>
+          <h1 className="responsive-page-title mt-3 font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Enabling a Secure and Digital India</h1>
           <p className="mt-5 text-lg text-slate-600 max-w-2xl mx-auto">SimplDSC is a digital-first platform focused on making Digital Signature Certificates simple, secure and accessible for professionals, businesses and government users.</p>
         </div>
       </section>
@@ -30,7 +30,7 @@ export default function About() {
         </div>
         <div className="mt-12 rounded-3xl bg-navy-950 dark-mesh p-8 lg:p-12 text-white">
           <div className="flex items-center gap-2 text-lavender-400"><Zap className="h-5 w-5" /><span className="text-xs font-semibold uppercase tracking-wider">Our Approach</span></div>
-          <h2 className="mt-3 font-display text-2xl lg:text-3xl font-bold">Paperless. Compliant. Digital.</h2>
+          <h2 className="responsive-section-title mt-3 font-display text-2xl lg:text-3xl font-bold">Paperless. Compliant. Digital.</h2>
           <p className="mt-3 text-slate-400 max-w-3xl">We work with CCA-licensed Certifying Authorities to provide a fast, secure and fully online DSC experience — removing the friction from getting and managing your digital signature.</p>
         </div>
       </section>

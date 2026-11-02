@@ -42,10 +42,10 @@ export function Navbar() {
     <header className={`sticky top-0 z-40 border-b transition-all ${scrolled ? "glass-nav border-purple-100/70 shadow-sm" : "bg-white border-transparent"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" data-testid="nav-logo-link"><Logo /></Link>
+          <Link to="/" data-testid="nav-logo-link" className="shrink-0"><Logo /></Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden xl:flex items-center gap-1">
             {NAV.map((n) => (
               <Link
                 key={n.to}
@@ -62,7 +62,7 @@ export function Navbar() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             {agent && (
               <Button
                 variant="outline"
@@ -92,16 +92,16 @@ export function Navbar() {
                 Login
               </Button>
             )}
-            <Button data-testid="nav-get-dsc-btn" onClick={getDsc} className="bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 text-white rounded-xl px-5">
+            <Button data-testid="nav-get-dsc-btn" onClick={getDsc} className="min-h-11 bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 text-white rounded-xl px-4 sm:px-5">
               Get DSC
             </Button>
 
             {/* Mobile Navigation Drawer */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger data-testid="nav-mobile-menu-btn" className="lg:hidden p-2 text-navy-800">
+              <SheetTrigger data-testid="nav-mobile-menu-btn" className="xl:hidden flex h-11 w-11 items-center justify-center rounded-xl text-navy-800 hover:bg-purple-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600">
                 <Menu className="h-6 w-6" />
               </SheetTrigger>
-              <SheetContent side="right" className="w-80 overflow-y-auto">
+              <SheetContent side="right" className="w-[calc(100vw-2rem)] max-w-80 overflow-y-auto overscroll-contain">
                 <div className="mt-6 flex flex-col gap-1">
                   {NAV.map((n) => (
                     <Link
@@ -109,7 +109,7 @@ export function Navbar() {
                       to={n.to}
                       onClick={() => setMobileOpen(false)}
                       data-testid={`mnav-${n.label.toLowerCase().replace(/\s+/g, "-")}`}
-                      className={`px-3 py-2.5 rounded-lg font-medium transition-colors ${
+                      className={`flex min-h-11 items-center px-3 py-2.5 rounded-lg font-medium transition-colors ${
                         active(n.to)
                           ? "text-purple-700 bg-purple-50 font-semibold"
                           : "text-navy-800 hover:bg-purple-50"
@@ -122,7 +122,7 @@ export function Navbar() {
                     <Link
                       to="/agent"
                       onClick={() => setMobileOpen(false)}
-                      className="px-3 py-2.5 rounded-lg font-bold text-purple-700 bg-purple-50 flex items-center justify-between"
+                      className="flex min-h-11 items-center justify-between rounded-lg bg-purple-50 px-3 py-2.5 font-bold text-purple-700"
                     >
                       <span>Agent Portal</span>
                       <span className="text-xs bg-purple-200 px-2 py-0.5 rounded font-mono font-bold text-purple-900">{agent.agentCode}</span>
@@ -132,7 +132,7 @@ export function Navbar() {
                     <Link
                       to="/client"
                       onClick={() => setMobileOpen(false)}
-                      className="px-3 py-2.5 rounded-lg text-purple-700 font-semibold"
+                      className="flex min-h-11 items-center rounded-lg px-3 py-2.5 font-semibold text-purple-700"
                     >
                       Dashboard
                     </Link>
@@ -143,7 +143,7 @@ export function Navbar() {
                         logout();
                         setMobileOpen(false);
                       }}
-                      className="px-3 py-2.5 text-left rounded-lg text-rose-600 font-medium"
+                      className="min-h-11 rounded-lg px-3 py-2.5 text-left font-medium text-rose-600"
                     >
                       Logout
                     </button>
@@ -153,11 +153,18 @@ export function Navbar() {
                         requireAuth();
                         setMobileOpen(false);
                       }}
-                      className="px-3 py-2.5 text-left rounded-lg text-purple-700 font-semibold"
+                      className="min-h-11 rounded-lg px-3 py-2.5 text-left font-semibold text-purple-700"
                     >
                       Login
                     </button>
                   )}
+                  <Button
+                    data-testid="mobile-nav-get-dsc-btn"
+                    onClick={() => { setMobileOpen(false); getDsc(); }}
+                    className="mt-2 min-h-11 w-full rounded-xl bg-gradient-to-r from-purple-700 to-navy-800 text-white"
+                  >
+                    Get Your DSC
+                  </Button>
                 </div>
               </SheetContent>
             </Sheet>

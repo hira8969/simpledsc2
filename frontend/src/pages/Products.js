@@ -24,7 +24,7 @@ export default function Products() {
       <Seo title="DSC Products & Prices | SimplDSC" description="Browse Class 2, Class 3, DGFT, eTender, MCA and Document Signer Digital Signature Certificates with transparent pricing and validity." />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="text-center max-w-2xl mx-auto">
-          <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Our DSC Products</h1>
+          <h1 className="responsive-page-title font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Our DSC Products</h1>
           <p className="mt-3 text-slate-500">Choose from a range of Digital Signature Certificates issued through CCA-licensed Certifying Authorities.</p>
         </div>
         <div className="mt-8 flex flex-wrap justify-center gap-2 overflow-x-auto hide-scrollbar">
@@ -35,7 +35,7 @@ export default function Products() {
             </button>
           ))}
         </div>
-        <div className="product-grid mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="product-grid mt-10 grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
           {products.map((p, i) => <ProductCard key={p.id} product={p} onBuy={startPurchase} index={i} />)}
         </div>
         {products.length === 0 && <p className="text-center text-slate-400 py-16">No products in this category yet.</p>}

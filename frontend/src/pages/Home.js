@@ -59,7 +59,7 @@ export default function Home() {
               <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-white/70 px-3 py-1 text-xs font-semibold text-purple-700">
                 <ShieldCheck className="h-3.5 w-3.5" /> CCA-Compliant · Paperless eKYC
               </span>
-              <h1 className="mt-5 font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.05] text-navy-900">
+              <h1 className="responsive-hero-title mt-5 font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.05] text-navy-900">
                 Your Trusted <span className="bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">Digital Signature</span> Partner in India
               </h1>
               <p className="mt-5 text-lg text-slate-600 leading-relaxed max-w-xl">
@@ -103,7 +103,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
         <div className="text-center max-w-2xl mx-auto">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-purple-600">Possibilities</p>
-          <h2 className="mt-2 font-display text-3xl lg:text-4xl font-bold text-navy-900">One DSC. Multiple Possibilities.</h2>
+          <h2 className="responsive-section-title mt-2 font-display text-3xl lg:text-4xl font-bold text-navy-900">One DSC. Multiple Possibilities.</h2>
         </div>
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {USE_CASES.map((u, i) => (
@@ -120,7 +120,7 @@ export default function Home() {
       <section id="dsc-finder" className="bg-lavender-50/60 dot-grid">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="font-display text-3xl lg:text-4xl font-bold text-navy-900">Which DSC Do You Need?</h2>
+            <h2 className="responsive-section-title font-display text-3xl lg:text-4xl font-bold text-navy-900">Which DSC Do You Need?</h2>
             <p className="mt-2 text-slate-500">Not sure which certificate is right? Our finder recommends the best fit.</p>
           </div>
           <DscFinder onBuy={startPurchase} />
@@ -132,11 +132,11 @@ export default function Home() {
         <div className="flex items-end justify-between mb-10">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-purple-600">Our Products</p>
-            <h2 className="mt-2 font-display text-3xl lg:text-4xl font-bold text-navy-900">Choose Your DSC</h2>
+            <h2 className="responsive-section-title mt-2 font-display text-3xl lg:text-4xl font-bold text-navy-900">Choose Your DSC</h2>
           </div>
           <Link to="/products" className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-purple-700">View all <ArrowRight className="h-4 w-4" /></Link>
         </div>
-        <div className="product-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="product-grid grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
           {products.slice(0, 3).map((p, i) => (
             <ProductCard key={p.id} product={p} onBuy={startPurchase} index={i} />
           ))}
@@ -148,7 +148,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div className="text-center max-w-2xl mx-auto">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-lavender-400">How it works</p>
-            <h2 className="mt-2 font-display text-3xl lg:text-4xl font-bold">Get Your DSC in 4 Simple Steps</h2>
+            <h2 className="responsive-section-title mt-2 font-display text-3xl lg:text-4xl font-bold">Get Your DSC in 4 Simple Steps</h2>
             <p className="mt-2 text-slate-400">A fast, secure and fully online process. No physical paperwork.</p>
           </div>
           <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -166,7 +166,7 @@ export default function Home() {
       {/* PARTNERED WITH */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <h2 className="font-display text-3xl lg:text-4xl font-bold text-navy-900">Partnered With</h2>
+          <h2 className="responsive-section-title font-display text-3xl lg:text-4xl font-bold text-navy-900">Partnered With</h2>
           <p className="mt-2 text-slate-500">Working with leading Certifying Authorities to provide trusted digital signature solutions.</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -191,7 +191,7 @@ export default function Home() {
         <div className="rounded-3xl bg-gradient-to-r from-purple-700 to-navy-900 px-8 py-14 text-center text-white relative overflow-hidden">
           <div className="absolute inset-0 dot-grid opacity-10" />
           <div className="relative">
-            <h2 className="font-display text-3xl lg:text-4xl font-bold">Go Paperless. Go Digital with SimplDSC.</h2>
+            <h2 className="responsive-section-title font-display text-3xl lg:text-4xl font-bold">Go Paperless. Go Digital with SimplDSC.</h2>
             <p className="mt-3 text-lavender-200">Join thousands of professionals and businesses across India.</p>
             <Button data-testid="cta-get-started-btn" onClick={() => requireAuth(() => nav("/client"))}
               className="mt-7 bg-white text-purple-800 hover:bg-lavender-100 rounded-xl px-8 py-6 text-base font-semibold">Get Started</Button>

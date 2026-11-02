@@ -20,12 +20,12 @@ export default function Pricing() {
       <Seo title="DSC Pricing Plans | SimplDSC" description="Simple, transparent pricing for Class 2, Class 3, DGFT, eTender and MCA Digital Signature Certificates. No hidden charges." />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="text-center max-w-2xl mx-auto">
-          <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Simple & Transparent Pricing</h1>
+          <h1 className="responsive-page-title font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Simple & Transparent Pricing</h1>
           <p className="mt-3 text-slate-500">Every plan includes paperless eKYC, secure processing and a FIPS-certified USB token — all prices are inclusive of GST with no hidden charges.</p>
           <p className="mt-3 inline-block rounded-full bg-purple-50 border border-purple-200 px-4 py-1.5 text-sm font-medium text-purple-700">Most popular: the Class 3 Individual DSC — the best all-round choice for professionals, directors, GST, MCA and Income Tax filings.</p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mt-12 grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
           {products.map((p, i) => {
             const isPop = p.isPopular ?? (i === 1);
             const rating = Number(p.rating || 5);
@@ -33,7 +33,7 @@ export default function Pricing() {
             return (
               <div
                 key={p.id}
-                className={`relative rounded-2xl border bg-white p-6 transition-all duration-300 ${
+                className={`relative flex h-full min-w-0 flex-col rounded-2xl border bg-white p-6 transition-all duration-300 ${
                   isPop
                     ? "border-2 border-purple-400 shadow-xl ring-2 ring-purple-400/20"
                     : "border-slate-200"
@@ -72,7 +72,7 @@ export default function Pricing() {
                   <span className="text-sm text-slate-400">/ {p.validity}</span>
                 </div>
 
-                <ul className="mt-5 space-y-2">
+                <ul className="mt-5 flex-1 space-y-2">
                   {(p.features || []).map((f) => (
                     <li key={f} className="flex items-center gap-2 text-sm text-slate-600">
                       <Check className="h-4 w-4 text-emerald-500 shrink-0" /> {f}
@@ -83,7 +83,7 @@ export default function Pricing() {
                 <Button
                   data-testid={`pricing-buy-${p.slug}`}
                   onClick={() => startPurchase(p)}
-                  className={`mt-6 w-full rounded-xl py-6 font-semibold ${
+                  className={`mt-6 min-h-11 w-full rounded-xl py-6 font-semibold ${
                     isPop
                       ? "bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 text-white shadow-md"
                       : "bg-white border border-slate-300 text-navy-800 hover:bg-slate-50"

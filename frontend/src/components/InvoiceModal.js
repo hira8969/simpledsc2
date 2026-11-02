@@ -175,8 +175,8 @@ export function InvoiceModal({ open, onOpenChange, invoice }) {
             </div>
 
             {/* Line Items Table */}
-            <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
-              <table className="w-full text-xs">
+            <div className="mt-4 overflow-x-auto rounded-lg border border-slate-200">
+              <table className="w-full min-w-[640px] text-xs">
                 <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
                   <tr>
                     <th className="py-2.5 px-3 text-left w-8">#</th>

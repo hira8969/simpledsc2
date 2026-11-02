@@ -57,7 +57,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-slate-100">
       <div className="flex">
-        <aside className={`fixed lg:sticky top-0 z-30 h-screen w-60 shrink-0 dark-mesh text-slate-300 p-4 transition-transform ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+        <aside className={`fixed lg:sticky top-0 z-30 h-screen w-60 shrink-0 overflow-y-auto dark-mesh text-slate-300 p-4 transition-transform ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
           <div className="px-2 py-3">
             <Link to="/" data-testid="admin-logo-link" className="inline-block transition-opacity hover:opacity-90">
               <Logo dark />
@@ -80,7 +80,7 @@ export default function AdminLayout() {
 
         <div className="flex-1 min-w-0">
           <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-white px-4 sm:px-6">
-            <button className="lg:hidden" onClick={() => setOpen(!open)}><Menu className="h-5 w-5" /></button>
+            <button aria-label="Toggle admin navigation" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-purple-50 lg:hidden" onClick={() => setOpen(!open)}><Menu className="h-5 w-5" /></button>
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input data-testid="admin-global-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search SimplDSC ID, order, customer…" className="pl-9 h-10 bg-slate-50" />
