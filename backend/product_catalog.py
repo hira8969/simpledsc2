@@ -73,9 +73,20 @@ async def filter_catalog_products(
     total = await collection.count_documents(query)
     items = await collection.find(query, {"_id": 0}).sort(sort_fields).skip((page - 1) * page_size).limit(page_size).to_list(page_size)
 
-    # Facets are derived from catalog records matching base_query (category / search / price / rating).
+    # Facets: brands are derived from category & search so filtering price/rating does not wipe out brand choices
+    facet_brand_query = {"active": True}
+    if category and category != "All":
+        facet_brand_query["category"] = category
+    if search and search.strip():
+        escaped_search = re.escape(search.strip())
+        facet_brand_query["$or"] = [
+            {"name": {"$regex": escaped_search, "$options": "i"}},
+            {"description": {"$regex": escaped_search, "$options": "i"}},
+            {"brand": {"$regex": escaped_search, "$options": "i"}},
+        ]
+
     brand_pipeline = [
-        {"$match": base_query},
+        {"$match": facet_brand_query},
         {"$match": {"brand": {"$exists": True, "$nin": [None, ""]}}},
         {"$group": {"_id": "$brand", "count": {"$sum": 1}}},
         {"$sort": {"_id": 1}},

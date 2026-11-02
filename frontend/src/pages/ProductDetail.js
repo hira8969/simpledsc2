@@ -32,7 +32,7 @@ export default function ProductDetail() {
       />
       <button onClick={() => nav("/products")} className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-purple-700"><ArrowLeft className="h-4 w-4" /> All Products</button>
       <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2 lg:gap-10">
-        <div className={`product-detail-image mx-auto flex aspect-square w-full max-w-[640px] min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 ${isMcaDirector ? "p-0" : "p-5 sm:p-8"}`}>
+        <div className="product-detail-image mx-auto flex aspect-square w-full max-w-[560px] min-w-0 items-center justify-center overflow-hidden rounded-3xl p-5 sm:p-8 shadow-sm">
           <img
             src={product.imageUrl || "/img/epass2003-token.png"}
             alt={product.name}
@@ -40,7 +40,7 @@ export default function ProductDetail() {
               e.currentTarget.onerror = null;
               e.currentTarget.src = "/img/epass2003-token.png";
             }}
-            className={`h-full w-full object-contain object-center ${isMcaDirector ? "rounded-[inherit]" : "rounded-xl mix-blend-multiply"}`}
+            className="h-full w-full object-contain object-center rounded-xl"
           />
         </div>
         <div className="min-w-0">

@@ -55,7 +55,7 @@ export default function Home() {
       <section className="relative brand-mesh overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-6 animate-rise">
+            <div className="lg:col-span-6">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-white/70 px-3 py-1 text-xs font-semibold text-purple-700">
                 <ShieldCheck className="h-3.5 w-3.5" /> CCA-Compliant · Paperless eKYC
               </span>
@@ -81,14 +81,14 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            <div className="lg:col-span-6 animate-rise" style={{ animationDelay: "120ms" }}>
-              <div className="relative">
-                <div className="absolute -inset-4 rounded-[2rem] bg-blue-400/20 blur-2xl" />
-                <div className="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-3 shadow-2xl sm:p-4">
+            <div className="lg:col-span-6">
+              <div className="relative mx-auto max-w-lg lg:max-w-none">
+                <div className="absolute -inset-3 rounded-3xl bg-blue-400/15 blur-2xl -z-10" />
+                <div className="relative overflow-hidden rounded-3xl border border-blue-100/90 bg-white p-3 sm:p-4 shadow-xl">
                   <img src="/img/hero-tokens.png"
-                    alt="Black ProxKey digital signature USB token" className="hero-token-image relative z-10 block h-auto w-full rounded-[1.5rem] object-contain object-center"
+                    alt="Black ProxKey digital signature USB token" className="relative z-10 block h-auto w-full rounded-2xl object-contain object-center"
                     onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/img/proxkey-token.png"; }} />
-                  <div className="absolute bottom-6 left-6 rounded-2xl bg-white/95 backdrop-blur px-4 py-3 shadow-lg border border-slate-100">
+                  <div className="absolute bottom-6 left-6 z-20 rounded-2xl bg-white/95 backdrop-blur px-4 py-3 shadow-lg border border-slate-100">
                     <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="text-xs font-semibold text-navy-800">DSC Issued & Verified</span></div>
                     <p className="text-[11px] text-slate-400 mt-0.5">Class 3 · FIPS Token</p>
                   </div>

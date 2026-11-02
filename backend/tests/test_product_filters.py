@@ -133,3 +133,17 @@ def test_filter_service_handles_price_sorting():
     ))
     assert collection.cursor.sort_fields == [("price", -1), ("_id", 1)]
 
+
+def test_filter_service_handles_rating_and_price_bounds():
+    collection = ProductsCollection()
+    asyncio.run(filter_catalog_products(
+        collection,
+        min_rating=4.8,
+        min_price=1800,
+        max_price=2500,
+    ))
+    query = collection.query
+    assert query["rating"] == {"$gte": 4.8}
+    assert query["price"] == {"$gte": 1800, "$lte": 2500}
+
+

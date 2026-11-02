@@ -9,12 +9,11 @@ export function ProductCard({ product, onBuy, index = 0 }) {
   return (
     <div
       data-testid={`product-card-${product.slug}`}
-      className={`group animate-rise relative flex h-full min-w-0 flex-col rounded-2xl bg-white p-5 shadow-[0_4px_20px_-8px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_-12px_rgba(111,50,181,0.22)] transition-all duration-300 ${
+      className={`group relative flex h-full min-w-0 flex-col rounded-2xl bg-white p-5 shadow-[0_4px_20px_-8px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_-12px_rgba(111,50,181,0.22)] transition-all duration-300 ${
         isPop
           ? "border-2 border-purple-400 ring-2 ring-purple-400/20"
           : "border border-slate-200/90 hover:border-purple-300"
       }`}
-      style={{ animationDelay: `${index * 60}ms` }}
     >
       {/* Most Popular Badge */}
       {isPop && (
@@ -29,7 +28,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
       </div>
 
       {/* Image Preview */}
-      <div className="product-card-image relative mb-4 flex h-48 w-full shrink-0 items-center justify-center rounded-xl overflow-hidden">
+      <div className="product-card-image relative mb-4 flex h-52 w-full shrink-0 items-center justify-center rounded-2xl overflow-hidden p-3.5 shadow-sm">
         <img
           src={product.imageUrl || "/img/epass2003-token.png"}
           alt={`${product.name} USB token`}
@@ -38,15 +37,25 @@ export function ProductCard({ product, onBuy, index = 0 }) {
             e.currentTarget.onerror = null;
             e.currentTarget.src = "/img/epass2003-token.png";
           }}
-          className="h-full w-full object-contain object-center mix-blend-multiply"
+          className="h-full w-full object-contain object-center rounded-xl transition-transform duration-300 ease-out group-hover:scale-105"
         />
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-purple-600">{product.category}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-purple-600 truncate">{product.category}</p>
+          {product.brand && (
+            <span
+              data-testid={`product-brand-${product.slug}`}
+              className="inline-flex items-center rounded-md bg-purple-50 border border-purple-200/80 px-2 py-0.5 text-[10px] font-bold text-purple-800"
+            >
+              {product.brand}
+            </span>
+          )}
+        </div>
         
         {/* Star Rating Display */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <div className="flex items-center">
             {[1, 2, 3, 4, 5].map((s) => (
               <Star
