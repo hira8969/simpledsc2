@@ -136,7 +136,7 @@ export default function Home() {
           </div>
           <Link to="/products" className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-purple-700">View all <ArrowRight className="h-4 w-4" /></Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="product-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           {products.slice(0, 3).map((p, i) => (
             <ProductCard key={p.id} product={p} onBuy={startPurchase} index={i} />
           ))}

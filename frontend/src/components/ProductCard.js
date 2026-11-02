@@ -9,7 +9,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
   return (
     <div
       data-testid={`product-card-${product.slug}`}
-      className={`group animate-rise relative overflow-hidden rounded-2xl bg-white p-5 shadow-[0_4px_20px_-8px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_-12px_rgba(111,50,181,0.22)] transition-all duration-300 ${
+      className={`group animate-rise relative flex h-full min-w-0 flex-col rounded-2xl bg-white p-5 shadow-[0_4px_20px_-8px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_-12px_rgba(111,50,181,0.22)] transition-all duration-300 ${
         isPop
           ? "border-2 border-purple-400 ring-2 ring-purple-400/20"
           : "border border-slate-200/90 hover:border-purple-300"
@@ -29,7 +29,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
       </div>
 
       {/* Image Preview */}
-      <div className="relative mb-4 flex h-40 items-center justify-center rounded-xl bg-gradient-to-br from-lavender-50 to-slate-50 overflow-hidden">
+      <div className="product-card-image relative mb-4 flex h-48 shrink-0 items-center justify-center rounded-xl overflow-hidden">
         <img
           src={product.imageUrl || "/img/epass2003-token.png"}
           alt={`${product.name} USB token`}
@@ -38,7 +38,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
             e.currentTarget.onerror = null;
             e.currentTarget.src = "/img/epass2003-token.png";
           }}
-          className="h-full w-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+          className="h-full w-full object-contain object-center mix-blend-multiply"
         />
       </div>
 
@@ -62,7 +62,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
       </div>
 
       <h3 className="mt-1 font-display text-lg font-bold text-navy-900">{product.name}</h3>
-      <p className="mt-1 text-sm text-slate-500 line-clamp-2">{product.description}</p>
+      <p className="mt-1 text-sm text-slate-500">{product.description}</p>
 
       {/* Features list */}
       <ul className="mt-3 space-y-1.5">
@@ -73,7 +73,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
         ))}
       </ul>
 
-      <div className="mt-4 flex items-end justify-between">
+      <div className="mt-auto pt-4 flex items-end justify-between">
         <div>
           <span className="font-display text-2xl font-extrabold text-navy-900">
             ₹{product.price.toLocaleString("en-IN")}
@@ -82,7 +82,7 @@ export function ProductCard({ product, onBuy, index = 0 }) {
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap gap-2 sm:flex-nowrap">
         <Link
           to={`/products/${product.slug}`}
           data-testid={`view-${product.slug}`}

@@ -30,7 +30,7 @@ export default function ProductDetail() {
       />
       <button onClick={() => nav("/products")} className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-purple-700"><ArrowLeft className="h-4 w-4" /> All Products</button>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-lavender-50 to-white p-6 flex items-center justify-center">
+        <div className="product-detail-image rounded-2xl border border-blue-100 p-6 flex items-center justify-center">
           <img
             src={product.imageUrl || "/img/epass2003-token.png"}
             alt={product.name}
@@ -38,7 +38,7 @@ export default function ProductDetail() {
               e.currentTarget.onerror = null;
               e.currentTarget.src = "/img/epass2003-token.png";
             }}
-            className="w-full max-h-[360px] object-contain rounded-xl mix-blend-multiply"
+            className="w-full h-[300px] sm:h-[360px] object-contain object-center rounded-xl mix-blend-multiply"
           />
         </div>
         <div>

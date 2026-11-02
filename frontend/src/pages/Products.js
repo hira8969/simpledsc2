@@ -35,7 +35,7 @@ export default function Products() {
             </button>
           ))}
         </div>
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="product-grid mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           {products.map((p, i) => <ProductCard key={p.id} product={p} onBuy={startPurchase} index={i} />)}
         </div>
         {products.length === 0 && <p className="text-center text-slate-400 py-16">No products in this category yet.</p>}

@@ -75,6 +75,14 @@ h1, h2, h3, h4, .font-display {
 @keyframes hero-token-enter { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes hero-token-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 @media (prefers-reduced-motion: reduce) { .hero-token-image { animation: none; } }
+.product-grid { align-items: stretch; }
+.product-card-image,
+.product-detail-image {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(96, 183, 255, 0.2) 0, rgba(191, 226, 255, 0.14) 28%, transparent 52%),
+    radial-gradient(circle at 50% 50%, transparent 0 34%, rgba(105, 190, 255, 0.12) 34.2% 34.7%, transparent 34.9% 49%, rgba(105, 190, 255, 0.1) 49.2% 49.7%, transparent 49.9%),
+    linear-gradient(135deg, #f1f8ff, #ffffff 52%, #eaf5ff);
+}
 .dark-mesh {
   background:
     radial-gradient(ellipse 60% 50% at 80% 0%, rgba(133,69,212,0.28), rgba(5,11,26,0)),
