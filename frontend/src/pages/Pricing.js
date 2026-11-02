@@ -247,13 +247,20 @@ export default function Pricing() {
                 type="button"
                 onClick={() => setFilters((prev) => ({ ...prev, category: cat }))}
                 data-testid={`pricing-category-${cat.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}
-                className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
                   filters.category === cat
                     ? "bg-purple-700 text-white shadow-sm"
                     : "bg-slate-100/80 text-slate-600 hover:bg-slate-200 hover:text-navy-900"
                 }`}
               >
-                {cat}
+                {cat === "All" && (
+                  <img
+                    src="/logo-icon.png"
+                    alt="SimplDSC"
+                    className="h-3.5 w-3.5 shrink-0 object-contain"
+                  />
+                )}
+                <span>{cat}</span>
               </button>
             ))}
           </div>

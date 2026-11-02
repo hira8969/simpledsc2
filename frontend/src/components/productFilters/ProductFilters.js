@@ -66,15 +66,22 @@ export function CategoryFilter({ categories = [], value, onChange }) {
           type="button"
           onClick={() => onChange(category.name)}
           aria-pressed={value === category.name}
-          className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
+          className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
             value === category.name
               ? "bg-gradient-to-r from-purple-700 to-navy-800 text-white shadow"
               : "border border-slate-200 bg-white text-navy-800 hover:border-purple-300"
           }`}
         >
-          {category.name}
+          {category.name === "All" && (
+            <img
+              src="/logo-icon.png"
+              alt="SimplDSC"
+              className="h-4 w-4 shrink-0 object-contain"
+            />
+          )}
+          <span>{category.name}</span>
           {category.name !== "All" && category.count !== null && (
-            <span className={`ml-1.5 text-xs ${value === category.name ? "text-white/70" : "text-slate-400"}`}>
+            <span className={`ml-1 text-xs ${value === category.name ? "text-white/70" : "text-slate-400"}`}>
               {category.count}
             </span>
           )}
