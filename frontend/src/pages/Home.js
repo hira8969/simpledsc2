@@ -83,11 +83,11 @@ export default function Home() {
             </div>
             <div className="lg:col-span-6 animate-rise" style={{ animationDelay: "120ms" }}>
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-tr from-purple-600/20 to-navy-800/10 rounded-[2rem] blur-2xl" />
-                <div className="relative rounded-[2rem] border border-purple-100 bg-white p-3 shadow-2xl">
+                <div className="absolute -inset-4 rounded-[2rem] bg-blue-400/20 blur-2xl" />
+                <div className="hero-token-rings relative overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-3 shadow-2xl">
                   <img src="/img/hero-tokens.png"
-                    alt="Class 3 Digital Signature USB Crypto Token" className="w-full h-[360px] object-cover rounded-[1.5rem]"
-                    onError={(e) => { e.target.src = "/img/epass2003-token.png"; }} />
+                    alt="Black ProxKey digital signature USB token" className="hero-token-image relative z-10 w-full h-[260px] sm:h-[320px] lg:h-[360px] object-contain rounded-[1.5rem]"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/img/proxkey-token.png"; }} />
                   <div className="absolute bottom-6 left-6 rounded-2xl bg-white/95 backdrop-blur px-4 py-3 shadow-lg border border-slate-100">
                     <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="text-xs font-semibold text-navy-800">DSC Issued & Verified</span></div>
                     <p className="text-[11px] text-slate-400 mt-0.5">Class 3 · FIPS Token</p>

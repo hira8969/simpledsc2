@@ -65,6 +65,16 @@ h1, h2, h3, h4, .font-display {
     radial-gradient(ellipse 70% 55% at 78% -10%, rgba(133,69,212,0.18), rgba(255,255,255,0)),
     radial-gradient(ellipse 60% 50% at 10% 10%, rgba(111,50,181,0.10), rgba(255,255,255,0));
 }
+.hero-token-rings {
+  background:
+    radial-gradient(circle at 52% 48%, rgba(96, 183, 255, 0.26) 0, rgba(191, 226, 255, 0.18) 25%, transparent 48%),
+    radial-gradient(circle at 52% 48%, transparent 0 34%, rgba(105, 190, 255, 0.14) 34.2% 34.6%, transparent 34.8% 49%, rgba(105, 190, 255, 0.12) 49.2% 49.6%, transparent 49.8%),
+    linear-gradient(135deg, #f1f8ff, #ffffff 52%, #eaf5ff);
+}
+.hero-token-image { animation: hero-token-enter 0.8s cubic-bezier(0.16,1,0.3,1) both, hero-token-float 6s ease-in-out 0.8s infinite; }
+@keyframes hero-token-enter { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes hero-token-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@media (prefers-reduced-motion: reduce) { .hero-token-image { animation: none; } }
 .dark-mesh {
   background:
     radial-gradient(ellipse 60% 50% at 80% 0%, rgba(133,69,212,0.28), rgba(5,11,26,0)),
