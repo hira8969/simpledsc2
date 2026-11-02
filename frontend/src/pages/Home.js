@@ -84,9 +84,9 @@ export default function Home() {
             <div className="lg:col-span-6 animate-rise" style={{ animationDelay: "120ms" }}>
               <div className="relative">
                 <div className="absolute -inset-4 rounded-[2rem] bg-blue-400/20 blur-2xl" />
-                <div className="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-blue-50 shadow-2xl">
+                <div className="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-3 shadow-2xl sm:p-4">
                   <img src="/img/hero-tokens.png"
-                    alt="Black ProxKey digital signature USB token" className="hero-token-image relative z-10 block h-auto w-full object-contain object-center"
+                    alt="Black ProxKey digital signature USB token" className="hero-token-image relative z-10 block h-auto w-full rounded-[1.5rem] object-contain object-center"
                     onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/img/proxkey-token.png"; }} />
                   <div className="absolute bottom-6 left-6 rounded-2xl bg-white/95 backdrop-blur px-4 py-3 shadow-lg border border-slate-100">
                     <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="text-xs font-semibold text-navy-800">DSC Issued & Verified</span></div>
