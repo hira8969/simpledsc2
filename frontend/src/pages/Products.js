@@ -243,8 +243,6 @@ export default function Products() {
     priceBounds,
     price: selectedPrice,
     onPriceChange: updatePrice,
-    rating: filters.rating,
-    onRatingChange: (rating) => { setPage(1); setFilters((current) => ({ ...current, rating })); },
     onClear: clearFilters,
     activeCount,
   };

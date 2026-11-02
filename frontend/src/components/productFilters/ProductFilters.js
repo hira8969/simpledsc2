@@ -277,7 +277,7 @@ export function RatingFilter({ value, onChange }) {
   );
 }
 
-function FilterContents({ brands, selectedBrands, onBrandsChange, priceBounds, price, onPriceChange, rating, onRatingChange, onClear, activeCount }) {
+function FilterContents({ brands, selectedBrands, onBrandsChange, priceBounds, price, onPriceChange, onClear, activeCount }) {
   return (
     <div className="space-y-6">
       <div>
@@ -287,10 +287,6 @@ function FilterContents({ brands, selectedBrands, onBrandsChange, priceBounds, p
       <div className="border-t border-slate-100 pt-5">
         <h3 className="mb-3 text-sm font-bold text-navy-900">Price range</h3>
         <PriceRangeFilter bounds={priceBounds} value={price} onChange={onPriceChange} />
-      </div>
-      <div className="border-t border-slate-100 pt-5">
-        <h3 className="mb-3 text-sm font-bold text-navy-900">Customer rating</h3>
-        <RatingFilter value={rating} onChange={onRatingChange} />
       </div>
       {activeCount > 0 && (
         <Button type="button" variant="outline" onClick={onClear} className="w-full rounded-xl">
