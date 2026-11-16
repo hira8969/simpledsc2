@@ -158,8 +158,13 @@ export default function Pricing() {
   return (
     <div className="brand-mesh min-h-screen">
       <Seo
-        title="DSC Pricing Plans | SimplDSC"
-        description="Simple, transparent pricing for Class 2, Class 3, DGFT, eTender and MCA Digital Signature Certificates. No hidden charges."
+        title="Digital Signature Certificate Pricing & Plans | SimpleDSC"
+        description="Explore transparent pricing for Class 3, DGFT, eTender, MCA, and Document Signer Digital Signature Certificates in India. Includes cryptographic USB tokens with no hidden charges."
+        canonical="/pricing"
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Pricing", url: "/pricing" },
+        ]}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         {/* Page Header */}

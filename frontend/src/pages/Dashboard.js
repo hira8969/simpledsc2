@@ -108,7 +108,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Seo title="My Dashboard | SimplDSC" index={false} />
+      <Seo title="My Dashboard | SimpleDSC" index={false} />
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
         <div className="flex h-16 items-center justify-between px-4 sm:px-6">

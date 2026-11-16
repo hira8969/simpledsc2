@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Seo } from "@/components/Seo";
 import { useAgentAuth } from "@/context/AgentAuthContext";
 import api from "@/lib/api";
 import { getTokenImage } from "@/pages/Dashboard";
@@ -427,6 +428,7 @@ export default function AgentDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50/70 pb-20">
+      <Seo title="Agent Dashboard | SimpleDSC" index={false} />
       {/* Top Header */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

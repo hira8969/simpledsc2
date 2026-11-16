@@ -62,7 +62,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build": "craco build && node scripts/generate-static-pages.js",
     "test": "craco test"
   },
   "browserslist": {

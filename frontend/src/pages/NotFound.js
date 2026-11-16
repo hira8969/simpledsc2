@@ -9,7 +9,7 @@ export default function NotFound() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between" data-testid="not-found-page">
-      <Seo title="Page Not Found (404) | SimplDSC" index={false} />
+      <Seo title="Page Not Found (404) | SimpleDSC" index={false} />
 
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">

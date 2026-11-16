@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -94,6 +95,7 @@ export default function AgentLogin() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+      <Seo title="Agent Portal Sign In | SimpleDSC" index={false} />
       {/* Top Bar */}
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

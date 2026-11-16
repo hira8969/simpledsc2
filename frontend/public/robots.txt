@@ -1,6 +1,20 @@
+# https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /dashboard
+Allow: /static/
+Allow: /img/
 
-Sitemap: https://simpldsc.in/sitemap.xml
+# Disallow private application, user, and agent routes
+Disallow: /admin
+Disallow: /admin/
+Disallow: /client
+Disallow: /client/
+Disallow: /agent
+Disallow: /agent/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /api/
+
+# Host & Sitemap
+Host: https://www.simpldsc.com
+Sitemap: https://www.simpldsc.com/sitemap.xml

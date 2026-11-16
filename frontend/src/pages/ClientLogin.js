@@ -120,7 +120,7 @@ export default function ClientLogin() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between" data-testid="client-login-page">
-      <Seo title="Client Portal Sign In | SimplDSC" index={false} />
+      <Seo title="Client Portal Sign In | SimpleDSC" index={false} />
 
       {/* Header */}
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-30">

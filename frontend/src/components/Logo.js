@@ -8,7 +8,9 @@ export const Logo = ({ className = "", dark = false, size = "md" }) => {
     >
       <img
         src={dark ? "/logo-dark.png" : "/logo.png"}
-        alt="SimplDSC — Digital Signatures, Made Simple"
+        alt="SimpleDSC – Digital Signatures, Made Simple"
+        width="160"
+        height="36"
         className={`${heightClass} w-auto object-contain select-none`}
       />
     </div>

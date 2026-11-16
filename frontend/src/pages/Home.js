@@ -50,7 +50,21 @@ export default function Home() {
 
   return (
     <div>
-      <Seo title="SimplDSC — Digital Signatures, Made Simple." description="Get your Class 3, DGFT, eTender & MCA Digital Signature Certificate quickly and securely across India. Fast, paperless eKYC, CCA-compliant." />
+      <Seo
+        title="SimpleDSC – Digital Signatures, Made Simple | Official Website"
+        description="Discover SimpleDSC, a digital signature platform designed to simplify your digital document and signature workflow. Explore our services and solutions."
+        canonical="/"
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "@id": "https://www.simpldsc.com/#webpage",
+          "url": "https://www.simpldsc.com/",
+          "name": "SimpleDSC – Digital Signatures, Made Simple | Official Website",
+          "description": "Discover SimpleDSC, a digital signature platform designed to simplify your digital document and signature workflow. Explore our services and solutions.",
+          "isPartOf": { "@id": "https://www.simpldsc.com/#website" },
+          "about": { "@id": "https://www.simpldsc.com/#organization" }
+        }}
+      />
       {/* HERO */}
       <section className="relative brand-mesh overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
@@ -86,7 +100,11 @@ export default function Home() {
                 <div className="absolute -inset-3 rounded-3xl bg-blue-400/15 blur-2xl -z-10" />
                 <div className="relative overflow-hidden rounded-3xl border border-blue-100/90 bg-white p-3 sm:p-4 shadow-xl">
                   <img src="/img/hero-tokens.png"
-                    alt="Black ProxKey digital signature USB token" className="relative z-10 block h-auto w-full rounded-2xl object-contain object-center"
+                    alt="SimpleDSC Digital Signature USB Crypto Tokens (ePass2003, ProxKey, mToken)"
+                    width="540"
+                    height="380"
+                    fetchPriority="high"
+                    className="relative z-10 block h-auto w-full rounded-2xl object-contain object-center"
                     onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/img/proxkey-token.png"; }} />
                   <div className="absolute bottom-6 left-6 z-20 rounded-2xl bg-white/95 backdrop-blur px-4 py-3 shadow-lg border border-slate-100">
                     <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="text-xs font-semibold text-navy-800">DSC Issued & Verified</span></div>

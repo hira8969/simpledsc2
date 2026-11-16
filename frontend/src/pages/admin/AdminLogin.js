@@ -36,7 +36,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen dark-mesh flex items-center justify-center p-4">
-      <Seo title="Admin Portal | SimplDSC" index={false} />
+      <Seo title="Admin Portal | SimpleDSC" index={false} />
       <div className="w-full max-w-md rounded-2xl border border-purple-900/40 bg-white/5 backdrop-blur-xl p-8 shadow-2xl">
         <div className="flex justify-center mb-6">
           <Link to="/" data-testid="admin-login-logo" className="transition-opacity hover:opacity-90">

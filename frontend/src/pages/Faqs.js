@@ -10,7 +10,31 @@ export default function Faqs() {
   useEffect(() => { api.get("/faqs").then((r) => setFaqs(r.data)); }, []);
   return (
     <div className="brand-mesh">
-      <Seo title="DSC FAQs | SimplDSC" description="Answers to common questions about Digital Signature Certificates — documents required, processing time, GST/MCA/Income Tax use and renewals." />
+      <Seo
+        title="Digital Signature FAQs – Frequently Asked Questions | SimpleDSC"
+        description="Find answers to common questions about Digital Signature Certificates in India: eKYC verification, required documents, USB crypto tokens, and portal compliance."
+        canonical="/faqs"
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "FAQs", url: "/faqs" },
+        ]}
+        schema={
+          faqs.length > 0
+            ? {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((f) => ({
+                  "@type": "Question",
+                  name: f.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: f.answer,
+                  },
+                })),
+              }
+            : null
+        }
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700"><HelpCircle className="h-6 w-6" /></div>

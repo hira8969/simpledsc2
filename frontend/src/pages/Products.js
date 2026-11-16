@@ -248,7 +248,15 @@ export default function Products() {
   };
   return (
     <div className="brand-mesh min-h-screen">
-      <Seo title="DSC Products & Prices | SimplDSC" description="Browse Class 2, Class 3, DGFT, eTender, MCA and Document Signer Digital Signature Certificates with transparent pricing and validity." />
+      <Seo
+        title="Digital Signature Certificates (DSC) – Buy Online | SimpleDSC"
+        description="Browse and buy Class 3, DGFT, eTender, MCA, and Document Signer Digital Signature Certificates online with secure cryptographic USB tokens and fast eKYC across India."
+        canonical="/products"
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Products", url: "/products" },
+        ]}
+      />
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="responsive-page-title font-display text-4xl font-extrabold text-navy-900 lg:text-5xl">Our DSC Products</h1>

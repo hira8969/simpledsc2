@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -81,6 +82,15 @@ export default function Partner({ agent = false }) {
 
   return (
     <div>
+      <Seo
+        title="Partner With SimpleDSC – Become a DSC Agent / Associate"
+        description="Join the SimpleDSC Partner & Agent program. Earn attractive commissions by providing Digital Signature Certificates to your clients with fast paperless eKYC."
+        canonical="/partner"
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Partner Program", url: "/partner" },
+        ]}
+      />
       <section className="brand-mesh">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700">

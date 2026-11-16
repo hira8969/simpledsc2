@@ -1,5 +1,8 @@
 // Centralized site/business info — update here only (do not duplicate across components).
 export const SITE = {
+  name: "SimpleDSC",
+  tagline: "Digital Signatures, Made Simple.",
+  canonicalBase: "https://www.simpldsc.com",
   phone: "7992999947",
   phoneHref: "+917992999947",
   phone2: "7992777799",
@@ -9,8 +12,8 @@ export const SITE = {
   address: "Mallick Complex, Plot No. A/69, Kharavela Nagar, Unit 3, Bhubaneswar, Odisha – 751001",
   hours: "10:00 AM – 7:00 PM",
   hoursNote: "Mon – Sat, 10:00 AM – 7:00 PM",
-  footerYear: 2024,
-  policyLastUpdated: "2024",
-  policyVersion: "1.6",
+  footerYear: new Date().getFullYear(),
+  policyLastUpdated: "2026",
+  policyVersion: "1.7",
   logoUrl: "/logo.png",
 };

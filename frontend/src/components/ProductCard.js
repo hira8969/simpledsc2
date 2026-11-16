@@ -31,8 +31,11 @@ export function ProductCard({ product, onBuy, index = 0 }) {
       <div className="product-card-image relative mb-4 flex h-52 w-full shrink-0 items-center justify-center rounded-2xl overflow-hidden shadow-xs">
         <img
           src={product.imageUrl || "/img/epass2003-token.png"}
-          alt={`${product.name} USB token`}
-          loading="lazy"
+          alt={`${product.name} - Digital Signature USB Crypto Token`}
+          width="320"
+          height="208"
+          loading={index === 0 ? "eager" : "lazy"}
+          decoding="async"
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = "/img/epass2003-token.png";

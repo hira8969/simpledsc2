@@ -1,3 +1,4 @@
+import { Seo } from "@/components/Seo";
 import { Building2, FileText, Landmark, Gavel, Ship, PenLine } from "lucide-react";
 const CASES = [
   { icon: Building2, title: "Company Registration", desc: "Incorporate private limited, LLP and OPC entities and sign MCA-21 SPICe+ forms." },
@@ -10,6 +11,15 @@ const CASES = [
 export default function UseCases() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <Seo
+        title="Digital Signature Certificate Use Cases & Applications | SimpleDSC"
+        description="Explore verified use cases for Digital Signature Certificates (DSC) in India: Company Registration, MCA-21, GST Filing, Income Tax e-Filing, GeM eTendering, and Document Signing."
+        canonical="/use-cases"
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Use Cases", url: "/use-cases" },
+        ]}
+      />
       <div className="text-center max-w-2xl mx-auto">
         <h1 className="responsive-page-title font-display text-4xl lg:text-5xl font-extrabold text-navy-900">One DSC. Multiple Possibilities.</h1>
         <p className="mt-3 text-slate-500">A single Digital Signature Certificate unlocks dozens of compliance and signing use cases.</p>

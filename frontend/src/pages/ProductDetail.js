@@ -25,17 +25,49 @@ export default function ProductDetail() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <Seo
-        title={product.seo?.title || `${product.name} | SimplDSC`}
+        title={product.seo?.title || `${product.name} | SimpleDSC`}
         description={product.seo?.metaDescription || product.description}
         image={product.seo?.ogImage || product.imageUrl}
+        canonical={`/products/${product.slug || slug}`}
         index={product.seo?.index !== false}
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Products", url: "/products" },
+          { name: product.name, url: `/products/${product.slug || slug}` },
+        ]}
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          description: product.description,
+          image: product.imageUrl ? `https://www.simpldsc.com${product.imageUrl.startsWith("/") ? product.imageUrl : `/${product.imageUrl}`}` : "https://www.simpldsc.com/img/epass2003-token.png",
+          category: product.category,
+          brand: {
+            "@type": "Brand",
+            name: product.brand || "SimpleDSC",
+          },
+          offers: {
+            "@type": "Offer",
+            price: product.price,
+            priceCurrency: "INR",
+            availability: "https://schema.org/InStock",
+            url: `https://www.simpldsc.com/products/${product.slug || slug}`,
+            seller: {
+              "@type": "Organization",
+              name: "SimpleDSC",
+            },
+          },
+        }}
       />
       <button onClick={() => nav("/products")} className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-purple-700"><ArrowLeft className="h-4 w-4" /> All Products</button>
       <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2 lg:gap-10">
         <div className="product-detail-image mx-auto flex aspect-square w-full max-w-[500px] min-w-0 items-center justify-center overflow-hidden rounded-3xl shadow-sm">
           <img
             src={product.imageUrl || "/img/epass2003-token.png"}
-            alt={product.name}
+            alt={`${product.name} - USB Crypto Token`}
+            width="500"
+            height="500"
+            fetchPriority="high"
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = "/img/epass2003-token.png";

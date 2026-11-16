@@ -1,3 +1,4 @@
+import { Seo } from "@/components/Seo";
 import { FileText, Download, Wrench, PlayCircle } from "lucide-react";
 const RES = [
   { icon: FileText, title: "DSC User Guide", desc: "Step-by-step guide to using your Digital Signature Certificate." },
@@ -8,6 +9,15 @@ const RES = [
 export default function Resources() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <Seo
+        title="DSC Resources, Token Drivers & Setup Guides | SimpleDSC"
+        description="Access official setup guides, cryptographic token driver downloads (ePass2003, ProxKey, mToken), and troubleshooting resources for your Digital Signature Certificate."
+        canonical="/resources"
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Resources", url: "/resources" },
+        ]}
+      />
       <div className="text-center max-w-2xl mx-auto">
         <h1 className="responsive-page-title font-display text-4xl lg:text-5xl font-extrabold text-navy-900">Resources</h1>
         <p className="mt-3 text-slate-500">Guides and help to get the most out of your DSC.</p>
