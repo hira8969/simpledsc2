@@ -594,6 +594,43 @@ const ROUTES = [
       </article>
     `,
   },
+  // Application & Auth Routes (pre-rendered SPA shells to guarantee 200 OK on Vercel)
+  {
+    path: "/admin",
+    title: "Admin Portal | SimpleDSC",
+    description: "SimpleDSC Admin Management Portal.",
+    noindex: true,
+  },
+  {
+    path: "/admin/login",
+    title: "Admin Login | SimpleDSC",
+    description: "SimpleDSC Admin Login Portal.",
+    noindex: true,
+  },
+  {
+    path: "/client",
+    title: "Client Portal | SimpleDSC",
+    description: "SimpleDSC Client Portal.",
+    noindex: true,
+  },
+  {
+    path: "/client/login",
+    title: "Client Login | SimpleDSC",
+    description: "SimpleDSC Client Login.",
+    noindex: true,
+  },
+  {
+    path: "/agent",
+    title: "Agent Portal | SimpleDSC",
+    description: "SimpleDSC Agent Portal.",
+    noindex: true,
+  },
+  {
+    path: "/agent/login",
+    title: "Agent Login | SimpleDSC",
+    description: "SimpleDSC Agent Login.",
+    noindex: true,
+  },
 ];
 
 function upsertTagRegex(html, regex, replacementTag, fallbackBeforeTag = "</head>") {
@@ -617,6 +654,15 @@ function buildRouteHtml(templateHtml, route) {
     /<meta\s+name=["']description["']\s+content=["'].*?["']\s*\/?>/i,
     `<meta name="description" content="${escapeHtml(route.description)}"/>`
   );
+
+  // 2b. Robots Noindex for Private Routes
+  if (route.noindex) {
+    html = upsertTagRegex(
+      html,
+      /<meta\s+name=["']robots["']\s+content=["'].*?["']\s*\/?>/i,
+      `<meta name="robots" content="noindex, nofollow"/>`
+    );
+  }
 
   // 3. Update Canonical URL
   html = upsertTagRegex(
