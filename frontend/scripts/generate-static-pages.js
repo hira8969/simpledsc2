@@ -689,8 +689,8 @@ function buildRouteHtml(templateHtml, route) {
     html = html.replace("</head>", `    ${schemaTag}\n  </head>`);
   }
 
-  // 7. Inject Semantic Pre-rendered Content into #root
-  if (route.semanticHtml) {
+  // 7. Inject Semantic Pre-rendered Content into #root (only on static subpages, keeping root index.html clean as SPA shell)
+  if (route.semanticHtml && route.path !== "/") {
     const semanticFallback = `\n    <div class="seo-crawler-prerender" style="display:contents;">\n${route.semanticHtml}\n    </div>\n  `;
     html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, `<div id="root">${semanticFallback}</div>`);
   }
