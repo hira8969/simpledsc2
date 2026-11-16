@@ -78,9 +78,16 @@ async def gen_simpldsc_id() -> dict:
 
 
 async def gen_order_id() -> str:
+    """Generate unpredictable 7-digit random order ID (e.g. SD-2026-1234567) instead of sequential counter."""
     year = datetime.now(timezone.utc).year
-    num = await _next_counter(f"ORDER-{year}", 105225)
-    return f"SD-{year}-{num:06d}"
+    for _ in range(20):
+        rand_num = random.randint(1000000, 9999999)
+        order_id = f"SD-{year}-{rand_num}"
+        existing = await db.orders.find_one({"orderId": order_id}, {"_id": 1})
+        if not existing:
+            return order_id
+    # Fallback with wider range in case of collision
+    return f"SD-{year}-{random.randint(10000000, 99999999)}"
 
 
 async def gen_invoice_no() -> str:

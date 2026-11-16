@@ -588,6 +588,39 @@ async def update_admin_settings(payload: dict, admin: dict = Depends(require_rol
     return clean(await db.website_settings.find_one({"_id": "singleton"}))
 
 
+@admin_router.post("/admin/system/randomize-order-ids")
+async def randomize_order_ids_endpoint(admin: dict = Depends(require_roles("super_admin", "admin"))):
+    """Randomize any existing sequential order IDs (e.g. SD-2026-000004 -> SD-2026-1234567)."""
+    import re
+    import random
+    orders = await db.orders.find({}, {"_id": 0, "orderId": 1}).to_list(1000)
+    seq_pattern = re.compile(r"^SD-(\d{4})-0{3,5}\d+$")
+    updated = []
+    for o in orders:
+        old_id = o.get("orderId")
+        if not old_id:
+            continue
+        if seq_pattern.match(old_id) or "00000" in old_id:
+            year_match = re.search(r"SD-(\d{4})-", old_id)
+            year = year_match.group(1) if year_match else str(datetime.now(timezone.utc).year)
+            while True:
+                rand_num = random.randint(1000000, 9999999)
+                new_id = f"SD-{year}-{rand_num}"
+                if not await db.orders.find_one({"orderId": new_id}):
+                    break
+            await db.orders.update_one({"orderId": old_id}, {"$set": {"orderId": new_id}})
+            await db.payments.update_many({"orderId": old_id}, {"$set": {"orderId": new_id}})
+            await db.documents.update_many({"orderId": old_id}, {"$set": {"orderId": new_id}})
+            await db.order_status_history.update_many({"orderId": old_id}, {"$set": {"orderId": new_id}})
+            await db.dscs.update_many({"orderId": old_id}, {"$set": {"orderId": new_id}})
+            await db.support_tickets.update_many({"orderId": old_id}, {"$set": {"orderId": new_id}})
+            await db.invoices.update_many({"orderId": old_id}, {"$set": {"orderId": new_id}})
+            await db.audit_logs.update_many({"entity": "order", "entityId": old_id}, {"$set": {"entityId": new_id}})
+            await db.notifications.update_many({"relatedEntity": "order", "relatedEntityId": old_id}, {"$set": {"relatedEntityId": new_id}})
+            updated.append({"old": old_id, "new": new_id})
+    return {"status": "ok", "count": len(updated), "updated": updated}
+
+
 # ---------- ANALYTICS ----------
 @admin_router.get("/admin/analytics")
 async def analytics(admin: dict = Depends(get_current_admin)):

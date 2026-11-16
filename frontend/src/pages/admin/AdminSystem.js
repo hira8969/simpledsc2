@@ -105,8 +105,23 @@ function Audit() {
 
 function Seo() {
   const [s, setS] = useState(null);
+  const [migrating, setMigrating] = useState(false);
   useEffect(() => { api.get("/admin/settings").then((r) => setS(r.data)); }, []);
   const save = async () => { await api.put("/admin/settings", { seoDefaults: s.seoDefaults, analytics: s.analytics }); toast.success("Settings saved"); };
+  
+  const handleRandomizeOrders = async () => {
+    if (!window.confirm("Convert any sequential order IDs (e.g. SD-2026-000004) to random 7-digit IDs (like SD-2026-1234567)?")) return;
+    setMigrating(true);
+    try {
+      const res = await api.post("/admin/system/randomize-order-ids");
+      toast.success(`Updated ${res.data.count || 0} order IDs to random numbers!`);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to randomize order IDs");
+    } finally {
+      setMigrating(false);
+    }
+  };
+
   if (!s) return <p className="text-slate-400">Loading…</p>;
   return (
     <div className="max-w-2xl space-y-4">
@@ -121,6 +136,23 @@ function Seo() {
         <div><Label className="text-xs">Measurement ID</Label><Input data-testid="ga-id" value={s.analytics?.gaMeasurementId || ""} onChange={(e) => setS({ ...s, analytics: { ...s.analytics, gaMeasurementId: e.target.value, enabled: !!e.target.value } })} placeholder="G-XXXXXXX" className="mt-1" /></div>
         <p className="text-xs text-slate-400">Configure GA in frontend/.env (REACT_APP_GA_MEASUREMENT_ID) to activate tracking on the live site.</p>
       </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
+        <h3 className="font-display font-bold text-navy-900">Order ID Format & Privacy</h3>
+        <p className="text-xs text-slate-500">
+          New orders are automatically generated with non-sequential random 7-digit numbers (e.g. <code>SD-2026-1234567</code>). You can also migrate old sequential test orders (<code>SD-2026-00000X</code>) below.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={migrating}
+          onClick={handleRandomizeOrders}
+          className="rounded-xl border-purple-200 text-purple-700 hover:bg-purple-50 text-xs font-semibold"
+        >
+          {migrating ? "Migrating..." : "Randomize Old Sequential Order IDs"}
+        </Button>
+      </div>
+
       <Button data-testid="save-settings" onClick={save} className="bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl">Save Settings</Button>
     </div>
   );
