@@ -1,6 +1,7 @@
 // Centralized site/business info — update here only (do not duplicate across components).
 export const SITE = {
   name: "SimpleDSC",
+  companyLegalName: "YSMTX Solution Pvt Ltd",
   tagline: "Digital Signatures, Made Simple.",
   canonicalBase: "https://www.simpldsc.com",
   phone: "7992999947",

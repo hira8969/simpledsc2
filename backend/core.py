@@ -91,15 +91,27 @@ async def gen_order_id() -> str:
 
 
 async def gen_invoice_no() -> str:
+    """Generate unpredictable 7-digit random invoice number (e.g. INV-2026-1234568) instead of sequential counter."""
     year = datetime.now(timezone.utc).year
-    num = await _next_counter(f"INV-{year}", 105225)
-    return f"INV-{year}-{num:06d}"
+    for _ in range(20):
+        rand_num = random.randint(1000000, 9999999)
+        inv_no = f"INV-{year}-{rand_num}"
+        existing = await db.orders.find_one({"invoiceNo": inv_no}, {"_id": 1})
+        if not existing:
+            return inv_no
+    return f"INV-{year}-{random.randint(10000000, 99999999)}"
 
 
 async def gen_ticket_id() -> str:
+    """Generate unpredictable 7-digit random support ticket ID (e.g. TKT-2026-1234568) instead of sequential counter."""
     year = datetime.now(timezone.utc).year
-    num = await _next_counter(f"TKT-{year}", 105225)
-    return f"TKT-{year}-{num:06d}"
+    for _ in range(20):
+        rand_num = random.randint(1000000, 9999999)
+        tkt_id = f"TKT-{year}-{rand_num}"
+        existing = await db.support_tickets.find_one({"ticketId": tkt_id}, {"_id": 1})
+        if not existing:
+            return tkt_id
+    return f"TKT-{year}-{random.randint(10000000, 99999999)}"
 
 
 async def gen_agent_code() -> str:

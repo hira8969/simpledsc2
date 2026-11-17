@@ -92,7 +92,7 @@ export function InvoiceModal({ open, onOpenChange, invoice }) {
               <div>
                 <Logo />
                 <div className="mt-3 text-xs text-slate-600 space-y-0.5 leading-relaxed">
-                  <p className="font-bold text-navy-900 text-sm">SimplDSC Technologies Pvt. Ltd.</p>
+                  <p className="font-bold text-navy-900 text-sm">{SITE.companyLegalName || "YSMTX Solution Pvt Ltd"}</p>
                   <p>{SITE.address}</p>
                   <p>
                     <span className="text-slate-500">Tel:</span> {SITE.phone} / {SITE.phone2} &nbsp;|&nbsp;{" "}
@@ -284,7 +284,7 @@ export function InvoiceModal({ open, onOpenChange, invoice }) {
                   </div>
                   <p className="text-[10px] text-slate-400">Digitally Authenticated</p>
                 </div>
-                <p className="font-bold text-navy-900 text-xs">For SimplDSC Technologies Pvt. Ltd.</p>
+                <p className="font-bold text-navy-900 text-xs">For {SITE.companyLegalName || "YSMTX Solution Pvt Ltd"}</p>
                 <p className="text-[10px] text-slate-400">Authorized Signatory</p>
               </div>
             </div>

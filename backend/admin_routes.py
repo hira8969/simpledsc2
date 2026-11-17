@@ -590,17 +590,21 @@ async def update_admin_settings(payload: dict, admin: dict = Depends(require_rol
 
 @admin_router.post("/admin/system/randomize-order-ids")
 async def randomize_order_ids_endpoint(admin: dict = Depends(require_roles("super_admin", "admin"))):
-    """Randomize any existing sequential order IDs (e.g. SD-2026-000004 -> SD-2026-1234567)."""
+    """Randomize any existing sequential order IDs (SD-YYYY-00000X) and invoice numbers (INV-YYYY-00000X)."""
     import re
     import random
-    orders = await db.orders.find({}, {"_id": 0, "orderId": 1}).to_list(1000)
-    seq_pattern = re.compile(r"^SD-(\d{4})-0{3,5}\d+$")
-    updated = []
+    
+    # 1. Randomize Orders
+    orders = await db.orders.find({}, {"_id": 0, "orderId": 1, "invoiceNo": 1}).to_list(1000)
+    seq_order_pattern = re.compile(r"^SD-(\d{4})-0{3,5}\d+$")
+    seq_inv_pattern = re.compile(r"^INV-(\d{4})-0{3,5}\d+$")
+    
+    updated_orders = []
+    updated_invoices = []
+    
     for o in orders:
         old_id = o.get("orderId")
-        if not old_id:
-            continue
-        if seq_pattern.match(old_id) or "00000" in old_id:
+        if old_id and (seq_order_pattern.match(old_id) or "00000" in old_id):
             year_match = re.search(r"SD-(\d{4})-", old_id)
             year = year_match.group(1) if year_match else str(datetime.now(timezone.utc).year)
             while True:
@@ -617,8 +621,47 @@ async def randomize_order_ids_endpoint(admin: dict = Depends(require_roles("supe
             await db.invoices.update_many({"orderId": old_id}, {"$set": {"orderId": new_id}})
             await db.audit_logs.update_many({"entity": "order", "entityId": old_id}, {"$set": {"entityId": new_id}})
             await db.notifications.update_many({"relatedEntity": "order", "relatedEntityId": old_id}, {"$set": {"relatedEntityId": new_id}})
-            updated.append({"old": old_id, "new": new_id})
-    return {"status": "ok", "count": len(updated), "updated": updated}
+            updated_orders.append({"old": old_id, "new": new_id})
+
+    # 2. Randomize Invoices in invoices table
+    invoices = await db.invoices.find({}, {"_id": 0, "invoiceNo": 1}).to_list(1000)
+    for inv in invoices:
+        old_inv = inv.get("invoiceNo")
+        if old_inv and (seq_inv_pattern.match(old_inv) or "00000" in old_inv):
+            year_match = re.search(r"INV-(\d{4})-", old_inv)
+            year = year_match.group(1) if year_match else str(datetime.now(timezone.utc).year)
+            while True:
+                rand_num = random.randint(1000000, 9999999)
+                new_inv = f"INV-{year}-{rand_num}"
+                if not await db.invoices.find_one({"invoiceNo": new_inv}) and not await db.orders.find_one({"invoiceNo": new_inv}):
+                    break
+            await db.invoices.update_one({"invoiceNo": old_inv}, {"$set": {"invoiceNo": new_inv}})
+            await db.orders.update_many({"invoiceNo": old_inv}, {"$set": {"invoiceNo": new_inv}})
+            updated_invoices.append({"old": old_inv, "new": new_inv})
+
+    # 3. Also check orders table for any invoiceNo that wasn't in invoices collection
+    orders_with_inv = await db.orders.find({"invoiceNo": {"$regex": "00000"}}, {"_id": 0, "orderId": 1, "invoiceNo": 1}).to_list(1000)
+    for o in orders_with_inv:
+        old_inv = o.get("invoiceNo")
+        if old_inv and (seq_inv_pattern.match(old_inv) or "00000" in old_inv):
+            year_match = re.search(r"INV-(\d{4})-", old_inv)
+            year = year_match.group(1) if year_match else str(datetime.now(timezone.utc).year)
+            while True:
+                rand_num = random.randint(1000000, 9999999)
+                new_inv = f"INV-{year}-{rand_num}"
+                if not await db.invoices.find_one({"invoiceNo": new_inv}) and not await db.orders.find_one({"invoiceNo": new_inv}):
+                    break
+            await db.orders.update_one({"orderId": o["orderId"]}, {"$set": {"invoiceNo": new_inv}})
+            await db.invoices.update_many({"invoiceNo": old_inv}, {"$set": {"invoiceNo": new_inv}})
+            updated_invoices.append({"old": old_inv, "new": new_inv})
+
+    return {
+        "status": "ok",
+        "ordersCount": len(updated_orders),
+        "invoicesCount": len(updated_invoices),
+        "updatedOrders": updated_orders,
+        "updatedInvoices": updated_invoices,
+    }
 
 
 # ---------- ANALYTICS ----------

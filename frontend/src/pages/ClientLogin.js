@@ -355,7 +355,7 @@ export default function ClientLogin() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
-        &copy; {new Date().getFullYear()} SimplDSC Technologies. All rights reserved. Client Portal.
+        &copy; {new Date().getFullYear()} YSMTX Solution Pvt Ltd. All rights reserved. Client Portal.
       </footer>
     </div>
   );

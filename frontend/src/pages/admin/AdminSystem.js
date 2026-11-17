@@ -110,13 +110,15 @@ function Seo() {
   const save = async () => { await api.put("/admin/settings", { seoDefaults: s.seoDefaults, analytics: s.analytics }); toast.success("Settings saved"); };
   
   const handleRandomizeOrders = async () => {
-    if (!window.confirm("Convert any sequential order IDs (e.g. SD-2026-000004) to random 7-digit IDs (like SD-2026-1234567)?")) return;
+    if (!window.confirm("Convert any sequential order IDs (SD-2026-00000X) and invoices (INV-2026-00000X) to random 7-digit numbers (like SD-2026-1234567 / INV-2026-1234568)?")) return;
     setMigrating(true);
     try {
       const res = await api.post("/admin/system/randomize-order-ids");
-      toast.success(`Updated ${res.data.count || 0} order IDs to random numbers!`);
+      const ords = res.data.ordersCount ?? res.data.count ?? 0;
+      const invs = res.data.invoicesCount ?? 0;
+      toast.success(`Updated ${ords} orders and ${invs} invoices to random 7-digit IDs!`);
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Failed to randomize order IDs");
+      toast.error(e.response?.data?.detail || "Failed to randomize order/invoice IDs");
     } finally {
       setMigrating(false);
     }
@@ -138,9 +140,9 @@ function Seo() {
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
-        <h3 className="font-display font-bold text-navy-900">Order ID Format & Privacy</h3>
+        <h3 className="font-display font-bold text-navy-900">Order & Invoice ID Privacy</h3>
         <p className="text-xs text-slate-500">
-          New orders are automatically generated with non-sequential random 7-digit numbers (e.g. <code>SD-2026-1234567</code>). You can also migrate old sequential test orders (<code>SD-2026-00000X</code>) below.
+          New orders (<code>SD-2026-1234567</code>) and tax invoices (<code>INV-2026-1234568</code>) are automatically generated with non-sequential random 7-digit numbers. You can also randomize old sequential test records below.
         </p>
         <Button
           type="button"
@@ -149,7 +151,7 @@ function Seo() {
           onClick={handleRandomizeOrders}
           className="rounded-xl border-purple-200 text-purple-700 hover:bg-purple-50 text-xs font-semibold"
         >
-          {migrating ? "Migrating..." : "Randomize Old Sequential Order IDs"}
+          {migrating ? "Migrating..." : "Randomize Old Sequential Orders & Invoices"}
         </Button>
       </div>
 
