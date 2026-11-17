@@ -221,3 +221,4 @@ def resend_otp(mobile: str, retry_type: str = "text") -> dict:
     else:
         err_msg = data.get("message") or raw_text or "Failed to resend OTP"
         return {"ok": False, "provider": "msg91", "message": err_msg}
+

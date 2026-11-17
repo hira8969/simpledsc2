@@ -92,14 +92,14 @@ export function InvoiceModal({ open, onOpenChange, invoice }) {
               <div>
                 <Logo />
                 <div className="mt-3 text-xs text-slate-600 space-y-0.5 leading-relaxed">
-                  <p className="font-bold text-navy-900 text-sm">{SITE.companyLegalName || "YSMTX Solution Pvt Ltd"}</p>
+                  <p className="font-bold text-navy-900 text-sm">{SITE.companyLegalName || "TSMTX Solutions Private Limited"}</p>
                   <p>{SITE.address}</p>
                   <p>
                     <span className="text-slate-500">Tel:</span> {SITE.phone} / {SITE.phone2} &nbsp;|&nbsp;{" "}
                     <span className="text-slate-500">Email:</span> {SITE.email}
                   </p>
                   <p>
-                    <span className="text-slate-500">Portal:</span> www.simpldsc.in &nbsp;|&nbsp;{" "}
+                    <span className="text-slate-500">Portal:</span> www.simpldsc.com &nbsp;|&nbsp;{" "}
                     <span className="text-slate-500">State:</span> Odisha (State Code: 21)
                   </p>
                 </div>
