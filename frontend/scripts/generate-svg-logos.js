@@ -39,3 +39,4 @@ function makeSvg(dark) {
 fs.writeFileSync(path.join(publicDir, 'logo.svg'), makeSvg(false), 'utf8');
 fs.writeFileSync(path.join(publicDir, 'logo-dark.svg'), makeSvg(true), 'utf8');
 console.log('Successfully generated logo.svg and logo-dark.svg in public directory.');
+
