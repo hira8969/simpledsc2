@@ -124,7 +124,7 @@ export default function ProductDetail() {
           </div>
           <Button data-testid="detail-buy-btn" onClick={() => startPurchase(product)}
             className="mt-6 w-full bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl py-6 text-base">Buy Now</Button>
-          <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400"><ShieldCheck className="h-4 w-4 text-emerald-500" /> Secure checkout · Server-verified Razorpay payment</p>
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400"><ShieldCheck className="h-4 w-4 text-emerald-500" /> Secure checkout · Server-verified Cashfree payment</p>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-"""Admin + staff routes and Razorpay webhook."""
+"""Admin + staff routes."""
 import os
 import io
 import csv
@@ -15,7 +15,7 @@ from security import (hash_password, verify_password, make_token,
 
 admin_router = APIRouter()
 
-RZP_WEBHOOK = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "")
+
 
 
 class AdminLoginReq(BaseModel):
@@ -690,7 +690,7 @@ async def analytics(admin: dict = Depends(get_current_admin)):
 async def export_csv(entity: str, admin: dict = Depends(get_current_admin)):
     coll_map = {"customers": ("users", ["simplDscId", "name", "mobile", "email", "createdAt"]),
                 "orders": ("orders", ["orderId", "simplDscId", "customerName", "mobile", "productName", "totalAmount", "paymentStatus", "orderStatus", "createdAt"]),
-                "payments": ("payments", ["orderId", "razorpayPaymentId", "amount", "status", "createdAt"]),
+                "payments": ("payments", ["orderId", "cashfreePaymentId", "razorpayPaymentId", "amount", "status", "createdAt"]),
                 "dscs": ("dscs", ["simplDscId", "dscType", "certificateNumber", "issuedDate", "expiryDate", "status"]),
                 "leads": ("partnership_applications", ["name", "business", "mobile", "email", "city", "state", "status", "createdAt"]),
                 "enquiries": ("contact_enquiries", ["name", "email", "phone", "status", "createdAt"]),
@@ -726,24 +726,7 @@ async def staff_notifications(admin: dict = Depends(get_current_admin)):
     return await db.notifications.find({"recipientType": "staff"}, {"_id": 0}).sort("createdAt", -1).to_list(200)
 
 
-# ---------- RAZORPAY WEBHOOK ----------
-@admin_router.post("/webhooks/razorpay")
-async def razorpay_webhook(request: Request):
-    body = await request.body()
-    signature = request.headers.get("X-Razorpay-Signature", "")
-    if RZP_WEBHOOK:
-        expected = hmac.new(RZP_WEBHOOK.encode(), body, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(expected, signature):
-            raise HTTPException(400, "Invalid webhook signature")
-    import json
-    payload = json.loads(body.decode() or "{}")
-    event = payload.get("event")
-    event_id = request.headers.get("X-Razorpay-Event-Id", new_id())
-    # idempotency
-    if await db.webhook_events.find_one({"eventId": event_id}):
-        return {"status": "duplicate"}
-    await db.webhook_events.insert_one({"eventId": event_id, "event": event, "at": now_iso()})
-    return {"status": "processed", "event": event}
+# Webhooks are centrally handled in server.py (/api/payment/webhook, /webhooks/cashfree)
 
 
 # ---------- AGENT & PAYOUT MANAGEMENT ----------

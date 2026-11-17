@@ -154,14 +154,12 @@ def test_create_order_and_verify_payment():
     body = r.json()
     order = body["order"]
     assert order["orderId"].startswith("SD-")
-    assert body["razorpay"]["mock"] is True
+    assert "cashfree" in body
+    assert body["cashfree"]["paymentSessionId"] is not None
     _state["order"] = order
 
-    # verify payment (mock)
-    v = requests.post(f"{API}/orders/verify-payment", json={
-        "orderId": order["orderId"], "razorpayOrderId": order["razorpayOrderId"],
-        "razorpayPaymentId": "pay_mock_xyz", "razorpaySignature": "mock_sig_test"},
-                      headers=_auth())
+    # verify payment via Cashfree verify-by-id endpoint (mock/live)
+    v = requests.get(f"{API}/payment/verify/{order['orderId']}", headers=_auth())
     assert v.status_code == 200, v.text
     inv = v.json()["invoiceNo"]
     assert inv.startswith("INV-")
@@ -172,6 +170,7 @@ def test_create_order_and_verify_payment():
     d = detail.json()["order"]
     assert d["paymentStatus"] == "Payment Successful"
     assert d["orderStatus"] == "Documents Pending"
+    assert d.get("paymentGateway") == "cashfree"
 
 
 def test_verify_payment_invalid_sig():

@@ -16,7 +16,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const [coupon, setCoupon] = useState("");
   const [pricing, setPricing] = useState(null);
   const [order, setOrder] = useState(null);
-  const [rzp, setRzp] = useState(null);
+  const [cashfreeData, setCashfreeData] = useState(null);
   const [invoiceNo, setInvoiceNo] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploaded, setUploaded] = useState({});
@@ -36,11 +36,16 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     setBusy(true);
     try {
       const agentCode = localStorage.getItem("sd_agent_ref") || undefined;
-      const { data } = await api.post("/orders", { productId: product.id, couponCode: pricing ? coupon : null, agentCode, applicant, shipping });
-      setOrder(data.order); setRzp(data.razorpay);
+      const { data } = await api.post("/payment/create-order", { productId: product.id, couponCode: pricing ? coupon : null, agentCode, applicant, shipping });
+      setOrder(data.order);
+      setCashfreeData(data.cashfree || data.payment);
       return data;
-    } catch (e) { toast.error(e.response?.data?.detail || "Could not create order"); }
-    finally { setBusy(false); }
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Could not create order");
+      return null;
+    } finally {
+      setBusy(false);
+    }
   };
 
   const uploadDoc = async (docType, file) => {
@@ -56,51 +61,92 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     } catch (e) { toast.error(e.response?.data?.detail || "Upload failed"); }
   };
 
-  const pay = async () => {
-    let ord = order, r = rzp;
-    if (!ord) { const d = await createOrder(); if (!d) return; ord = d.order; r = d.razorpay; }
-    track("payment_initiated", { amount: (pricing || product).totalAmount });
-    setBusy(true);
+  const verifyOrderPayment = async (orderId, fallbackOrd) => {
     try {
-      if (r.mock) {
-        // simulate Razorpay checkout success
-        const payment_id = "pay_mock_" + Math.random().toString(36).slice(2, 12);
-        await api.post("/orders/verify-payment", {
-          orderId: ord.orderId, razorpayOrderId: r.orderId,
-          razorpayPaymentId: payment_id, razorpaySignature: "mock_sig_" + payment_id,
-        });
-        finishPayment(ord);
+      setBusy(true);
+      const { data } = await api.get(`/payment/verify/${orderId}`);
+      if (data.ok) {
+        await finishPayment(fallbackOrd, data.invoiceNo);
+      } else if (data.status === "PENDING") {
+        toast.info("Payment is pending. Please complete the transaction or check status.");
+        setBusy(false);
       } else {
-        const options = {
-          key: r.keyId, amount: r.amount, currency: r.currency, order_id: r.orderId,
-          name: "SimplDSC", description: product.name,
-          handler: async (res) => {
-            try {
-              await api.post("/orders/verify-payment", {
-                orderId: ord.orderId, razorpayOrderId: res.razorpay_order_id,
-                razorpayPaymentId: res.razorpay_payment_id, razorpaySignature: res.razorpay_signature,
-              });
-              finishPayment(ord);
-            } catch (e) { toast.error("Payment verification failed"); }
-          },
-          theme: { color: "#6F32B5" },
-        };
-        const rz = new window.Razorpay(options);
-        rz.open(); setBusy(false);
+        toast.error(data.message || "Payment verification failed.");
+        setBusy(false);
       }
-    } catch (e) { toast.error("Payment failed"); setBusy(false); }
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Could not verify payment status");
+      setBusy(false);
+    }
   };
 
-  const finishPayment = async (ord) => {
+  const pay = async () => {
+    if (busy) return;
+    let ord = order, cf = cashfreeData;
+    if (!ord || !cf) {
+      const d = await createOrder();
+      if (!d) return;
+      ord = d.order;
+      cf = d.cashfree || d.payment;
+    }
+    track("payment_initiated", { amount: (pricing || product).totalAmount });
+    setBusy(true);
+
+    try {
+      // Mock mode fallback when credentials are not yet set or in mock testing
+      if (cf?.mock || !window.Cashfree) {
+        const mockPayId = "mock_cf_" + Math.random().toString(36).slice(2, 12);
+        const res = await api.post("/payment/verify", {
+          orderId: ord.orderId,
+          cashfreeOrderId: cf?.orderId || ord.orderId,
+          cashfreePaymentId: mockPayId,
+        });
+        await finishPayment(ord, res.data?.invoiceNo);
+        return;
+      }
+
+      // Official Cashfree Checkout Modal (v3 SDK)
+      const cfEnv = (cf?.environment?.toLowerCase() === "production" || process.env.REACT_APP_CASHFREE_ENV === "PRODUCTION") ? "production" : "sandbox";
+      const cashfree = window.Cashfree({ mode: cfEnv });
+
+      cashfree.checkout({
+        paymentSessionId: cf.paymentSessionId,
+        redirectTarget: "_modal",
+      }).then(async (result) => {
+        if (result.error) {
+          console.log("Cashfree checkout info:", result.error);
+        }
+        await verifyOrderPayment(ord.orderId, ord);
+      }).catch(async (err) => {
+        console.warn("Cashfree checkout dismissed:", err);
+        await verifyOrderPayment(ord.orderId, ord);
+      });
+    } catch (e) {
+      console.error("Cashfree checkout launch error:", e);
+      toast.error("Payment initialization failed");
+      setBusy(false);
+    }
+  };
+
+  const finishPayment = async (ord, directInvoiceNo) => {
     track("purchase", { orderId: ord.orderId });
-    const invNo = (await api.get("/customer/orders/" + ord.orderId)).data.order.invoiceNo;
-    setInvoiceNo(invNo || ""); setOrder(ord); setStep(3); setBusy(false);
+    let invNo = directInvoiceNo;
+    if (!invNo) {
+      try {
+        const res = await api.get("/customer/orders/" + ord.orderId);
+        invNo = res.data?.order?.invoiceNo;
+      } catch {}
+    }
+    setInvoiceNo(invNo || "");
+    setOrder(ord);
+    setStep(3);
+    setBusy(false);
     toast.success("Payment successful!");
   };
 
   const totalNow = pricing || { amount: product.price, discount: 0, gst: Math.round(product.price - product.price/1.18), totalAmount: product.price };
 
-  const close = () => { onOpenChange(false); setTimeout(() => { setStep(0); setOrder(null); setRzp(null); setPricing(null); setCoupon(""); setUploaded({}); }, 200); };
+  const close = () => { onOpenChange(false); setTimeout(() => { setStep(0); setOrder(null); setCashfreeData(null); setPricing(null); setCoupon(""); setUploaded({}); setBusy(false); }, 200); };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { if (step === 3) onComplete && onComplete(); close(); } }}>
@@ -186,7 +232,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
               <Separator className="my-3" />
               <Row l="Total Payable" v={`₹${totalNow.totalAmount}`} big />
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Payment secured & verified server-side via Razorpay.</div>
+            <div className="flex items-center gap-2 text-xs text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-600" /> 100% Secure Payment via Cashfree (UPI, Cards, NetBanking).</div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setStep(1)} className="flex-1 rounded-xl">Back</Button>
               <Button data-testid="pay-now-btn" onClick={pay} disabled={busy} className="flex-1 bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl">

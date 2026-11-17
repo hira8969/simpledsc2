@@ -23,9 +23,10 @@ export default function AdminPayments() {
     if (!search) return true;
     const q = search.toLowerCase();
     const oid = p.orderId?.toLowerCase() || "";
-    const pid = p.razorpayPaymentId?.toLowerCase() || "";
+    const pid = (p.cashfreePaymentId || p.paymentId || p.razorpayPaymentId || "")?.toLowerCase();
     const sid = p.simplDscId?.toLowerCase() || "";
-    return oid.includes(q) || pid.includes(q) || sid.includes(q);
+    const gw = (p.gateway || "")?.toLowerCase();
+    return oid.includes(q) || pid.includes(q) || sid.includes(q) || gw.includes(q);
   });
 
   const totalAmount = filtered
@@ -37,7 +38,7 @@ export default function AdminPayments() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-navy-900">Payments & Reconciliation</h1>
-          <p className="text-sm text-slate-500">Track all Razorpay transactions, captured payments, and reconciliation logs.</p>
+          <p className="text-sm text-slate-500">Track Cashfree transactions, legacy records, captured payments, and reconciliation logs.</p>
         </div>
         <Button variant="outline" data-testid="export-payments" onClick={exportCsv} className="rounded-xl">
           <Download className="h-4 w-4 mr-2" /> Export CSV
@@ -58,7 +59,7 @@ export default function AdminPayments() {
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
           <p className="text-xs text-slate-500 font-medium">Gateway Provider</p>
           <p className="font-display text-lg font-bold text-purple-700 mt-1 flex items-center gap-1.5">
-            <CreditCard className="h-5 w-5" /> Razorpay
+            <CreditCard className="h-5 w-5" /> Cashfree
           </p>
         </div>
       </div>
@@ -69,7 +70,7 @@ export default function AdminPayments() {
           data-testid="payments-search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by Order ID, Razorpay ID, SimplDSC ID..."
+          placeholder="Search by Order ID, Payment ID, SimplDSC ID..."
           className="pl-9 bg-white"
         />
       </div>
@@ -80,23 +81,33 @@ export default function AdminPayments() {
             <tr>
               <th className="px-4 py-3 whitespace-nowrap">Order ID</th>
               <th className="px-4 py-3 whitespace-nowrap">SimplDSC ID</th>
-              <th className="px-4 py-3 whitespace-nowrap">Razorpay Payment ID</th>
+              <th className="px-4 py-3 whitespace-nowrap">Gateway</th>
+              <th className="px-4 py-3 whitespace-nowrap">Payment ID</th>
               <th className="px-4 py-3 whitespace-nowrap">Amount</th>
               <th className="px-4 py-3 whitespace-nowrap">Status</th>
               <th className="px-4 py-3 whitespace-nowrap">Date & Time</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filtered.map((p) => (
-              <tr key={p.id || p.orderId} data-testid={`payment-row-${p.orderId}`} className="hover:bg-slate-50">
-                <td className="px-4 py-3 font-mono font-medium text-xs text-purple-700 whitespace-nowrap">{p.orderId}</td>
-                <td className="px-4 py-3 font-mono text-xs text-slate-600 whitespace-nowrap">{p.simplDscId || "—"}</td>
-                <td className="px-4 py-3 font-mono text-xs text-navy-900 whitespace-nowrap">{p.razorpayPaymentId || "—"}</td>
-                <td className="px-4 py-3 font-semibold text-navy-900 whitespace-nowrap">₹{Number(p.amount).toLocaleString("en-IN")}</td>
-                <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={p.status || "Successful"} /></td>
-                <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{p.createdAt ? p.createdAt.slice(0, 19).replace("T", " ") : "—"}</td>
-              </tr>
-            ))}
+            {filtered.map((p) => {
+              const paymentRef = p.cashfreePaymentId || p.paymentId || p.razorpayPaymentId || "—";
+              const gatewayName = p.gateway ? (p.gateway === "cashfree" ? "Cashfree" : p.gateway) : (p.cashfreePaymentId ? "Cashfree" : "Razorpay (Historical)");
+              return (
+                <tr key={p.id || p.orderId} data-testid={`payment-row-${p.orderId}`} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 font-mono font-medium text-xs text-purple-700 whitespace-nowrap">{p.orderId}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-600 whitespace-nowrap">{p.simplDscId || "—"}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${gatewayName === "Cashfree" ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-600"}`}>
+                      {gatewayName}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs text-navy-900 whitespace-nowrap">{paymentRef}</td>
+                  <td className="px-4 py-3 font-semibold text-navy-900 whitespace-nowrap">₹{Number(p.amount).toLocaleString("en-IN")}</td>
+                  <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={p.status || "Successful"} /></td>
+                  <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{p.createdAt ? p.createdAt.slice(0, 19).replace("T", " ") : "—"}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {filtered.length === 0 && (

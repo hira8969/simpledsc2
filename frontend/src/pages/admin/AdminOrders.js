@@ -106,7 +106,7 @@ function OrderDetail({ orderId, onClose, onReload }) {
             </Box>
             <Box title="Order & Payment">
               <KV k="Product" v={o.productName} /><KV k="Amount" v={`₹${o.totalAmount}`} /><KV k="Payment" v={o.paymentStatus} /><KV k="Invoice" v={o.invoiceNo || "—"} mono />
-              <KV k="Razorpay Payment" v={o.razorpayPaymentId || "—"} mono />
+              <KV k="Payment ID" v={o.cashfreePaymentId || o.paymentId || o.razorpayPaymentId || "—"} mono />
               {!o.invoiceNo && <Button size="sm" data-testid="gen-invoice-btn" onClick={genInvoice} className="mt-2 w-full rounded-lg bg-gradient-to-r from-purple-700 to-navy-800 text-white h-8">Generate Manual Invoice</Button>}
             </Box>
             <Box title="Certifying Authority">

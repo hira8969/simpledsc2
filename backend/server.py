@@ -1,5 +1,6 @@
 """SimplDSC API server."""
 import os
+import json
 import hmac
 import hashlib
 import logging
@@ -35,15 +36,8 @@ def sanitize_mobile(raw: str) -> str:
 app = FastAPI(title="SimplDSC API")
 api = APIRouter(prefix="/api")
 
-# ------- Razorpay (mock-aware) -------
-RZP_KEY = os.environ.get("RAZORPAY_KEY_ID", "")
-RZP_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
-RZP_WEBHOOK = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "")
-RZP_LIVE = bool(RZP_KEY and RZP_SECRET)
-_rzp_client = None
-if RZP_LIVE:
-    import razorpay
-    _rzp_client = razorpay.Client(auth=(RZP_KEY, RZP_SECRET))
+# ------- Cashfree Payment Gateway (official v2023-08-01) -------
+import cashfree_client
 
 ORDER_STATUSES = ["Payment Pending", "Payment Successful", "Documents Pending", "Documents Received",
                   "Under Verification", "Documents Verified", "Documents Rejected", "Re-upload Required",
@@ -79,9 +73,12 @@ class CreateOrderReq(BaseModel):
 
 class VerifyPaymentReq(BaseModel):
     orderId: str
-    razorpayOrderId: str
-    razorpayPaymentId: str
-    razorpaySignature: str
+    cashfreeOrderId: Optional[str] = None
+    cashfreePaymentId: Optional[str] = None
+    # Backward compatible fields for tests/transition:
+    razorpayOrderId: Optional[str] = None
+    razorpayPaymentId: Optional[str] = None
+    razorpaySignature: Optional[str] = None
 
 
 # ================= PUBLIC =================
@@ -302,22 +299,94 @@ async def _price_order(product: dict, coupon_code: Optional[str], user_id: str):
             "amount": base, "discount": discount, "totalAmount": total,
             "couponCode": coupon["code"] if coupon else None}
 
+# Helper for completing successful payment (idempotent across webhook and verify endpoints)
+async def _execute_payment_success(order: dict, payment_id: str, payment_method: str = "cashfree"):
+    # 1. Idempotency guard: prevent duplicate invoices or duplicate payment entries
+    fresh = await db.orders.find_one({"id": order["id"]})
+    if fresh and fresh.get("paymentStatus") == "Payment Successful":
+        return {"ok": True, "invoiceNo": fresh.get("invoiceNo"), "alreadyPaid": True}
+
+    inv_no = await gen_invoice_no()
+    payment_doc = {
+        "id": new_id(),
+        "userId": order["userId"],
+        "simplDscId": order.get("simplDscId"),
+        "orderId": order["orderId"],
+        "gateway": "cashfree",
+        "cashfreeOrderId": order.get("cashfreeOrderId", order["orderId"]),
+        "cashfreePaymentId": payment_id,
+        "paymentId": payment_id,
+        # Preserve legacy field for backward compatibility with existing admin searches
+        "razorpayPaymentId": payment_id,
+        "amount": order["totalAmount"],
+        "currency": "INR",
+        "status": "Successful",
+        "method": payment_method or "cashfree",
+        "createdAt": now_iso(),
+        "updatedAt": now_iso(),
+    }
+    await db.payments.insert_one(payment_doc)
+
+    invoice = {
+        "id": new_id(),
+        "invoiceNo": inv_no,
+        "orderId": order["orderId"],
+        "userId": order["userId"],
+        "simplDscId": order.get("simplDscId"),
+        "amount": order.get("amount", order["totalAmount"]),
+        "discount": order.get("discount", 0.0),
+        "gst": order.get("gst", 0.0),
+        "professionalFee": order.get("professionalFee", 0.0),
+        "totalAmount": order["totalAmount"],
+        "productName": order.get("productName", "DSC Service"),
+        "customerName": order.get("customerName", "Customer"),
+        "billing": {},
+        "status": "Paid",
+        "createdAt": now_iso(),
+    }
+    await db.invoices.insert_one(invoice)
+
+    await db.orders.update_one({"id": order["id"]}, {"$set": {
+        "paymentStatus": "Payment Successful",
+        "orderStatus": "Documents Pending",
+        "documentStatus": "Pending",
+        "workflowStage": "Payment Successful",
+        "invoiceNo": inv_no,
+        "paymentGateway": "cashfree",
+        "paymentId": payment_id,
+        "cashfreePaymentId": payment_id,
+        "razorpayPaymentId": payment_id,
+        "updatedAt": now_iso(),
+    }})
+
+    await db.order_status_history.insert_one({
+        "id": new_id(),
+        "orderId": order["orderId"],
+        "oldStatus": "Payment Pending",
+        "newStatus": "Payment Successful",
+        "changedBy": "cashfree",
+        "timestamp": now_iso(),
+        "notes": f"Payment verified via Cashfree ({payment_id})",
+    })
+
+    if order.get("couponCode"):
+        await db.coupons.update_one({"code": order["couponCode"]}, {"$inc": {"usedCount": 1}})
+
+    await notify("customer", order["userId"], "payment_success", "Payment Successful",
+                 f"Payment received for order {order['orderId']}. Please upload your documents.", "order", order["orderId"])
+
+    return {"ok": True, "invoiceNo": inv_no}
+
+
 @api.post("/orders")
+@api.post("/payment/create-order")
 async def create_order(payload: CreateOrderReq, request: Request, user: dict = Depends(get_current_customer)):
     product = await db.products.find_one({"id": payload.productId, "active": True}, {"_id": 0})
     if not product:
         raise HTTPException(404, "Product not found")
     pricing = await _price_order(product, payload.couponCode, user["id"])
     order_id = await gen_order_id()
-    amount_paise = int(round(pricing["totalAmount"] * 100))
-
-    # Create Razorpay order (live or mock)
-    if RZP_LIVE:
-        rzp_order = _rzp_client.order.create({"amount": amount_paise, "currency": "INR",
-                                              "receipt": order_id, "payment_capture": 1})
-        rzp_order_id = rzp_order["id"]
-    else:
-        rzp_order_id = f"order_mock_{new_id()[:16]}"
+    total_amount = float(pricing["totalAmount"])
 
     # Link Agent if referral code provided
     agent_fields = {}
@@ -333,6 +402,27 @@ async def create_order(payload: CreateOrderReq, request: Request, user: dict = D
                 "agentCommission": round(pricing["amount"] * comm_rate, 2),
             }
 
+    # Initialize Cashfree payment order (official v2023-08-01)
+    base_origin = str(request.base_url).rstrip("/")
+    notify_url = f"{base_origin}/api/payment/webhook"
+    return_url = f"https://www.simpldsc.com/dashboard?order_id={order_id}"
+
+    try:
+        cf_order = cashfree_client.create_order(
+            order_id=order_id,
+            amount=total_amount,
+            customer_id=user["id"],
+            customer_name=user.get("name") or "SimpleDSC Customer",
+            customer_email=user.get("email"),
+            customer_phone=user.get("mobile"),
+            return_url=return_url,
+            notify_url=notify_url,
+            order_note=f"SimpleDSC {product.get('name', 'DSC')}",
+        )
+    except Exception as e:
+        logger.error(f"Failed to create Cashfree order: {e}")
+        raise HTTPException(502, f"Payment gateway initialization failed: {e}")
+
     order = {
         "id": new_id(), "orderId": order_id, "simplDscId": user["simplDscId"], "userId": user["id"],
         "productId": product["id"], "productName": product["name"], "productCategory": product["category"],
@@ -342,7 +432,11 @@ async def create_order(payload: CreateOrderReq, request: Request, user: dict = D
         **agent_fields,
         "paymentStatus": "Payment Pending", "documentStatus": "Pending", "orderStatus": "Payment Pending",
         "workflowStage": "Application Created",
-        "caId": product.get("preferredCA"), "razorpayOrderId": rzp_order_id,
+        "caId": product.get("preferredCA"),
+        "paymentGateway": "cashfree",
+        "cashfreeOrderId": cf_order.get("cf_order_id") or order_id,
+        "paymentSessionId": cf_order.get("payment_session_id"),
+        "razorpayOrderId": cf_order.get("cf_order_id") or order_id,
         "requiredDocuments": product.get("requiredDocuments", []),
         "applicant": payload.applicant, "shipping": {**payload.shipping, "deliveryStatus": "Not Dispatched"},
         "dscId": None, "createdAt": now_iso(), "updatedAt": now_iso(),
@@ -352,59 +446,190 @@ async def create_order(payload: CreateOrderReq, request: Request, user: dict = D
         "newStatus": "Payment Pending", "changedBy": user.get("name") or user["mobile"], "timestamp": now_iso(), "notes": "Order created"})
     await notify("customer", user["id"], "order_created", "Order Created",
                  f"Your order {order_id} has been created. Complete payment to proceed.", "order", order_id)
-    return {"order": clean(order), "razorpay": {"keyId": RZP_KEY, "orderId": rzp_order_id,
-            "amount": amount_paise, "currency": "INR", "mock": not RZP_LIVE}}
 
-@api.post("/orders/verify-payment")
-async def verify_payment(payload: VerifyPaymentReq, user: dict = Depends(get_current_customer)):
-    order = await db.orders.find_one({"orderId": payload.orderId, "userId": user["id"]})
+    return {
+        "order": clean(order),
+        "cashfree": {
+            "orderId": order_id,
+            "cfOrderId": cf_order.get("cf_order_id"),
+            "paymentSessionId": cf_order.get("payment_session_id"),
+            "amount": total_amount,
+            "currency": "INR",
+            "mock": cf_order.get("mock", False),
+            "environment": cf_order.get("environment", "SANDBOX"),
+        },
+        "payment": {
+            "gateway": "cashfree",
+            "orderId": order_id,
+            "paymentSessionId": cf_order.get("payment_session_id"),
+            "amount": total_amount,
+            "currency": "INR",
+            "mock": cf_order.get("mock", False),
+        },
+        "razorpay": {
+            "keyId": "cashfree_active",
+            "orderId": order_id,
+            "amount": int(round(total_amount * 100)),
+            "currency": "INR",
+            "mock": cf_order.get("mock", False),
+        }
+    }
+
+@api.get("/payment/verify/{order_id}")
+async def verify_payment_by_id(order_id: str, user: dict = Depends(get_current_customer)):
+    order = await db.orders.find_one({"orderId": order_id, "userId": user["id"]})
     if not order:
         raise HTTPException(404, "Order not found")
     if order.get("paymentStatus") == "Payment Successful":
-        return {"ok": True, "invoiceNo": order.get("invoiceNo")}
-    # signature verification
-    verified = False
-    if RZP_LIVE:
-        try:
-            _rzp_client.utility.verify_payment_signature({
-                "razorpay_order_id": payload.razorpayOrderId,
-                "razorpay_payment_id": payload.razorpayPaymentId,
-                "razorpay_signature": payload.razorpaySignature})
-            verified = True
-        except Exception:
-            verified = False
-    else:
-        verified = payload.razorpaySignature.startswith("mock_sig_")
-    if not verified:
-        await db.orders.update_one({"id": order["id"]}, {"$set": {"paymentStatus": "Failed", "updatedAt": now_iso()}})
-        await notify("customer", user["id"], "payment_failed", "Payment Failed",
-                     f"Payment for order {order['orderId']} could not be verified.", "order", order["orderId"])
-        raise HTTPException(400, "Payment verification failed")
+        return {"ok": True, "invoiceNo": order.get("invoiceNo"), "alreadyPaid": True}
 
-    inv_no = await gen_invoice_no()
-    await db.payments.insert_one({
-        "id": new_id(), "userId": user["id"], "simplDscId": user["simplDscId"], "orderId": order["orderId"],
-        "razorpayOrderId": payload.razorpayOrderId, "razorpayPaymentId": payload.razorpayPaymentId,
-        "razorpaySignature": payload.razorpaySignature, "amount": order["totalAmount"], "currency": "INR",
-        "status": "Successful", "method": "razorpay", "createdAt": now_iso(), "updatedAt": now_iso()})
-    invoice = {"id": new_id(), "invoiceNo": inv_no, "orderId": order["orderId"], "userId": user["id"],
-               "simplDscId": user["simplDscId"], "amount": order["amount"], "discount": order["discount"],
-               "gst": order["gst"], "professionalFee": order["professionalFee"], "totalAmount": order["totalAmount"],
-               "productName": order["productName"], "customerName": user.get("name"),
-               "billing": user.get("billing", {}), "status": "Paid", "createdAt": now_iso()}
-    await db.invoices.insert_one(invoice)
-    await db.orders.update_one({"id": order["id"]}, {"$set": {
-        "paymentStatus": "Payment Successful", "orderStatus": "Documents Pending",
-        "documentStatus": "Pending", "workflowStage": "Payment Successful",
-        "invoiceNo": inv_no, "razorpayPaymentId": payload.razorpayPaymentId, "updatedAt": now_iso()}})
-    await db.order_status_history.insert_one({"id": new_id(), "orderId": order["orderId"],
-        "oldStatus": "Payment Pending", "newStatus": "Payment Successful",
-        "changedBy": "system", "timestamp": now_iso(), "notes": "Payment verified"})
-    if order.get("couponCode"):
-        await db.coupons.update_one({"code": order["couponCode"]}, {"$inc": {"usedCount": 1}})
-    await notify("customer", user["id"], "payment_success", "Payment Successful",
-                 f"Payment received for order {order['orderId']}. Please upload your documents.", "order", order["orderId"])
-    return {"ok": True, "invoiceNo": inv_no}
+    if cashfree_client.is_live():
+        cf_order = cashfree_client.get_order(order_id)
+        if not cf_order:
+            raise HTTPException(400, "Could not fetch order from payment gateway")
+        status = cf_order.get("order_status")
+        if status == "PAID":
+            payments = cashfree_client.get_order_payments(order_id)
+            payment_id = None
+            payment_method = "cashfree"
+            if payments and len(payments) > 0:
+                payment_id = str(payments[0].get("cf_payment_id") or payments[0].get("payment_id") or "")
+                payment_method = payments[0].get("payment_method") or payments[0].get("payment_group") or "cashfree"
+            if not payment_id:
+                payment_id = f"cf_pay_{order_id}"
+            res = await _execute_payment_success(order, payment_id=payment_id, payment_method=str(payment_method))
+            return res
+        elif status == "ACTIVE":
+            return {"ok": False, "status": "PENDING", "message": "Payment is pending or customer has not completed checkout."}
+        else:
+            await db.orders.update_one({"id": order["id"]}, {"$set": {"paymentStatus": "Payment Failed", "updatedAt": now_iso()}})
+            await notify("customer", user["id"], "payment_failed", "Payment Failed",
+                         f"Payment for order {order['orderId']} failed with status {status}.", "order", order["orderId"])
+            return {"ok": False, "status": status, "message": f"Payment status: {status}"}
+    else:
+        # Mock / Sandbox verification
+        mock_payment_id = f"mock_cf_{new_id()[:12]}"
+        res = await _execute_payment_success(order, payment_id=mock_payment_id, payment_method="cashfree_mock")
+        return res
+
+
+@api.post("/payment/verify")
+@api.post("/orders/verify-payment")
+async def verify_payment(payload: VerifyPaymentReq, user: dict = Depends(get_current_customer)):
+    target_order_id = payload.orderId or payload.cashfreeOrderId or payload.razorpayOrderId
+    order = await db.orders.find_one({"orderId": target_order_id, "userId": user["id"]})
+    if not order:
+        raise HTTPException(404, "Order not found")
+    if order.get("paymentStatus") == "Payment Successful":
+        return {"ok": True, "invoiceNo": order.get("invoiceNo"), "alreadyPaid": True}
+
+    if cashfree_client.is_live():
+        cf_order = cashfree_client.get_order(target_order_id)
+        if not cf_order:
+            raise HTTPException(400, "Could not fetch order from payment gateway")
+        status = cf_order.get("order_status")
+        if status == "PAID":
+            payment_id = payload.cashfreePaymentId
+            payment_method = "cashfree"
+            if not payment_id:
+                payments = cashfree_client.get_order_payments(target_order_id)
+                if payments and len(payments) > 0:
+                    payment_id = str(payments[0].get("cf_payment_id") or payments[0].get("payment_id") or "")
+                    payment_method = payments[0].get("payment_method") or payments[0].get("payment_group") or "cashfree"
+            if not payment_id:
+                payment_id = f"cf_pay_{target_order_id}"
+            res = await _execute_payment_success(order, payment_id=payment_id, payment_method=str(payment_method))
+            return res
+        else:
+            await db.orders.update_one({"id": order["id"]}, {"$set": {"paymentStatus": "Payment Failed", "updatedAt": now_iso()}})
+            await notify("customer", user["id"], "payment_failed", "Payment Failed",
+                         f"Payment for order {order['orderId']} could not be verified.", "order", order["orderId"])
+            raise HTTPException(400, f"Payment verification failed: order status is {status}")
+    else:
+        # Mock mode
+        if payload.razorpaySignature and not payload.razorpaySignature.startswith("mock_sig_"):
+            raise HTTPException(400, "Payment verification failed")
+        payment_id = payload.cashfreePaymentId or payload.razorpayPaymentId or f"mock_cf_{new_id()[:12]}"
+        res = await _execute_payment_success(order, payment_id=payment_id, payment_method="cashfree_mock")
+        return res
+
+
+# ================= CASHFREE WEBHOOK =================
+@app.post("/webhooks/cashfree")
+@app.post("/api/webhooks/cashfree")
+@app.post("/webhooks/razorpay")
+@api.post("/payment/webhook")
+@api.post("/webhooks/cashfree")
+async def cashfree_webhook(request: Request):
+    """
+    Cashfree Webhook Handler (official v2023-08-01 format).
+    Verifies raw body signature using x-webhook-signature and x-webhook-timestamp.
+    Processes PAYMENT_SUCCESS_WEBHOOK, PAYMENT_FAILED_WEBHOOK, PAYMENT_USER_DROPPED_WEBHOOK idempotently.
+    """
+    body = await request.body()
+    signature = request.headers.get("x-webhook-signature") or request.headers.get("X-Webhook-Signature", "")
+    timestamp = request.headers.get("x-webhook-timestamp") or request.headers.get("X-Webhook-Timestamp", "")
+
+    if cashfree_client.is_live():
+        if not signature or not timestamp:
+            logger.warning("[Cashfree Webhook] Missing signature or timestamp header")
+            raise HTTPException(400, "Missing signature or timestamp header")
+        if not cashfree_client.verify_webhook_signature(signature, timestamp, body):
+            logger.warning("[Cashfree Webhook] Signature verification failed")
+            raise HTTPException(400, "Invalid webhook signature")
+
+    try:
+        payload = json.loads(body.decode("utf-8") or "{}")
+    except Exception as e:
+        logger.error(f"[Cashfree Webhook] JSON decode error: {e}")
+        raise HTTPException(400, "Invalid JSON payload")
+
+    event_type = payload.get("type") or payload.get("event") or "PAYMENT_SUCCESS_WEBHOOK"
+    data = payload.get("data", {})
+    order_data = data.get("order", {})
+    payment_data = data.get("payment", {})
+
+    order_id = order_data.get("order_id") or payload.get("orderId") or payload.get("order_id")
+    cf_payment_id = str(payment_data.get("cf_payment_id") or payment_data.get("payment_id") or "")
+    payment_group = payment_data.get("payment_group") or "cashfree"
+
+    # Idempotency check:
+    event_id = request.headers.get("x-webhook-event-id") or f"{event_type}:{order_id}:{cf_payment_id}"
+    if await db.webhook_events.find_one({"eventId": event_id}):
+        logger.info(f"[Cashfree Webhook] Skipping duplicate webhook event {event_id}")
+        return {"status": "duplicate", "eventId": event_id}
+
+    await db.webhook_events.insert_one({
+        "eventId": event_id,
+        "type": event_type,
+        "orderId": order_id,
+        "paymentId": cf_payment_id,
+        "receivedAt": now_iso()
+    })
+
+    if not order_id:
+        return {"status": "ignored", "reason": "No order_id present"}
+
+    order = await db.orders.find_one({"orderId": order_id})
+    if not order:
+        logger.warning(f"[Cashfree Webhook] Order {order_id} not found in database")
+        return {"status": "not_found", "orderId": order_id}
+
+    if event_type in ("PAYMENT_SUCCESS_WEBHOOK", "ORDER_PAID", "payment.captured"):
+        await _execute_payment_success(order, payment_id=cf_payment_id or f"cf_{order_id}", payment_method=str(payment_group))
+        logger.info(f"[Cashfree Webhook] Successfully processed PAYMENT_SUCCESS for order {order_id}")
+    elif event_type in ("PAYMENT_FAILED_WEBHOOK", "payment.failed"):
+        if order.get("paymentStatus") != "Payment Successful":
+            await db.orders.update_one({"id": order["id"]}, {"$set": {"paymentStatus": "Payment Failed", "updatedAt": now_iso()}})
+            await notify("customer", order["userId"], "payment_failed", "Payment Failed",
+                         f"Payment for order {order_id} failed.", "order", order_id)
+            logger.info(f"[Cashfree Webhook] Processed PAYMENT_FAILED for order {order_id}")
+    elif event_type in ("PAYMENT_USER_DROPPED_WEBHOOK",):
+        if order.get("paymentStatus") != "Payment Successful":
+            await db.orders.update_one({"id": order["id"]}, {"$set": {"paymentStatus": "Payment Dropped", "updatedAt": now_iso()}})
+            logger.info(f"[Cashfree Webhook] Processed USER_DROPPED for order {order_id}")
+
+    return {"status": "processed", "type": event_type, "orderId": order_id}
 
 @api.get("/customer/orders")
 async def customer_orders(user: dict = Depends(get_current_customer)):
@@ -723,7 +948,7 @@ async def on_startup():
     await db.documents.create_index("orderId")
     await db.dscs.create_index("userId")
     asyncio.create_task(_scheduler())
-    logger.info("SimplDSC started. Razorpay live=%s", RZP_LIVE)
+    logger.info("SimplDSC started. Cashfree mode=%s (live=%s)", cashfree_client.CF_ENV, cashfree_client.is_live())
 
 @app.on_event("shutdown")
 async def on_shutdown():

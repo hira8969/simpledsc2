@@ -11,7 +11,7 @@ const CONTENT = {
       ["Acceptance", "By using SimplDSC, you agree to these terms. SimplDSC operates as a registration assistance platform for CCA-licensed Certifying Authorities."],
       ["Services", "We facilitate application, verification and issuance of Digital Signature Certificates. Final issuance is performed by the relevant Certifying Authority."],
       ["Customer Responsibilities", "You must provide accurate information and valid documents. Providing false information may result in rejection without refund."],
-      ["Payments", "All payments are processed securely via Razorpay. Prices are inclusive of applicable taxes unless stated otherwise."],
+      ["Payments", "All payments are processed securely via Cashfree Payments. Prices are inclusive of applicable taxes unless stated otherwise."],
       ["Limitation of Liability", "SimplDSC is not liable for delays or rejections caused by incorrect documents or Certifying Authority processes."],
     ],
   },
@@ -36,7 +36,7 @@ const CONTENT = {
     body: [
       ["Eligibility", "Refunds may be requested before the DSC application is submitted to the Certifying Authority."],
       ["Non-Refundable", "Once a certificate is issued, the professional and government fees are non-refundable."],
-      ["Process", "Approved refunds are processed to the original payment method via Razorpay within 5–7 business days."],
+      ["Process", "Approved refunds are processed to the original payment method via Cashfree within 5–7 business days."],
       ["Cancellation by Phone Call", "To cancel an order or request support, call us at 7992999947 or 7992777799 during business hours (10:00 AM – 7:00 PM)."],
       ["Cancellation by Email", "You can also request cancellation by emailing support@simpldsc.in with your Order ID. Our team will review and respond."],
     ],
