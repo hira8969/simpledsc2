@@ -78,28 +78,32 @@ async def gen_simpldsc_id() -> dict:
 
 
 async def gen_order_id() -> str:
-    """Generate unpredictable 7-digit random order ID (e.g. SD-2026-1234567) instead of sequential counter."""
+    """Generate permanent unique 7-digit random order ID (e.g. SD-2026-1234567) between 1000000 and 9999999."""
     year = datetime.now(timezone.utc).year
-    for _ in range(20):
+    for _ in range(50):
         rand_num = random.randint(1000000, 9999999)
         order_id = f"SD-{year}-{rand_num}"
         existing = await db.orders.find_one({"orderId": order_id}, {"_id": 1})
         if not existing:
             return order_id
-    # Fallback with wider range in case of collision
-    return f"SD-{year}-{random.randint(10000000, 99999999)}"
+    raise RuntimeError("Failed to generate unique Order ID after 50 attempts")
 
 
 async def gen_invoice_no() -> str:
-    """Generate unpredictable 7-digit random invoice number (e.g. INV-2026-1234568) instead of sequential counter."""
+    """Generate permanent unique 7-digit random invoice number (e.g. INV-2026-1234568) between 1000000 and 9999999."""
     year = datetime.now(timezone.utc).year
-    for _ in range(20):
+    for _ in range(50):
         rand_num = random.randint(1000000, 9999999)
         inv_no = f"INV-{year}-{rand_num}"
-        existing = await db.orders.find_one({"invoiceNo": inv_no}, {"_id": 1})
-        if not existing:
-            return inv_no
-    return f"INV-{year}-{random.randint(10000000, 99999999)}"
+        # Check uniqueness across both orders and invoices collections
+        existing_order = await db.orders.find_one({"invoiceNo": inv_no}, {"_id": 1})
+        if existing_order:
+            continue
+        existing_invoice = await db.invoices.find_one({"invoiceNo": inv_no}, {"_id": 1})
+        if existing_invoice:
+            continue
+        return inv_no
+    raise RuntimeError("Failed to generate unique Invoice ID after 50 attempts")
 
 
 async def gen_ticket_id() -> str:

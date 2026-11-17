@@ -3,7 +3,14 @@ import asyncio
 import os
 import random
 import re
+import sys
 from pathlib import Path
+
+# Ensure local venv site-packages is in sys.path
+venv_site = Path(__file__).parent / "venv" / "Lib" / "site-packages"
+if venv_site.exists():
+    sys.path.insert(0, str(venv_site))
+
 import certifi
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
