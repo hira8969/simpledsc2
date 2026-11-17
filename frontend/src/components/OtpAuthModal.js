@@ -21,6 +21,7 @@ export function OtpAuthModal() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [statusNotice, setStatusNotice] = useState("");
+  const [countdown, setCountdown] = useState(0);
 
   const reset = () => {
     setStep("mobile");
@@ -31,6 +32,7 @@ export function OtpAuthModal() {
     setName("");
     setEmail("");
     setStatusNotice("");
+    setCountdown(0);
   };
 
   const close = () => {
@@ -55,15 +57,24 @@ export function OtpAuthModal() {
     }
   }, [authOpen]);
 
+  // Resend OTP countdown timer (30s)
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
   const sendOtp = async () => {
     if (mobile.length !== 10) return toast.error("Enter a valid 10-digit mobile number");
     setLoading(true);
     setStatusNotice("Connecting to server...");
     try {
       track("login_started", { method: "otp" });
-      const { data } = await api.post("/auth/send-otp", { mobile });
+      const { data } = await api.post("/otp/send", { mobile });
       setSessionId(data.sessionId);
       setStep("otp");
+      setCountdown(30);
       setStatusNotice("");
       if (data.devMode && data.devOtp) {
         setDevOtp(data.devOtp);
@@ -89,6 +100,26 @@ export function OtpAuthModal() {
       }
     }
     setLoading(false);
+  };
+
+  const resendOtp = async () => {
+    if (countdown > 0 || loading) return;
+    setLoading(true);
+    try {
+      const { data } = await api.post("/otp/resend", { mobile, sessionId });
+      setCountdown(30);
+      if (data.devMode && data.devOtp) {
+        setDevOtp(data.devOtp);
+        setOtp(data.devOtp);
+        toast.success(`New Test OTP: ${data.devOtp}`);
+      } else {
+        toast.success(data.message || `OTP resent to +91 ${mobile}`);
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to resend OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const verifyOtp = async () => {
@@ -235,11 +266,11 @@ export function OtpAuthModal() {
               </button>
               <button
                 type="button"
-                className="hover:underline disabled:opacity-50"
-                disabled={loading}
-                onClick={sendOtp}
+                className="hover:underline disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                disabled={loading || countdown > 0}
+                onClick={resendOtp}
               >
-                Resend OTP
+                {countdown > 0 ? `Resend OTP in ${countdown}s` : "Resend OTP"}
               </button>
             </div>
           </div>
