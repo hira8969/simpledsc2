@@ -20,16 +20,18 @@ logger = logging.getLogger("simpldsc.msg91")
 MSG91_AUTH_KEY = os.environ.get("MSG91_AUTH_KEY", "").strip()
 MSG91_TEMPLATE_ID = os.environ.get("MSG91_TEMPLATE_ID", "").strip()
 MSG91_SENDER_ID = os.environ.get("MSG91_SENDER_ID", "").strip()
-DEV_OTP_MODE = os.environ.get("DEV_OTP_MODE", "false").strip().lower() in ("true", "1", "yes")
+DEV_OTP_MODE = os.environ.get("DEV_OTP_MODE", "true").strip().lower() in ("true", "1", "yes")
 
 BASE_URL = "https://control.msg91.com/api/v5/otp"
 
 
 def is_configured() -> bool:
-    """Return True if MSG91 credentials are configured and dev mode is not forced."""
+    """Return True if MSG91 credentials are configured and dev mode is not active."""
     auth_key = os.environ.get("MSG91_AUTH_KEY", "").strip() or MSG91_AUTH_KEY
     template_id = os.environ.get("MSG91_TEMPLATE_ID", "").strip() or MSG91_TEMPLATE_ID
-    return bool(auth_key and template_id and not DEV_OTP_MODE)
+    dev_mode = os.environ.get("DEV_OTP_MODE", "true").strip().lower() in ("true", "1", "yes")
+    # If keys are empty or dev_mode is true, skip MSG91 and show OTP on screen
+    return bool(auth_key and template_id and not dev_mode)
 
 
 def format_mobile(mobile: str) -> str:
