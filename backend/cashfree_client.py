@@ -199,20 +199,21 @@ def get_order_payments(order_id: str) -> list:
 
 def verify_webhook_signature(signature: str, timestamp: str, raw_body: bytes) -> bool:
     """Verify Cashfree webhook signature using HMAC SHA256 of timestamp + raw_body."""
-    if not IS_CONFIGURED or not CASHFREE_SECRET_KEY:
-        # If in mock mode, accept mock signatures
+    secret = os.environ.get("CASHFREE_SECRET_KEY", "").strip() or CASHFREE_SECRET_KEY
+    if not secret:
+        # If in mock mode without secret, accept mock signatures
         return signature.startswith("mock_sig_") if signature else False
 
     if not signature or not timestamp or not raw_body:
         return False
 
     try:
-        body_str = raw_body.decode("utf-8") if isinstance(raw_body, bytes) else str(raw_body)
-        data = f"{timestamp}{body_str}"
+        body_bytes = raw_body if isinstance(raw_body, bytes) else str(raw_body).encode("utf-8")
+        data_to_sign = str(timestamp).encode("utf-8") + body_bytes
         generated_signature = base64.b64encode(
             hmac.new(
-                CASHFREE_SECRET_KEY.encode("utf-8"),
-                data.encode("utf-8"),
+                secret.encode("utf-8"),
+                data_to_sign,
                 hashlib.sha256,
             ).digest()
         ).decode("utf-8")
