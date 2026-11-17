@@ -48,6 +48,13 @@ export function OtpAuthModal() {
     setMobile(clean.slice(0, 10));
   };
 
+  useEffect(() => {
+    if (authOpen) {
+      // Pre-warm Render backend on modal open so it's awake before user clicks Send OTP
+      api.get("/settings").catch(() => {});
+    }
+  }, [authOpen]);
+
   const sendOtp = async () => {
     if (mobile.length !== 10) return toast.error("Enter a valid 10-digit mobile number");
     setLoading(true);
@@ -75,6 +82,8 @@ export function OtpAuthModal() {
         toast.error("Server is waking up (Render free tier). Please try clicking Send OTP again in a moment.");
       } else if (detail) {
         toast.error(detail);
+      } else if (!e.response) {
+        toast.info("Backend is warming up (Render free tier takes ~30-45s after idle). Please wait a few seconds and click Send OTP again.");
       } else {
         toast.error("Could not send OTP. Please check backend connection.");
       }

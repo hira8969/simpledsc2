@@ -36,6 +36,8 @@ export default function ClientLogin() {
 
   // Redirect if already logged in as client
   useEffect(() => {
+    // Pre-warm Render backend on mount
+    api.get("/settings").catch(() => {});
     if (!authLoading && user) {
       navigate(returnUrl, { replace: true });
     }
@@ -78,6 +80,8 @@ export default function ClientLogin() {
         toast.error("Server is waking up. Please click Send OTP again in a moment.");
       } else if (detail) {
         toast.error(detail);
+      } else if (!e.response) {
+        toast.info("Backend is warming up (Render free tier). Please wait a few seconds and click Send OTP again.");
       } else {
         toast.error("Could not send OTP. Please check connection.");
       }
