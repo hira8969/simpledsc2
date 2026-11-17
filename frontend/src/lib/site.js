@@ -1,15 +1,15 @@
 // Centralized site/business info — update here only (do not duplicate across components).
 export const SITE = {
   name: "SimpleDSC",
-  companyLegalName: "YSMTX Solution Pvt Ltd",
+  companyLegalName: "TSMTX Solutions Private Limited",
   tagline: "Digital Signatures, Made Simple.",
   canonicalBase: "https://www.simpldsc.com",
   phone: "7992999947",
   phoneHref: "+917992999947",
   phone2: "7992777799",
   phone2Href: "+917992777799",
-  email: "support@simpldsc.in",
-  emailHref: "support@simpldsc.in",
+  email: "support@simpldsc.com",
+  emailHref: "support@simpldsc.com",
   address: "Mallick Complex, Plot No. A/69, Kharavela Nagar, Unit 3, Bhubaneswar, Odisha – 751001",
   hours: "10:00 AM – 7:00 PM",
   hoursNote: "Mon – Sat, 10:00 AM – 7:00 PM",
