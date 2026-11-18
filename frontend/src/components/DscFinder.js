@@ -5,6 +5,7 @@ import api from "@/lib/api";
 import { SITE } from "@/lib/site";
 import { track } from "@/lib/analytics";
 import { ArrowRight, ArrowLeft, Sparkles, Check, Info } from "lucide-react";
+import { ProductImage } from "@/components/ProductImage";
 
 const PURPOSES = [
   { key: "individual", label: "Individual", desc: "Personal use, ITR filing, etc." },
@@ -70,14 +71,11 @@ export function DscFinder({ onBuy }) {
           <div className="mt-5 space-y-3">
             {recos.map((r) => (
               <div key={r.id} data-testid={`finder-reco-${r.slug}`} className="flex items-center gap-4 rounded-xl border border-slate-200 p-3 hover:border-purple-300 transition-colors">
-                <img
-                  src={r.imageUrl || "/img/epass2003-token.png"}
+                <ProductImage
+                  src={r.imageUrl}
                   alt={r.name}
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = "/img/epass2003-token.png";
-                  }}
-                  className="h-16 w-16 rounded-lg object-contain bg-slate-50 p-1"
+                  variant="thumbnail"
+                  className="h-16 w-16 shrink-0 rounded-lg"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-navy-900 truncate">{r.name}</p>

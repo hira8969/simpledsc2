@@ -8,6 +8,7 @@ import { Logo } from "@/components/Logo";
 import { StatusBadge } from "@/components/StatusBadge";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { InvoiceModal } from "@/components/InvoiceModal";
+import { ProductImage } from "@/components/ProductImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -210,17 +211,12 @@ export default function Dashboard() {
                   <div key={o.orderId} data-testid={`order-item-${o.orderId}`} onClick={() => setOpenOrder(o)}
                     className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 cursor-pointer hover:border-purple-300 transition-colors">
                     <div className="flex items-center gap-4 min-w-0">
-                      <div className="h-12 w-12 rounded-xl bg-purple-50/70 border border-purple-100 flex items-center justify-center overflow-hidden shrink-0">
-                        <img
-                          src={o.productImageUrl || getTokenImage(o.productName || o.productCategory)}
-                          alt={o.productName}
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = "/img/epass2003-token.png";
-                          }}
-                          className="h-full w-full object-contain object-center mix-blend-multiply"
-                        />
-                      </div>
+                      <ProductImage
+                        src={o.productImageUrl || getTokenImage(o.productName || o.productCategory)}
+                        alt={o.productName}
+                        variant="thumbnail"
+                        className="h-12 w-12 shrink-0 mix-blend-multiply"
+                      />
                       <div className="min-w-0">
                         <p className="font-mono text-sm font-semibold text-navy-900">{o.orderId}</p>
                         <p className="text-sm text-slate-600 truncate">{o.productName}</p>
@@ -370,14 +366,11 @@ function OrderDetailDialog({ order, onOpenChange, onReload }) {
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl" data-testid="order-detail-dialog">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <img
+            <ProductImage
               src={o.productImageUrl || getTokenImage(o.productName || o.productCategory)}
               alt={o.productName}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/img/epass2003-token.png";
-              }}
-              className="h-11 w-11 rounded-xl object-contain bg-purple-50 border border-purple-100 p-1 shrink-0 mix-blend-multiply"
+              variant="thumbnail"
+              className="h-11 w-11 shrink-0 mix-blend-multiply"
             />
             <div>
               <DialogTitle className="font-mono text-lg">{o.orderId}</DialogTitle>

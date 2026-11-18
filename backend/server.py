@@ -163,6 +163,50 @@ async def get_product(slug: str):
         raise HTTPException(404, "Product not found")
     return p
 
+
+# ================= PRODUCT IMAGES & MEDIA =================
+@api.get("/media/products/{image_path:path}")
+@app.get("/media/products/{image_path:path}")
+async def serve_product_image(image_path: str, request: Request):
+    """Serve product images stored in MongoDB with WebP and HTTP caching support."""
+    clean_path = image_path.strip().strip("/")
+    wants_webp = False
+    if clean_path.endswith(".webp"):
+        wants_webp = True
+        img_id = clean_path[:-5]
+    elif "." in clean_path:
+        img_id = clean_path.rsplit(".", 1)[0]
+    else:
+        img_id = clean_path
+
+    accept = request.headers.get("accept", "")
+    if "image/webp" in accept:
+        wants_webp = True
+
+    doc = await db.product_images.find_one({"id": img_id, "active": {"$ne": False}})
+    if not doc:
+        raise HTTPException(404, "Product image not found")
+
+    import base64
+    headers = {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff",
+    }
+
+    if wants_webp and doc.get("webpData"):
+        return Response(
+            content=base64.b64decode(doc["webpData"]),
+            media_type="image/webp",
+            headers=headers,
+        )
+
+    media_type = doc.get("contentType") or "image/png"
+    return Response(
+        content=base64.b64decode(doc["data"]),
+        media_type=media_type,
+        headers=headers,
+    )
+
 @api.get("/partner-cas")
 async def list_cas():
     return await db.partner_cas.find({"active": True}, {"_id": 0}).sort("displayOrder", 1).to_list(100)
@@ -894,7 +938,7 @@ if FRONTEND_BUILD_DIR:
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        if full_path.startswith("api") or full_path in ["docs", "openapi.json", "redoc", "health"]:
+        if full_path.startswith("api") or full_path.startswith("media") or full_path in ["docs", "openapi.json", "redoc", "health"]:
             raise HTTPException(404, "Not Found")
         target_file = os.path.join(FRONTEND_BUILD_DIR, full_path)
         if full_path and os.path.isfile(target_file):
@@ -1012,6 +1056,7 @@ async def on_startup():
     await db.payments.create_index("orderId")
     await db.documents.create_index("orderId")
     await db.dscs.create_index("userId")
+    await db.product_images.create_index("id", unique=True)
     asyncio.create_task(_scheduler())
     logger.info("SimplDSC started. Cashfree mode=%s (live=%s), MSG91 configured=%s", cashfree_client.CF_ENV, cashfree_client.is_live(), msg91_client.is_configured())
 

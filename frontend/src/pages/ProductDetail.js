@@ -6,6 +6,7 @@ import { usePurchase } from "@/context/PurchaseContext";
 import api from "@/lib/api";
 import { track } from "@/lib/analytics";
 import { Check, ArrowLeft, ShieldCheck, FileText, Star } from "lucide-react";
+import { ProductImage } from "@/components/ProductImage";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -61,18 +62,13 @@ export default function ProductDetail() {
       />
       <button onClick={() => nav("/products")} className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-purple-700"><ArrowLeft className="h-4 w-4" /> All Products</button>
       <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2 lg:gap-10">
-        <div className="product-detail-image mx-auto flex aspect-square w-full max-w-[500px] min-w-0 items-center justify-center overflow-hidden rounded-3xl shadow-sm">
-          <img
-            src={product.imageUrl || "/img/epass2003-token.png"}
+        {/* Universal Responsive 1:1 Square Detail Frame */}
+        <div className="mx-auto w-full max-w-[500px] min-w-0">
+          <ProductImage
+            product={product}
+            variant="detail"
             alt={`${product.name} - USB Crypto Token`}
-            width="500"
-            height="500"
-            fetchPriority="high"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = "/img/epass2003-token.png";
-            }}
-            className="h-full w-full object-cover object-center transition-transform duration-500 hover:scale-103"
+            priority={true}
           />
         </div>
         <div className="min-w-0">

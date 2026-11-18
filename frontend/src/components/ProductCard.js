@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Star } from "lucide-react";
+import { ProductImage } from "@/components/ProductImage";
 
 export function ProductCard({ product, onBuy, index = 0 }) {
   const isPop = Boolean(product.isPopular);
@@ -27,20 +28,13 @@ export function ProductCard({ product, onBuy, index = 0 }) {
         {product.validity}
       </div>
 
-      {/* Image Preview */}
-      <div className="product-card-image relative mb-4 flex h-52 w-full shrink-0 items-center justify-center rounded-2xl overflow-hidden shadow-xs">
-        <img
-          src={product.imageUrl || "/img/epass2003-token.png"}
+      {/* Image Preview - Universal Responsive 5:4 Card Frame */}
+      <div className="mb-4 w-full shrink-0">
+        <ProductImage
+          product={product}
+          variant="card"
           alt={`${product.name} - Digital Signature USB Crypto Token`}
-          width="320"
-          height="208"
-          loading={index === 0 ? "eager" : "lazy"}
-          decoding="async"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = "/img/epass2003-token.png";
-          }}
-          className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
+          priority={index === 0}
         />
       </div>
 

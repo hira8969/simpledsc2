@@ -8,6 +8,7 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 import { CheckCircle2, Upload, Tag, ShieldCheck, Loader2 } from "lucide-react";
+import { ProductImage } from "@/components/ProductImage";
 
 export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const [step, setStep] = useState(0);
@@ -213,14 +214,11 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl" data-testid="purchase-modal">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <img
-              src={product.imageUrl || "/img/epass2003-token.png"}
+            <ProductImage
+              product={product}
+              variant="thumbnail"
+              className="h-12 w-12 shrink-0 mix-blend-multiply"
               alt={product.name}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/img/epass2003-token.png";
-              }}
-              className="h-12 w-12 rounded-xl object-contain bg-purple-50/70 border border-purple-100 p-1 shrink-0 mix-blend-multiply"
             />
             <div>
               <DialogTitle className="font-display text-lg sm:text-xl text-navy-900">{product.name}</DialogTitle>

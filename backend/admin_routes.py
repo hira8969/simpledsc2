@@ -5,13 +5,14 @@ import csv
 import hmac
 import hashlib
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from fastapi.responses import Response
 from pydantic import BaseModel, EmailStr
 
 from core import db, new_id, now_iso, clean, audit, notify, gen_invoice_no
 from security import (hash_password, verify_password, make_token,
                       get_current_admin, require_roles, client_ip)
+from image_service import process_and_save_product_image
 
 admin_router = APIRouter()
 
@@ -317,6 +318,41 @@ async def delete_product(pid: str, request: Request, admin: dict = Depends(requi
     await db.products.delete_one({"id": pid})
     await audit(admin, "product_deleted", "product", pid, None, None, client_ip(request))
     return {"ok": True}
+
+
+@admin_router.post("/admin/products/upload-image")
+async def admin_upload_product_image(
+    file: UploadFile = File(...),
+    request: Request = None,
+    admin: dict = Depends(require_roles("staff")),
+):
+    content = await file.read()
+    if not content:
+        raise HTTPException(400, "Empty file uploaded")
+
+    result = await process_and_save_product_image(
+        db=db,
+        file_bytes=content,
+        filename=file.filename or "product_image.png",
+        declared_content_type=file.content_type or "image/png",
+        admin_user=admin,
+    )
+    await audit(admin, "product_image_uploaded", "product_image", result["imageId"], None, result["filename"], client_ip(request) if request else "admin")
+    return result
+
+
+@admin_router.delete("/admin/products/images/{image_id}")
+async def admin_delete_product_image(
+    image_id: str,
+    request: Request = None,
+    admin: dict = Depends(require_roles("staff")),
+):
+    doc = await db.product_images.find_one({"id": image_id})
+    if not doc:
+        raise HTTPException(404, "Image not found")
+    await db.product_images.update_one({"id": image_id}, {"$set": {"active": False, "deletedAt": now_iso()}})
+    await audit(admin, "product_image_deleted", "product_image", image_id, None, doc.get("filename"), client_ip(request) if request else "admin")
+    return {"ok": True, "message": "Image removed successfully"}
 
 
 # ---------- CAs ----------
