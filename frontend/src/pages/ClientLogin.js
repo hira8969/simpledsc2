@@ -30,7 +30,6 @@ export default function ClientLogin() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [statusNotice, setStatusNotice] = useState("");
-  const [countdown, setCountdown] = useState(0);
 
   // Where to redirect after successful login
   const returnUrl = location.state?.from?.pathname || "/client";
@@ -44,13 +43,6 @@ export default function ClientLogin() {
     }
   }, [user, authLoading, navigate, returnUrl]);
 
-  // Resend OTP countdown timer (30s)
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [countdown]);
 
   const handleMobileChange = (val) => {
     let clean = val.replace(/\D/g, "");
@@ -68,17 +60,15 @@ export default function ClientLogin() {
     setStatusNotice("Connecting to server...");
     try {
       track("login_started", { method: "otp", portal: "client" });
-      const { data } = await api.post("/otp/send", { mobile });
+      const { data } = await api.post("/auth/send-otp", { mobile });
       setSessionId(data.sessionId);
       setStep("otp");
-      setCountdown(30);
       setStatusNotice("");
-      const screenOtp = data.devOtp || data.otp;
-      if (screenOtp) {
-        setDevOtp(screenOtp);
-        setOtp(screenOtp);
-        toast.success(`OTP: ${screenOtp}`, {
-          description: "OTP is auto-filled. Click Continue with OTP to log in.",
+      if (data.devMode && data.devOtp) {
+        setDevOtp(data.devOtp);
+        setOtp(data.devOtp);
+        toast.success(`Test OTP: ${data.devOtp}`, {
+          description: "Test OTP auto-filled. Click Verify & Continue to log in.",
           duration: 10000,
         });
       } else {
@@ -98,27 +88,6 @@ export default function ClientLogin() {
       }
     }
     setLoading(false);
-  };
-
-  const resendOtp = async () => {
-    if (countdown > 0 || loading) return;
-    setLoading(true);
-    try {
-      const { data } = await api.post("/otp/resend", { mobile, sessionId });
-      setCountdown(30);
-      const screenOtp = data.devOtp || data.otp;
-      if (screenOtp) {
-        setDevOtp(screenOtp);
-        setOtp(screenOtp);
-        toast.success(`New OTP: ${screenOtp}`);
-      } else {
-        toast.success(data.message || `OTP resent to +91 ${mobile}`);
-      }
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Failed to resend OTP");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const verifyOtp = async () => {
@@ -325,11 +294,11 @@ export default function ClientLogin() {
                     </button>
                     <button
                       type="button"
-                      className="hover:underline disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-                      disabled={loading || countdown > 0}
-                      onClick={resendOtp}
+                      className="hover:underline disabled:opacity-50 font-semibold"
+                      disabled={loading}
+                      onClick={sendOtp}
                     >
-                      {countdown > 0 ? `Resend OTP in ${countdown}s` : "Resend OTP"}
+                      Resend OTP
                     </button>
                   </div>
                 </div>

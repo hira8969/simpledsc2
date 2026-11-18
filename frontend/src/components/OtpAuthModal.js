@@ -21,7 +21,6 @@ export function OtpAuthModal() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [statusNotice, setStatusNotice] = useState("");
-  const [countdown, setCountdown] = useState(0);
 
   const reset = () => {
     setStep("mobile");
@@ -32,7 +31,6 @@ export function OtpAuthModal() {
     setName("");
     setEmail("");
     setStatusNotice("");
-    setCountdown(0);
   };
 
   const close = () => {
@@ -57,31 +55,21 @@ export function OtpAuthModal() {
     }
   }, [authOpen]);
 
-  // Resend OTP countdown timer (30s)
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [countdown]);
-
   const sendOtp = async () => {
     if (mobile.length !== 10) return toast.error("Enter a valid 10-digit mobile number");
     setLoading(true);
     setStatusNotice("Connecting to server...");
     try {
       track("login_started", { method: "otp" });
-      const { data } = await api.post("/otp/send", { mobile });
+      const { data } = await api.post("/auth/send-otp", { mobile });
       setSessionId(data.sessionId);
       setStep("otp");
-      setCountdown(30);
       setStatusNotice("");
-      const screenOtp = data.devOtp || data.otp;
-      if (screenOtp) {
-        setDevOtp(screenOtp);
-        setOtp(screenOtp); // Auto-fill the test OTP
-        toast.success(`OTP: ${screenOtp}`, {
-          description: "OTP is auto-filled. Click Verify & Continue to log in.",
+      if (data.devMode && data.devOtp) {
+        setDevOtp(data.devOtp);
+        setOtp(data.devOtp); // Auto-fill the test OTP
+        toast.success(`Test OTP: ${data.devOtp}`, {
+          description: "Test OTP auto-filled. Click Verify & Continue to log in.",
           duration: 10000,
         });
       } else {
@@ -101,27 +89,6 @@ export function OtpAuthModal() {
       }
     }
     setLoading(false);
-  };
-
-  const resendOtp = async () => {
-    if (countdown > 0 || loading) return;
-    setLoading(true);
-    try {
-      const { data } = await api.post("/otp/resend", { mobile, sessionId });
-      setCountdown(30);
-      const screenOtp = data.devOtp || data.otp;
-      if (screenOtp) {
-        setDevOtp(screenOtp);
-        setOtp(screenOtp);
-        toast.success(`New OTP: ${screenOtp}`);
-      } else {
-        toast.success(data.message || `OTP resent to +91 ${mobile}`);
-      }
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Failed to resend OTP");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const verifyOtp = async () => {
@@ -173,24 +140,26 @@ export function OtpAuthModal() {
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700">
             {step === "mobile" ? <Smartphone className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
           </div>
-          <DialogTitle className="text-center font-display text-2xl">
+          <DialogTitle className="text-center font-display text-xl text-navy-900">
             {step === "mobile" && "Login / Sign up"}
-            {step === "otp" && "Verify OTP"}
-            {step === "profile" && "Tell us about you"}
+            {step === "otp" && "Verify Mobile"}
+            {step === "profile" && "Complete Your Profile"}
           </DialogTitle>
         </DialogHeader>
 
         {step === "mobile" && (
           <div className="space-y-4">
             <div>
-              <Label>Mobile Number</Label>
-              <div className="mt-1.5 flex items-center rounded-lg border border-input focus-within:ring-2 focus-within:ring-purple-500">
-                <span className="px-3 text-sm text-slate-500 border-r">+91</span>
+              <Label className="text-xs font-semibold text-slate-700">Mobile Number</Label>
+              <div className="mt-1.5 flex items-center rounded-xl border border-slate-200 bg-white focus-within:border-purple-600 focus-within:ring-2 focus-within:ring-purple-100 transition-all">
+                <span className="border-r border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-600 bg-slate-50 rounded-l-xl">
+                  +91
+                </span>
                 <input
                   data-testid="otp-mobile-input"
-                  value={mobile}
-                  inputMode="numeric"
+                  type="tel"
                   maxLength={10}
+                  value={mobile}
                   onChange={(e) => handleMobileChange(e.target.value)}
                   placeholder="79929 99947"
                   className="w-full bg-transparent px-3 py-2.5 outline-none text-sm font-medium"
@@ -268,11 +237,11 @@ export function OtpAuthModal() {
               </button>
               <button
                 type="button"
-                className="hover:underline disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                disabled={loading || countdown > 0}
-                onClick={resendOtp}
+                className="hover:underline disabled:opacity-50"
+                disabled={loading}
+                onClick={sendOtp}
               >
-                {countdown > 0 ? `Resend OTP in ${countdown}s` : "Resend OTP"}
+                Resend OTP
               </button>
             </div>
           </div>
