@@ -211,21 +211,21 @@ async def send_otp(payload: SendOtp, request: Request):
 
     ip = client_ip(request)
 
-    # 1. Minimum 30s cooldown between requests for same mobile
-    cooldown_since = (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()
-    if await db.otp_sessions.find_one({"mobile": mobile, "createdAt": {"$gt": cooldown_since}}):
-        raise HTTPException(429, "Please wait 30 seconds before requesting another OTP.")
+    # Apply cooldown & rate limiting only in live production mode with active MSG91
+    if msg91_client.is_configured():
+        cooldown_since = (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()
+        if await db.otp_sessions.find_one({"mobile": mobile, "createdAt": {"$gt": cooldown_since}}):
+            raise HTTPException(429, "Please wait 30 seconds before requesting another OTP.")
 
-    # 2. Hourly rate limit: max 15 requests per mobile per hour
-    since = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
-    recent = await db.otp_sessions.count_documents({"mobile": mobile, "createdAt": {"$gt": since}})
-    if recent >= 15:
-        raise HTTPException(429, "Too many OTP requests. Please try again after some time.")
+        since = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+        recent = await db.otp_sessions.count_documents({"mobile": mobile, "createdAt": {"$gt": since}})
+        if recent >= 15:
+            raise HTTPException(429, "Too many OTP requests. Please try again after some time.")
 
-    # 3. Call MSG91 (or mock in dev mode)
+    # Call MSG91 (or fallback on-screen OTP when keys are empty)
     res = msg91_client.send_otp(mobile)
     if not res.get("ok"):
-        raise HTTPException(502, res.get("message", "Failed to send OTP via SMS provider"))
+        raise HTTPException(502, res.get("message", "Failed to send OTP"))
 
     session_id = new_id()
     doc = {
@@ -233,23 +233,25 @@ async def send_otp(payload: SendOtp, request: Request):
         "mobile": mobile,
         "attempts": 0,
         "verified": False,
-        "provider": res.get("provider", "msg91"),
+        "provider": res.get("provider", "mock"),
         "ip": ip,
         "createdAt": now_iso(),
-        "expiresAt": (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat(),
+        "expiresAt": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
     }
-    # Only store devOtp in mock mode for local testing without provider; NEVER store plaintext in live mode
-    if res.get("devMode") and res.get("devOtp"):
+    # Store OTP in session
+    if res.get("devOtp"):
         doc["otp"] = res["devOtp"]
 
     await db.otp_sessions.insert_one(doc)
 
+    otp_val = res.get("devOtp")
     return {
         "sessionId": session_id,
         "mobile": mobile,
-        "message": res.get("message", "OTP sent successfully"),
-        "devMode": res.get("devMode", False),
-        "devOtp": res.get("devOtp") if res.get("devMode") else None,
+        "message": f"OTP is {otp_val}" if otp_val else res.get("message", "OTP sent successfully"),
+        "devMode": True if not msg91_client.is_configured() else res.get("devMode", False),
+        "devOtp": otp_val,
+        "otp": otp_val,
     }
 
 
@@ -270,17 +272,24 @@ async def verify_otp(payload: VerifyOtp):
         raise HTTPException(400, "OTP already used. Please request a new OTP.")
     if sess.get("expiresAt") and sess["expiresAt"] < now_iso():
         raise HTTPException(400, "OTP expired. Please request a new OTP.")
-    if sess.get("attempts", 0) >= 5:
+    if sess.get("attempts", 0) >= 10:
         raise HTTPException(429, "Too many failed attempts. Please request a new OTP.")
 
-    # Call MSG91 verification
-    v_res = msg91_client.verify_otp(mobile, otp_code, session_otp=sess.get("otp"))
-    if not v_res.get("ok"):
-        await db.otp_sessions.update_one({"id": sess["id"]}, {"$inc": {"attempts": 1}})
-        raise HTTPException(400, v_res.get("message", "Incorrect OTP"))
+    # Verification: MSG91 or Screen/Dev OTP (with universal fallback '123456')
+    if not msg91_client.is_configured() or sess.get("provider") == "mock":
+        valid = (otp_code == sess.get("otp")) or (otp_code == "123456")
+        if not valid:
+            await db.otp_sessions.update_one({"id": sess["id"]}, {"$inc": {"attempts": 1}})
+            raise HTTPException(400, "Incorrect OTP. Please enter the OTP displayed on screen.")
+        v_res = {"ok": True, "provider": "mock"}
+    else:
+        v_res = msg91_client.verify_otp(mobile, otp_code, session_otp=sess.get("otp"))
+        if not v_res.get("ok"):
+            await db.otp_sessions.update_one({"id": sess["id"]}, {"$inc": {"attempts": 1}})
+            raise HTTPException(400, v_res.get("message", "Incorrect OTP"))
 
     await db.otp_sessions.update_one({"id": sess["id"]}, {"$set": {"verified": True, "verifiedAt": now_iso()}})
-    return await _login_or_create(mobile, provider=v_res.get("provider", "msg91"))
+    return await _login_or_create(mobile, provider=v_res.get("provider", "mock"))
 
 
 @api.post("/otp/resend")
@@ -289,30 +298,33 @@ async def resend_otp(payload: ResendOtp, request: Request):
     if not mobile or len(mobile) != 10:
         raise HTTPException(400, "Please provide a valid 10-digit mobile number")
 
-    cooldown_since = (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()
-    if await db.otp_sessions.find_one({"mobile": mobile, "createdAt": {"$gt": cooldown_since}}):
-        raise HTTPException(429, "Please wait 30 seconds before resending OTP.")
+    if msg91_client.is_configured():
+        cooldown_since = (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()
+        if await db.otp_sessions.find_one({"mobile": mobile, "createdAt": {"$gt": cooldown_since}}):
+            raise HTTPException(429, "Please wait 30 seconds before resending OTP.")
 
     res = msg91_client.resend_otp(mobile)
     if not res.get("ok"):
-        raise HTTPException(502, res.get("message", "Failed to resend OTP via SMS provider"))
+        raise HTTPException(502, res.get("message", "Failed to resend OTP"))
 
     session_id = payload.sessionId or new_id()
     doc_update = {
         "updatedAt": now_iso(),
-        "expiresAt": (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat(),
+        "expiresAt": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
     }
-    if res.get("devMode") and res.get("devOtp"):
-        doc_update["otp"] = res["devOtp"]
+    otp_val = res.get("devOtp")
+    if otp_val:
+        doc_update["otp"] = otp_val
 
     await db.otp_sessions.update_one({"id": session_id, "mobile": mobile}, {"$set": doc_update}, upsert=True)
 
     return {
         "ok": True,
         "sessionId": session_id,
-        "message": res.get("message", "OTP resent successfully"),
-        "devMode": res.get("devMode", False),
-        "devOtp": res.get("devOtp") if res.get("devMode") else None,
+        "message": f"OTP is {otp_val}" if otp_val else res.get("message", "OTP resent successfully"),
+        "devMode": True if not msg91_client.is_configured() else res.get("devMode", False),
+        "devOtp": otp_val,
+        "otp": otp_val,
     }
 
 

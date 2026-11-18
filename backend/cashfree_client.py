@@ -37,7 +37,9 @@ BASE_URL = (
 
 
 def is_live() -> bool:
-    return bool(CASHFREE_APP_ID and CASHFREE_SECRET_KEY)
+    app_id = os.environ.get("CASHFREE_APP_ID", "").strip() or CASHFREE_APP_ID
+    secret = os.environ.get("CASHFREE_SECRET_KEY", "").strip() or CASHFREE_SECRET_KEY
+    return bool(app_id and secret)
 
 
 def _http_request(method: str, url: str, headers: dict, data_dict: dict = None, timeout: int = 30):
@@ -100,7 +102,7 @@ def create_order(
     clean_name = customer_name or "SimpleDSC Customer"
     clean_amount = round(float(amount), 2)
 
-    if not IS_CONFIGURED:
+    if not is_live():
         # Mock mode for testing without active Cashfree keys
         mock_session_id = f"session_mock_{uuid.uuid4().hex}"
         logger.info(f"[CASHFREE MOCK] Created mock order {order_id} session {mock_session_id}")
@@ -158,7 +160,7 @@ def create_order(
 
 def get_order(order_id: str) -> dict:
     """Fetch order status from Cashfree."""
-    if not IS_CONFIGURED:
+    if not is_live():
         return {
             "order_id": order_id,
             "order_status": "PAID",
@@ -175,7 +177,7 @@ def get_order(order_id: str) -> dict:
 
 def get_order_payments(order_id: str) -> list:
     """Fetch all payments for a Cashfree order."""
-    if not IS_CONFIGURED:
+    if not is_live():
         return [
             {
                 "cf_payment_id": f"cf_pay_mock_{uuid.uuid4().hex[:12]}",

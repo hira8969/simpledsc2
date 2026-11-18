@@ -76,11 +76,12 @@ export function OtpAuthModal() {
       setStep("otp");
       setCountdown(30);
       setStatusNotice("");
-      if (data.devMode && data.devOtp) {
-        setDevOtp(data.devOtp);
-        setOtp(data.devOtp); // Auto-fill the test OTP
-        toast.success(`Test OTP: ${data.devOtp}`, {
-          description: "Test OTP auto-filled. Click Verify & Continue to log in.",
+      const screenOtp = data.devOtp || data.otp;
+      if (screenOtp) {
+        setDevOtp(screenOtp);
+        setOtp(screenOtp); // Auto-fill the test OTP
+        toast.success(`OTP: ${screenOtp}`, {
+          description: "OTP is auto-filled. Click Verify & Continue to log in.",
           duration: 10000,
         });
       } else {
@@ -108,10 +109,11 @@ export function OtpAuthModal() {
     try {
       const { data } = await api.post("/otp/resend", { mobile, sessionId });
       setCountdown(30);
-      if (data.devMode && data.devOtp) {
-        setDevOtp(data.devOtp);
-        setOtp(data.devOtp);
-        toast.success(`New Test OTP: ${data.devOtp}`);
+      const screenOtp = data.devOtp || data.otp;
+      if (screenOtp) {
+        setDevOtp(screenOtp);
+        setOtp(screenOtp);
+        toast.success(`New OTP: ${screenOtp}`);
       } else {
         toast.success(data.message || `OTP resent to +91 ${mobile}`);
       }
