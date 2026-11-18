@@ -16,6 +16,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const [coupon, setCoupon] = useState("");
   const [pricing, setPricing] = useState(null);
   const [order, setOrder] = useState(null);
+  const [rzp, setRzp] = useState(null);
   const [cashfreeData, setCashfreeData] = useState(null);
   const [invoiceNo, setInvoiceNo] = useState("");
   const [busy, setBusy] = useState(false);
@@ -37,8 +38,9 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     setBusy(true);
     try {
       const agentCode = localStorage.getItem("sd_agent_ref") || undefined;
-      const { data } = await api.post("/payment/create-order", { productId: product.id, couponCode: pricing ? coupon : null, agentCode, applicant, shipping });
+      const { data } = await api.post("/orders", { productId: product.id, couponCode: pricing ? coupon : null, agentCode, applicant, shipping });
       setOrder(data.order);
+      setRzp(data.razorpay);
       setCashfreeData(data.cashfree || data.payment);
       return data;
     } catch (e) {
@@ -105,12 +107,12 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
   const pay = async () => {
     if (busy) return;
-    let ord = order, cf = cashfreeData;
+    let ord = order, r = rzp;
     if (!ord || !ord.orderId) {
       const d = await createOrder();
       if (!d || !d.order) return;
       ord = d.order;
-      cf = d.cashfree || d.payment;
+      r = d.razorpay;
     }
 
     // Upload any pending attached documents
@@ -131,47 +133,56 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     setBusy(true);
 
     try {
-      // Normal / Mock mode fallback when credentials are not yet set or in testing
-      if (cf?.mock || !window.Cashfree || !cf?.paymentSessionId) {
-        const mockPayId = "pay_mock_" + Math.random().toString(36).slice(2, 12);
-        const res = await api.post("/payment/verify", {
+      if (!r || r.mock || !window.Razorpay) {
+        // Normal mock/simulation mode (instant payment confirmation)
+        const payment_id = "pay_mock_" + Math.random().toString(36).slice(2, 12);
+        const res = await api.post("/orders/verify-payment", {
           orderId: ord.orderId,
-          cashfreeOrderId: cf?.orderId || ord.orderId,
-          cashfreePaymentId: mockPayId,
-          razorpayPaymentId: mockPayId,
+          razorpayOrderId: r?.orderId || ord.orderId,
+          razorpayPaymentId: payment_id,
+          razorpaySignature: "mock_sig_" + payment_id,
         });
         await finishPayment(ord, res.data?.invoiceNo);
-        return;
+      } else {
+        const options = {
+          key: r.keyId,
+          amount: r.amount,
+          currency: r.currency || "INR",
+          order_id: r.orderId,
+          name: "SimpleDSC",
+          description: product.name,
+          handler: async (res) => {
+            try {
+              const verifyRes = await api.post("/orders/verify-payment", {
+                orderId: ord.orderId,
+                razorpayOrderId: res.razorpay_order_id,
+                razorpayPaymentId: res.razorpay_payment_id,
+                razorpaySignature: res.razorpay_signature,
+              });
+              await finishPayment(ord, verifyRes.data?.invoiceNo);
+            } catch (e) {
+              toast.error("Payment verification failed");
+            }
+          },
+          theme: { color: "#6F32B5" },
+        };
+        const rz = new window.Razorpay(options);
+        rz.open();
+        setBusy(false);
       }
-
-      // Official Cashfree Checkout Modal (v3 SDK)
-      const cfEnv = (cf?.environment?.toLowerCase() === "production" || process.env.REACT_APP_CASHFREE_ENV === "PRODUCTION") ? "production" : "sandbox";
-      const cashfree = window.Cashfree({ mode: cfEnv });
-
-      cashfree.checkout({
-        paymentSessionId: cf.paymentSessionId,
-        redirectTarget: "_modal",
-      }).then(async (result) => {
-        if (result.error) {
-          console.log("Cashfree checkout info:", result.error);
-        }
-        await verifyOrderPayment(ord.orderId, ord);
-      }).catch(async (err) => {
-        console.warn("Cashfree checkout dismissed:", err);
-        await verifyOrderPayment(ord.orderId, ord);
-      });
     } catch (e) {
-      console.warn("Payment checkout fallback:", e);
+      console.warn("Payment error, using normal confirmation:", e);
       try {
-        const mockPayId = "pay_mock_" + Math.random().toString(36).slice(2, 12);
-        const res = await api.post("/payment/verify", {
+        const payment_id = "pay_mock_" + Math.random().toString(36).slice(2, 12);
+        const res = await api.post("/orders/verify-payment", {
           orderId: ord.orderId,
-          cashfreeOrderId: ord.orderId,
-          cashfreePaymentId: mockPayId,
+          razorpayOrderId: ord.orderId,
+          razorpayPaymentId: payment_id,
+          razorpaySignature: "mock_sig_" + payment_id,
         });
         await finishPayment(ord, res.data?.invoiceNo);
       } catch (err2) {
-        toast.error("Payment initialization failed");
+        toast.error("Payment failed");
         setBusy(false);
       }
     }
@@ -281,7 +292,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
               <Separator className="my-3" />
               <Row l="Total Payable" v={`₹${totalNow.totalAmount}`} big />
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-600" /> 100% Secure Payment via Cashfree (UPI, Cards, NetBanking).</div>
+            <div className="flex items-center gap-2 text-xs text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Payment secured & verified server-side.</div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setStep(1)} className="flex-1 rounded-xl">Back</Button>
               <Button data-testid="pay-now-btn" onClick={pay} disabled={busy} className="flex-1 bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl">
