@@ -195,14 +195,18 @@ export async function verifyWidgetOtp(otp, requestId = null) {
 
 /**
  * Resend / Retry OTP via MSG91 widget
- * @param {string} [channel] Optional channel
+ * In custom widget mode (widgetType: 2), channel is required:
+ * '11' = SMS (default), '12' = WhatsApp, '4' = Voice Call
+ * @param {string} [channel='11'] Delivery channel
  * @param {string} [requestId] Optional requestId
  */
-export async function retryWidgetOtp(channel = null, requestId = null) {
+export async function retryWidgetOtp(channel = "11", requestId = null) {
   const ready = await waitForWidgetReady();
   if (!ready || typeof window.retryOtp !== "function") {
     throw new Error("SMS retry service unavailable. Please refresh and try again.");
   }
+
+  const activeChannel = String(channel || "11").trim();
 
   return new Promise((resolve, reject) => {
     let resolved = false;
@@ -232,7 +236,7 @@ export async function retryWidgetOtp(channel = null, requestId = null) {
     };
 
     try {
-      window.retryOtp(channel, onSuccess, onFailure, requestId);
+      window.retryOtp(activeChannel, onSuccess, onFailure, requestId);
     } catch (e) {
       clearTimeout(timeout);
       reject(new Error(e.message || "Failed to trigger OTP resend."));
