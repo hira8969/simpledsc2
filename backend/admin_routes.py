@@ -297,16 +297,30 @@ async def admin_products(admin: dict = Depends(get_current_admin)):
 @admin_router.put("/admin/products")
 async def create_or_update_product(payload: dict, request: Request, admin: dict = Depends(require_roles("staff"))):
     pid = payload.get("id")
+    # Normalize dual image fields with backward compatibility
+    card_img = payload.get("product_card_image") or payload.get("productCardImage")
+    det_img = payload.get("product_details_image") or payload.get("productDetailsImage")
+    if card_img:
+        payload["product_card_image"] = card_img
+        payload["productCardImage"] = card_img
+    if det_img:
+        payload["product_details_image"] = det_img
+        payload["productDetailsImage"] = det_img
+
     if pid:
         old = await db.products.find_one({"$or": [{"id": pid}, {"slug": pid}]})
         if old:
             actual_id = old["id"]
+            if not payload.get("imageUrl"):
+                payload["imageUrl"] = card_img or det_img or old.get("imageUrl") or ""
             payload["updatedAt"] = now_iso()
             await db.products.update_one({"id": actual_id}, {"$set": payload})
             if "price" in payload and payload["price"] != old.get("price"):
                 await audit(admin, "product_price_changed", "product", actual_id, old.get("price"), payload["price"], client_ip(request))
             return {"product": clean(await db.products.find_one({"id": actual_id}))}
 
+    if not payload.get("imageUrl"):
+        payload["imageUrl"] = card_img or det_img or ""
     p = {"id": pid or new_id(), "active": True, "issuingCAs": [], "purposeTags": [], "features": [],
          "requiredDocuments": [], "sortOrder": 99, "seo": {}, **payload,
          "createdAt": now_iso(), "updatedAt": now_iso()}
@@ -321,6 +335,19 @@ async def update_product(pid: str, payload: dict, request: Request, admin: dict 
     if not old:
         raise HTTPException(404, "Product not found")
     actual_id = old["id"]
+
+    # Normalize dual image fields independently
+    card_img = payload.get("product_card_image") or payload.get("productCardImage")
+    det_img = payload.get("product_details_image") or payload.get("productDetailsImage")
+    if card_img:
+        payload["product_card_image"] = card_img
+        payload["productCardImage"] = card_img
+    if det_img:
+        payload["product_details_image"] = det_img
+        payload["productDetailsImage"] = det_img
+    if not payload.get("imageUrl"):
+        payload["imageUrl"] = card_img or det_img or old.get("imageUrl") or ""
+
     payload["updatedAt"] = now_iso()
     await db.products.update_one({"id": actual_id}, {"$set": payload})
     if "price" in payload and payload["price"] != old.get("price"):
@@ -337,6 +364,8 @@ async def delete_product(pid: str, request: Request, admin: dict = Depends(requi
 @admin_router.post("/admin/products/upload-image")
 async def admin_upload_product_image(
     file: UploadFile = File(...),
+    frame_type: Optional[str] = Form("card"),
+    frame: Optional[str] = Query(None),
     request: Request = None,
     admin: dict = Depends(require_roles("staff")),
 ):
@@ -344,14 +373,16 @@ async def admin_upload_product_image(
     if not content:
         raise HTTPException(400, "Empty file uploaded")
 
+    eff_frame = frame or frame_type or "card"
     result = await process_and_save_product_image(
         db=db,
         file_bytes=content,
         filename=file.filename or "product_image.png",
         declared_content_type=file.content_type or "image/png",
         admin_user=admin,
+        frame_type=eff_frame,
     )
-    await audit(admin, "product_image_uploaded", "product_image", result["imageId"], None, result["filename"], client_ip(request) if request else "admin")
+    await audit(admin, "product_image_uploaded", "product_image", result["imageId"], None, f"{result['filename']} ({eff_frame})", client_ip(request) if request else "admin")
     return result
 
 

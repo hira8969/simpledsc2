@@ -178,9 +178,10 @@ async def process_and_save_product_image(
     file_bytes: bytes,
     filename: str,
     declared_content_type: str,
-    admin_user: dict
+    admin_user: dict,
+    frame_type: str = "card"
 ) -> Dict:
-    """Validate, optimize, and store a product image in MongoDB."""
+    """Validate, optimize, and store a product image in MongoDB with dual frame support."""
     if len(file_bytes) > MAX_FILE_SIZE:
         raise HTTPException(400, "File size exceeds the 5 MB limit. Please upload a smaller image.")
 
@@ -199,17 +200,20 @@ async def process_and_save_product_image(
             "Invalid image file. Please upload a valid JPG, JPEG, PNG, or WebP image."
         )
 
-    # Calculate warnings/guidance notes
+    # Calculate frame-specific warnings and guidance notes
     dimension_notes = []
+    is_card_frame = str(frame_type or "").lower() == "card"
+    rec_w = 1200 if not is_card_frame else 1200
+    rec_h = 1200 if not is_card_frame else 960
+    min_w = 600 if not is_card_frame else 600
+    min_h = 600 if not is_card_frame else 480
+    target_ratio_desc = "5:4" if is_card_frame else "1:1 Square"
+
     if width and height:
-        if width < MIN_WIDTH or height < MIN_HEIGHT:
+        if width < min_w or height < min_h:
             dimension_notes.append(
-                f"Image is {width}×{height} px, which is below the recommended minimum of {MIN_WIDTH}×{MIN_HEIGHT} px. "
-                "It will be displayed responsively with object-fit: contain."
-            )
-        elif abs(width - height) > (max(width, height) * 0.1):
-            dimension_notes.append(
-                "Square (1:1) or 5:4 aspect ratio images provide the best viewing experience."
+                f"Image is {width}×{height} px, which is below the recommended minimum of {min_w}×{min_h} px for {target_ratio_desc}. "
+                "It will be displayed responsively with object-fit: contain without distortion."
             )
 
     aspect_ratio_str = calculate_aspect_ratio_str(width, height)
@@ -228,10 +232,11 @@ async def process_and_save_product_image(
         "id": image_id,
         "filename": safe_filename,
         "contentType": mime,
+        "frameType": "card" if is_card_frame else "details",
         "data": base64.b64encode(file_bytes).decode("ascii"),
         "webpData": base64.b64encode(webp_bytes).decode("ascii") if webp_bytes else None,
-        "width": width or 1200,
-        "height": height or 1200,
+        "width": width or rec_w,
+        "height": height or rec_h,
         "aspectRatio": aspect_ratio_str,
         "fileSize": len(file_bytes),
         "uploadedBy": admin_user.get("email", "admin"),
@@ -240,7 +245,7 @@ async def process_and_save_product_image(
     }
 
     await db.product_images.insert_one(doc)
-    logger.info(f"Saved product image {image_id} ({safe_filename}) by {admin_user.get('email')}")
+    logger.info(f"Saved product image {image_id} ({safe_filename}) frame={doc['frameType']} by {admin_user.get('email')}")
 
     image_url = f"/api/media/products/{image_id}"
     image_webp_url = f"/api/media/products/{image_id}.webp" if webp_bytes else None
@@ -250,12 +255,13 @@ async def process_and_save_product_image(
         "imageId": image_id,
         "imageUrl": image_url,
         "imageWebpUrl": image_webp_url,
+        "frameType": doc["frameType"],
         "filename": safe_filename,
         "contentType": mime,
-        "width": width or 1200,
-        "height": height or 1200,
+        "width": width or rec_w,
+        "height": height or rec_h,
         "aspectRatio": aspect_ratio_str,
         "size": len(file_bytes),
         "dimensionNotes": dimension_notes,
-        "message": "Image uploaded and processed successfully",
+        "message": f"{target_ratio_desc} image uploaded and processed successfully",
     }

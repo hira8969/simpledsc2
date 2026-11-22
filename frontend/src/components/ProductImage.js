@@ -67,9 +67,53 @@ export function ProductImage({
   onClick,
   dataTestId,
 }) {
-  // Extract source from product object or direct prop
-  const rawSrc = src || product?.imageUrl || DEFAULT_FALLBACK_IMAGE;
-  const rawWebpSrc = webpSrc || product?.imageWebpUrl;
+  // Extract source from product object or direct prop with independent dual-frame mapping
+  let rawSrc = src;
+  let rawWebpSrc = webpSrc;
+
+  if (!rawSrc && product) {
+    if (variant === "card" || variant === "preview-card") {
+      // Product Card Frame: prefer product_card_image with robust fallback to legacy imageUrl
+      rawSrc =
+        product.product_card_image ||
+        product.productCardImage ||
+        product.imageUrl ||
+        product.product_details_image ||
+        product.productDetailsImage;
+      rawWebpSrc =
+        webpSrc ||
+        product.product_card_image_webp ||
+        product.productCardImageWebp ||
+        product.imageWebpUrl;
+    } else if (variant === "detail" || variant === "preview-detail") {
+      // Product Details Frame: prefer product_details_image with robust fallback to legacy imageUrl
+      rawSrc =
+        product.product_details_image ||
+        product.productDetailsImage ||
+        product.imageUrl ||
+        product.product_card_image ||
+        product.productCardImage;
+      rawWebpSrc =
+        webpSrc ||
+        product.product_details_image_webp ||
+        product.productDetailsImageWebp ||
+        product.imageWebpUrl;
+    } else {
+      // Thumbnails / cart / compact frames
+      rawSrc =
+        product.product_card_image ||
+        product.productCardImage ||
+        product.imageUrl ||
+        product.product_details_image ||
+        product.productDetailsImage;
+      rawWebpSrc =
+        webpSrc ||
+        product.product_card_image_webp ||
+        product.imageWebpUrl;
+    }
+  }
+
+  rawSrc = rawSrc || DEFAULT_FALLBACK_IMAGE;
   const resolvedSrc = resolveImageUrl(rawSrc);
   const resolvedWebpSrc = rawWebpSrc ? resolveImageUrl(rawWebpSrc) : null;
 
