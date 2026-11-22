@@ -1,8 +1,6 @@
 """SimplDSC API server."""
 import os
 import json
-import hmac
-import hashlib
 import logging
 import random
 import asyncio
@@ -748,10 +746,9 @@ async def verify_payment(payload: VerifyPaymentReq, user: dict = Depends(get_cur
 
 # ================= CASHFREE WEBHOOK =================
 @app.post("/webhooks/cashfree")
-@app.post("/api/webhooks/cashfree")
 @app.post("/webhooks/razorpay")
-@api.post("/payment/webhook")
 @api.post("/webhooks/cashfree")
+@api.post("/payment/webhook")
 async def cashfree_webhook(request: Request):
     """
     Cashfree Webhook Handler (official v2023-08-01 format).

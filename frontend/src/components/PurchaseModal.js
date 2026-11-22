@@ -17,8 +17,6 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const [coupon, setCoupon] = useState("");
   const [pricing, setPricing] = useState(null);
   const [order, setOrder] = useState(null);
-  const [rzp, setRzp] = useState(null);
-  const [cashfreeData, setCashfreeData] = useState(null);
   const [invoiceNo, setInvoiceNo] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploaded, setUploaded] = useState({});
@@ -41,8 +39,6 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       const agentCode = localStorage.getItem("sd_agent_ref") || undefined;
       const { data } = await api.post("/orders", { productId: product.id, couponCode: pricing ? coupon : null, agentCode, applicant, shipping });
       setOrder(data.order);
-      setRzp(data.razorpay);
-      setCashfreeData(data.cashfree || data.payment);
       return data;
     } catch (e) {
       toast.error(e.response?.data?.detail || "Could not create order");
@@ -178,7 +174,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
   const totalNow = pricing || { amount: product.price, discount: 0, gst: Math.round(product.price - product.price/1.18), totalAmount: product.price };
 
-  const close = () => { onOpenChange(false); setTimeout(() => { setStep(0); setOrder(null); setCashfreeData(null); setPricing(null); setCoupon(""); setUploaded({}); setDocFiles({}); setBusy(false); }, 200); };
+  const close = () => { onOpenChange(false); setTimeout(() => { setStep(0); setOrder(null); setPricing(null); setCoupon(""); setUploaded({}); setDocFiles({}); setBusy(false); }, 200); };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { if (step === 3) onComplete && onComplete(); close(); } }}>
