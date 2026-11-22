@@ -435,7 +435,10 @@ async def complete_profile(payload: CompleteProfile, user: dict = Depends(get_cu
 async def me(user: dict = Depends(get_current_customer)):
     return {"user": user}
 
+@app.put("/customer/profile")
+@app.post("/customer/profile")
 @api.put("/customer/profile")
+@api.post("/customer/profile")
 async def update_profile(payload: dict, user: dict = Depends(get_current_customer)):
     fields = {}
     for k in ["name", "email", "profile", "billing"]:
@@ -980,6 +983,8 @@ async def robots_txt():
 api.include_router(admin_router)
 api.include_router(agent_router)
 app.include_router(api)
+app.include_router(admin_router)
+app.include_router(agent_router)
 
 @app.get("/health")
 @api.get("/health")

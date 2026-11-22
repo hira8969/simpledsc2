@@ -294,8 +294,20 @@ async def admin_products(admin: dict = Depends(get_current_admin)):
     return await db.products.find({}, {"_id": 0}).sort("sortOrder", 1).to_list(500)
 
 @admin_router.post("/admin/products")
-async def create_product(payload: dict, request: Request, admin: dict = Depends(require_roles("staff"))):
-    p = {"id": new_id(), "active": True, "issuingCAs": [], "purposeTags": [], "features": [],
+@admin_router.put("/admin/products")
+async def create_or_update_product(payload: dict, request: Request, admin: dict = Depends(require_roles("staff"))):
+    pid = payload.get("id")
+    if pid:
+        old = await db.products.find_one({"$or": [{"id": pid}, {"slug": pid}]})
+        if old:
+            actual_id = old["id"]
+            payload["updatedAt"] = now_iso()
+            await db.products.update_one({"id": actual_id}, {"$set": payload})
+            if "price" in payload and payload["price"] != old.get("price"):
+                await audit(admin, "product_price_changed", "product", actual_id, old.get("price"), payload["price"], client_ip(request))
+            return {"product": clean(await db.products.find_one({"id": actual_id}))}
+
+    p = {"id": pid or new_id(), "active": True, "issuingCAs": [], "purposeTags": [], "features": [],
          "requiredDocuments": [], "sortOrder": 99, "seo": {}, **payload,
          "createdAt": now_iso(), "updatedAt": now_iso()}
     await db.products.insert_one(p)
@@ -303,19 +315,21 @@ async def create_product(payload: dict, request: Request, admin: dict = Depends(
     return {"product": clean(p)}
 
 @admin_router.put("/admin/products/{pid}")
+@admin_router.post("/admin/products/{pid}")
 async def update_product(pid: str, payload: dict, request: Request, admin: dict = Depends(require_roles("staff"))):
-    old = await db.products.find_one({"id": pid})
+    old = await db.products.find_one({"$or": [{"id": pid}, {"slug": pid}]})
     if not old:
         raise HTTPException(404, "Product not found")
+    actual_id = old["id"]
     payload["updatedAt"] = now_iso()
-    await db.products.update_one({"id": pid}, {"$set": payload})
+    await db.products.update_one({"id": actual_id}, {"$set": payload})
     if "price" in payload and payload["price"] != old.get("price"):
-        await audit(admin, "product_price_changed", "product", pid, old.get("price"), payload["price"], client_ip(request))
-    return {"product": clean(await db.products.find_one({"id": pid}))}
+        await audit(admin, "product_price_changed", "product", actual_id, old.get("price"), payload["price"], client_ip(request))
+    return {"product": clean(await db.products.find_one({"id": actual_id}))}
 
 @admin_router.delete("/admin/products/{pid}")
 async def delete_product(pid: str, request: Request, admin: dict = Depends(require_roles("staff"))):
-    await db.products.delete_one({"id": pid})
+    await db.products.delete_one({"$or": [{"id": pid}, {"slug": pid}]})
     await audit(admin, "product_deleted", "product", pid, None, None, client_ip(request))
     return {"ok": True}
 

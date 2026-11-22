@@ -100,7 +100,7 @@ export function ProductImage({
     defaultWidth = 500;
     defaultHeight = 500;
   } else if (variant === "thumbnail") {
-    containerVariantClass = "aspect-square rounded-xl bg-purple-50/70 border border-purple-100 p-1";
+    containerVariantClass = "is-thumbnail w-14 h-14 shrink-0 aspect-square rounded-xl bg-purple-50/70 border border-purple-100 p-1";
     defaultAspectRatio = "1 / 1";
     defaultWidth = 64;
     defaultHeight = 64;
@@ -108,6 +108,7 @@ export function ProductImage({
 
   const containerStyle = {
     aspectRatio: aspectRatio || defaultAspectRatio,
+    ...(variant === "thumbnail" ? { width: "3.5rem", height: "3.5rem", flexShrink: 0 } : {}),
   };
 
   const finalSrc = hasError ? DEFAULT_FALLBACK_IMAGE : resolvedSrc;

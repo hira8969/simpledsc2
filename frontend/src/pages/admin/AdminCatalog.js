@@ -149,8 +149,24 @@ function Products() {
         features: (p.featuresStr || "").split(",").map((s) => s.trim()).filter(Boolean),
         requiredDocuments: (p.docsStr || "").split(",").map((s) => s.trim()).filter(Boolean)
       };
-      if (p.id) await api.put(`/admin/products/${p.id}`, body);
-      else await api.post("/admin/products", body);
+      if (p.id) {
+        try {
+          await api.put(`/admin/products/${p.id}`, body);
+        } catch (err) {
+          if (err.response?.status === 405 || err.response?.status === 404) {
+            // Robust multi-endpoint fallback
+            try {
+              await api.post(`/admin/products/${p.id}`, body);
+            } catch (err2) {
+              await api.put("/admin/products", body);
+            }
+          } else {
+            throw err;
+          }
+        }
+      } else {
+        await api.post("/admin/products", body);
+      }
       toast.success("Product saved successfully");
       if (stagedPreview) URL.revokeObjectURL(stagedPreview);
       setStagedFile(null);
@@ -212,20 +228,22 @@ function Products() {
               p.isPopular ? "border-amber-300 ring-2 ring-amber-300/30 shadow-md" : "border-slate-200"
             }`}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <ProductImage
-                src={p.imageUrl}
-                alt={p.name}
-                variant="thumbnail"
-                className="h-14 w-14 shrink-0 rounded-xl mix-blend-multiply"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex justify-between items-start">
+            <div className="flex items-center gap-3.5 mb-2">
+              <div className="w-14 h-14 shrink-0 rounded-xl overflow-hidden border border-purple-100 bg-purple-50/60 p-1 flex items-center justify-center">
+                <ProductImage
+                  src={p.imageUrl}
+                  alt={p.name}
+                  variant="thumbnail"
+                  className="!w-12 !h-12 !max-w-12 !max-h-12 mix-blend-multiply"
+                />
+              </div>
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <div className="flex justify-between items-start gap-1">
                   <span className="text-xs text-purple-600 font-semibold truncate">{p.category}</span>
-                  <span className="font-bold text-navy-900 shrink-0">₹{p.price}</span>
+                  <span className="font-bold text-navy-900 shrink-0 text-sm">₹{p.price}</span>
                 </div>
-                <p className="mt-0.5 font-semibold text-navy-900 text-sm truncate">{p.name}</p>
-                <div className="flex items-center gap-2 mt-0.5">
+                <p className="mt-0.5 font-semibold text-navy-900 text-sm truncate" title={p.name}>{p.name}</p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   <span className="text-xs text-slate-400">{p.active !== false ? "Active" : "Disabled"} · {p.validity}</span>
                   {p.isPopular && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 text-[10px] font-bold">

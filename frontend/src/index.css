@@ -81,8 +81,6 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible {
 
 /* Universal Product Image Management & Responsive Image-Fitting */
 .product-image-container {
-  width: 100%;
-  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -91,10 +89,19 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible {
 }
 
 .product-image-container.is-card {
+  width: 100%;
   aspect-ratio: 5 / 4;
 }
 
 .product-image-container.is-detail {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.product-image-container.is-thumbnail {
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
   aspect-ratio: 1 / 1;
 }
 
