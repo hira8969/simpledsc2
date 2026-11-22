@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,24 +8,45 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Pencil, Star, Upload, RotateCcw, AlertCircle, CheckCircle2, Eye, Image as ImageIcon } from "lucide-react";
+import {
+  Plus, Trash2, Pencil, Star, Upload, RotateCcw, AlertCircle,
+  CheckCircle2, Eye, Image as ImageIcon, Search, Clock, Package
+} from "lucide-react";
 import { ProductImage } from "@/components/ProductImage";
 
 export default function AdminCatalog() {
   return (
-    <div>
-      <h1 className="font-display text-2xl font-bold text-navy-900 mb-4">Catalog Management</h1>
-      <Tabs defaultValue="products">
-        <TabsList>
-          <TabsTrigger value="products" data-testid="cat-tab-products">Products</TabsTrigger>
-          <TabsTrigger value="cas" data-testid="cat-tab-cas">Certifying Authorities</TabsTrigger>
-          <TabsTrigger value="faqs" data-testid="cat-tab-faqs">FAQs</TabsTrigger>
-          <TabsTrigger value="coupons" data-testid="cat-tab-coupons">Coupons</TabsTrigger>
-        </TabsList>
-        <TabsContent value="products" className="mt-4"><Products /></TabsContent>
-        <TabsContent value="cas" className="mt-4"><CAs /></TabsContent>
-        <TabsContent value="faqs" className="mt-4"><FAQs /></TabsContent>
-        <TabsContent value="coupons" className="mt-4"><Coupons /></TabsContent>
+    <div className="w-full max-w-full min-w-0 space-y-5">
+      <div>
+        <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight">
+          Catalog Management
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          Configure digital signature certificate products, dual images, prices, Certifying Authorities, FAQs, and coupons.
+        </p>
+      </div>
+
+      <Tabs defaultValue="products" className="w-full min-w-0">
+        <div className="overflow-x-auto pb-1 scrollbar-none">
+          <TabsList className="bg-slate-200/70 p-1 rounded-xl h-11 inline-flex">
+            <TabsTrigger value="products" data-testid="cat-tab-products" className="rounded-lg text-xs font-semibold px-4">
+              Products
+            </TabsTrigger>
+            <TabsTrigger value="cas" data-testid="cat-tab-cas" className="rounded-lg text-xs font-semibold px-4">
+              Certifying Authorities
+            </TabsTrigger>
+            <TabsTrigger value="faqs" data-testid="cat-tab-faqs" className="rounded-lg text-xs font-semibold px-4">
+              FAQs
+            </TabsTrigger>
+            <TabsTrigger value="coupons" data-testid="cat-tab-coupons" className="rounded-lg text-xs font-semibold px-4">
+              Coupons
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="products" className="mt-4 min-w-0"><Products /></TabsContent>
+        <TabsContent value="cas" className="mt-4 min-w-0"><CAs /></TabsContent>
+        <TabsContent value="faqs" className="mt-4 min-w-0"><FAQs /></TabsContent>
+        <TabsContent value="coupons" className="mt-4 min-w-0"><Coupons /></TabsContent>
       </Tabs>
     </div>
   );
@@ -34,6 +55,9 @@ export default function AdminCatalog() {
 function Products() {
   const [items, setItems] = useState([]);
   const [edit, setEdit] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Image 1: Product Card Frame (5:4)
   const [cardStagedFile, setCardStagedFile] = useState(null);
@@ -290,106 +314,313 @@ function Products() {
     }
   };
 
-  return (
-    <div>
-      <Button
-        data-testid="add-product"
-        onClick={() => {
-          cleanupImagePreviews();
-          setEdit({
-            name: "",
-            category: "Class 3 DSC",
-            slug: "",
-            description: "",
-            price: 0,
-            validity: "1 Year",
-            product_card_image: "",
-            product_details_image: "",
-            imageUrl: "",
-            isPopular: false,
-            rating: 5,
-            badgeText: "Most Popular",
-            featuresStr: "",
-            docsStr: "",
-            active: true
-          });
-        }}
-        className="mb-4 bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl"
-      >
-        <Plus className="h-4 w-4 mr-1" /> Add Product
-      </Button>
+  const categories = useMemo(() => {
+    const set = new Set();
+    items.forEach((p) => {
+      if (p.category) set.add(p.category);
+    });
+    return Array.from(set).sort();
+  }, [items]);
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.map((p) => (
-          <div
-            key={p.id}
-            className={`rounded-2xl border bg-white p-4 transition-all ${
-              p.isPopular ? "border-amber-300 ring-2 ring-amber-300/30 shadow-md" : "border-slate-200"
-            }`}
+  const filteredItems = useMemo(() => {
+    return items.filter((p) => {
+      if (categoryFilter !== "all" && p.category !== categoryFilter) {
+        return false;
+      }
+      if (statusFilter === "active" && p.active === false) {
+        return false;
+      }
+      if (statusFilter === "inactive" && p.active !== false) {
+        return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const nameMatch = (p.name || "").toLowerCase().includes(q);
+        const catMatch = (p.category || "").toLowerCase().includes(q);
+        const slugMatch = (p.slug || "").toLowerCase().includes(q);
+        const valMatch = (p.validity || "").toLowerCase().includes(q);
+        const descMatch = (p.description || "").toLowerCase().includes(q);
+        if (!nameMatch && !catMatch && !slugMatch && !valMatch && !descMatch) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [items, searchQuery, categoryFilter, statusFilter]);
+
+  const openEditModal = (p) => {
+    const cardImg = p.product_card_image || p.productCardImage || p.imageUrl || "";
+    const detailsImg = p.product_details_image || p.productDetailsImage || p.imageUrl || "";
+    setCardOriginalImage(cardImg);
+    setDetailsOriginalImage(detailsImg);
+    setCardStagedFile(null);
+    setCardStagedPreview("");
+    setCardImageWarning("");
+    setDetailsStagedFile(null);
+    setDetailsStagedPreview("");
+    setDetailsImageWarning("");
+    setEdit({
+      ...p,
+      product_card_image: cardImg,
+      product_details_image: detailsImg,
+      isPopular: Boolean(p.isPopular),
+      rating: p.rating ?? 5,
+      badgeText: p.badgeText || "Most Popular",
+      featuresStr: (p.features || []).join(", "),
+      docsStr: (p.requiredDocuments || []).join(", ")
+    });
+  };
+
+  const openAddModal = () => {
+    cleanupImagePreviews();
+    setEdit({
+      name: "",
+      category: "Class 3 DSC",
+      slug: "",
+      description: "",
+      price: 0,
+      validity: "1 Year",
+      product_card_image: "",
+      product_details_image: "",
+      imageUrl: "",
+      isPopular: false,
+      rating: 5,
+      badgeText: "Most Popular",
+      featuresStr: "",
+      docsStr: "",
+      active: true
+    });
+  };
+
+  return (
+    <div className="w-full max-w-full min-w-0 space-y-6">
+      {/* Top Controls Toolbar: Search, Filters, and Add Product */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3.5 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs min-w-0">
+        {/* Search input */}
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search products by name, category, validity, slug..."
+            className="pl-9.5 h-10 bg-slate-50/70 border-slate-200 rounded-xl text-xs placeholder:text-slate-400 focus:bg-white"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-navy-900 text-sm font-bold"
+              title="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Filters and Action button row */}
+        <div className="flex flex-wrap items-center gap-2.5 min-w-0">
+          {/* Category Filter */}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-10 rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs text-navy-900 font-semibold focus:bg-white focus:outline-none"
           >
-            <div className="flex items-center gap-3.5 mb-2">
-              <div className="w-14 h-14 shrink-0 rounded-xl overflow-hidden border border-purple-100 bg-purple-50/60 p-1 flex items-center justify-center">
-                <ProductImage
-                  src={p.product_card_image || p.productCardImage || p.imageUrl}
-                  alt={p.name}
-                  variant="thumbnail"
-                  className="!w-12 !h-12 !max-w-12 !max-h-12 mix-blend-multiply"
-                />
-              </div>
-              <div className="min-w-0 flex-1 overflow-hidden">
-                <div className="flex justify-between items-start gap-1">
-                  <span className="text-xs text-purple-600 font-semibold truncate">{p.category}</span>
-                  <span className="font-bold text-navy-900 shrink-0 text-sm">₹{p.price}</span>
-                </div>
-                <p className="mt-0.5 font-semibold text-navy-900 text-sm truncate" title={p.name}>{p.name}</p>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <span className="text-xs text-slate-400">{p.active !== false ? "Active" : "Disabled"} · {p.validity}</span>
+            <option value="all">All Categories ({items.length})</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-10 rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs text-navy-900 font-semibold focus:bg-white focus:outline-none"
+          >
+            <option value="all">All Statuses</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Disabled Only</option>
+          </select>
+
+          {/* Product count badge */}
+          <span className="hidden sm:inline-flex items-center text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 px-3 py-2 rounded-xl shrink-0">
+            {filteredItems.length} {filteredItems.length === 1 ? "Product" : "Products"}
+          </span>
+
+          {/* Add Product Button */}
+          <Button
+            data-testid="add-product"
+            onClick={openAddModal}
+            className="h-10 px-4 bg-gradient-to-r from-purple-700 to-navy-800 hover:from-purple-800 hover:to-navy-900 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 shrink-0"
+          >
+            <Plus className="h-4 w-4" /> Add Product
+          </Button>
+        </div>
+      </div>
+
+      {/* Responsive Product Grid:
+          - Large Desktop: 3 columns (or repeat(auto-fit, minmax(280px, 1fr)))
+          - Medium Desktop/Laptop: 2 columns
+          - Tablet: 2 columns
+          - Mobile: 1 column
+          Sidebar width is excluded because AdminLayout uses flex-1 min-w-0.
+      */}
+      <div
+        className="grid gap-5 w-full min-w-0"
+        style={{
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        }}
+      >
+        {filteredItems.map((p) => {
+          const isActive = p.active !== false;
+          const displayPrice = Number(p.price || 0).toLocaleString("en-IN");
+          const cardImg = p.product_card_image || p.productCardImage || p.imageUrl;
+
+          return (
+            <div
+              key={p.id}
+              className={`group relative flex flex-col justify-between rounded-2xl border bg-white p-4 sm:p-5 transition-all duration-200 hover:shadow-lg min-w-0 box-border ${
+                p.isPopular
+                  ? "border-amber-300 ring-2 ring-amber-300/30 shadow-2xs"
+                  : "border-slate-200/90 hover:border-purple-300 shadow-2xs"
+              }`}
+            >
+              {/* Card Body (Vertical Layout) */}
+              <div className="flex flex-col min-w-0 flex-1">
+                {/* 1. Product Image Display (5:4 Aspect Ratio, Object-Fit Contain) */}
+                <div className="relative w-full overflow-hidden rounded-xl bg-gradient-to-b from-slate-50 to-purple-50/20 border border-slate-100/90 p-2.5 flex items-center justify-center">
+                  <div className="w-full aspect-[5/4] max-h-52 flex items-center justify-center overflow-hidden">
+                    <ProductImage
+                      product={p}
+                      src={cardImg}
+                      variant="card"
+                      alt={p.name}
+                      className="w-full h-full shadow-2xs rounded-lg"
+                    />
+                  </div>
+                  {/* Validity badge overlay top-right */}
+                  {p.validity && (
+                    <div className="absolute right-3 top-3 z-10 rounded-full bg-white/95 backdrop-blur-xs border border-purple-200 px-2.5 py-0.5 text-[11px] font-bold text-purple-700 shadow-2xs">
+                      {p.validity}
+                    </div>
+                  )}
+                  {/* Popular badge overlay top-left */}
                   {p.isPopular && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 text-[10px] font-bold">
-                      <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" /> {p.badgeText || "Most Popular"} ({p.rating || 5}★)
+                    <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-2xs">
+                      <Star className="h-2.5 w-2.5 fill-white" /> {p.badgeText || "Popular"}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Product Name */}
+                <h3
+                  className="mt-3.5 font-display text-base font-bold text-navy-900 leading-snug break-words line-clamp-2"
+                  title={p.name}
+                >
+                  {p.name}
+                </h3>
+
+                {/* 3. Product Price */}
+                <div className="mt-2 flex items-baseline gap-1.5 flex-wrap min-w-0">
+                  <span className="font-display text-2xl font-black text-navy-900 tracking-tight">
+                    ₹{displayPrice}
+                  </span>
+                  {p.validity && (
+                    <span className="text-xs font-semibold text-slate-500">
+                      / {p.validity}
+                    </span>
+                  )}
+                </div>
+
+                {/* 4. Product Category & 5. Product Status & 6. Validity/Duration */}
+                <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 min-w-0">
+                  {/* Category */}
+                  <span className="inline-flex items-center rounded-md bg-purple-50 border border-purple-200/80 px-2.5 py-0.5 text-[11px] font-bold text-purple-700 truncate max-w-[150px]">
+                    {p.category || "Certificate"}
+                  </span>
+
+                  {/* Status (Active / Inactive) */}
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
+                      isActive
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-slate-100 text-slate-500 border-slate-200"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        isActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
+                      }`}
+                    />
+                    {isActive ? "Active" : "Disabled"}
+                  </span>
+                </div>
+
+                {/* Slug & Rating row */}
+                <div className="mt-2 flex items-center justify-between gap-1 text-[11px] text-slate-400 min-w-0">
+                  <span className="truncate font-mono">/{p.slug}</span>
+                  {p.isPopular && p.rating && (
+                    <span className="font-bold text-amber-600 shrink-0">
+                      ★ {p.rating}.0
                     </span>
                   )}
                 </div>
               </div>
-            </div>
 
-            <div className="mt-3 flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                data-testid={`edit-product-${p.id}`}
-                onClick={() => {
-                  const cardImg = p.product_card_image || p.productCardImage || p.imageUrl || "";
-                  const detailsImg = p.product_details_image || p.productDetailsImage || p.imageUrl || "";
-                  setCardOriginalImage(cardImg);
-                  setDetailsOriginalImage(detailsImg);
-                  setCardStagedFile(null);
-                  setCardStagedPreview("");
-                  setCardImageWarning("");
-                  setDetailsStagedFile(null);
-                  setDetailsStagedPreview("");
-                  setDetailsImageWarning("");
-                  setEdit({
-                    ...p,
-                    product_card_image: cardImg,
-                    product_details_image: detailsImg,
-                    isPopular: Boolean(p.isPopular),
-                    rating: p.rating ?? 5,
-                    badgeText: p.badgeText || "Most Popular",
-                    featuresStr: (p.features || []).join(", "),
-                    docsStr: (p.requiredDocuments || []).join(", ")
-                  });
-                }}
-                className="rounded-lg flex-1"
-              >
-                <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => del(p.id)} className="rounded-lg text-rose-600">
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              {/* 7. Edit Product Button & 8. Delete Product Button */}
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  data-testid={`edit-product-${p.id}`}
+                  onClick={() => openEditModal(p)}
+                  className="flex-1 h-9 rounded-xl font-semibold text-xs border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Pencil className="h-3.5 w-3.5 shrink-0" />
+                  <span>Edit Product</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  data-testid={`delete-product-${p.id}`}
+                  onClick={() => del(p.id)}
+                  className="h-9 px-3 rounded-xl text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition-colors flex items-center justify-center shrink-0"
+                  title={`Delete ${p.name}`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
+          );
+        })}
+
+        {/* Empty State */}
+        {filteredItems.length === 0 && (
+          <div className="col-span-full rounded-2xl border-2 border-dashed border-slate-200 bg-white p-12 text-center">
+            <Package className="mx-auto h-12 w-12 text-slate-300 mb-3" />
+            <h3 className="text-base font-bold text-navy-900">No products found</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              {searchQuery || categoryFilter !== "all" || statusFilter !== "all"
+                ? "No products matched your search or filter criteria. Try resetting filters."
+                : "No products exist in your catalog yet. Click Add Product to create your first certificate offering."}
+            </p>
+            {(searchQuery || categoryFilter !== "all" || statusFilter !== "all") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setCategoryFilter("all");
+                  setStatusFilter("all");
+                }}
+                className="mt-4 rounded-xl text-xs"
+              >
+                Clear Filters
+              </Button>
+            )}
           </div>
-        ))}
+        )}
       </div>
 
       <Dialog
