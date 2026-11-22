@@ -598,8 +598,12 @@ async def create_order(payload: CreateOrderReq, request: Request, user: dict = D
             order_note=f"SimpleDSC {product.get('name', 'DSC')}",
         )
     except Exception as e:
-        logger.error(f"Failed to create Cashfree order: {e}")
-        raise HTTPException(502, f"Payment gateway initialization failed: {e}")
+        logger.warning(f"Cashfree order creation error (using direct order fallback): {e}")
+        cf_order = {
+            "cf_order_id": f"cf_mock_{order_id}",
+            "payment_session_id": f"session_mock_{order_id}",
+            "mock": True,
+        }
 
     order = {
         "id": new_id(), "orderId": order_id, "simplDscId": user["simplDscId"], "userId": user["id"],
@@ -701,6 +705,19 @@ async def verify_payment(payload: VerifyPaymentReq, user: dict = Depends(get_cur
     if order.get("paymentStatus") == "Payment Successful":
         return {"ok": True, "invoiceNo": order.get("invoiceNo"), "alreadyPaid": True}
 
+    # Support direct confirmation / bypass mode without live payment gate (as requested: "bina payment ke hi purchase kara do")
+    is_mock = (
+        (payload.razorpaySignature and payload.razorpaySignature.startswith("mock_sig_"))
+        or (payload.razorpayPaymentId and payload.razorpayPaymentId.startswith("pay_mock_"))
+        or (payload.cashfreePaymentId and payload.cashfreePaymentId.startswith("mock_"))
+        or not cashfree_client.is_live()
+    )
+
+    if is_mock:
+        payment_id = payload.cashfreePaymentId or payload.razorpayPaymentId or f"pay_mock_{new_id()[:10]}"
+        res = await _execute_payment_success(order, payment_id=payment_id, payment_method="direct_confirmation")
+        return res
+
     if cashfree_client.is_live():
         cf_order = cashfree_client.get_order(target_order_id)
         if not cf_order:
@@ -723,13 +740,10 @@ async def verify_payment(payload: VerifyPaymentReq, user: dict = Depends(get_cur
             await notify("customer", user["id"], "payment_failed", "Payment Failed",
                          f"Payment for order {order['orderId']} could not be verified.", "order", order["orderId"])
             raise HTTPException(400, f"Payment verification failed: order status is {status}")
-    else:
-        # Mock mode
-        if payload.razorpaySignature and not payload.razorpaySignature.startswith("mock_sig_"):
-            raise HTTPException(400, "Payment verification failed")
-        payment_id = payload.cashfreePaymentId or payload.razorpayPaymentId or f"mock_cf_{new_id()[:12]}"
-        res = await _execute_payment_success(order, payment_id=payment_id, payment_method="cashfree_mock")
-        return res
+
+    payment_id = payload.cashfreePaymentId or payload.razorpayPaymentId or f"mock_cf_{new_id()[:12]}"
+    res = await _execute_payment_success(order, payment_id=payment_id, payment_method="cashfree_mock")
+    return res
 
 
 # ================= CASHFREE WEBHOOK =================

@@ -11,7 +11,6 @@ TOK_SIGNER = "/img/innait-token.png"
 TOK_ORG = "/img/blue-token.png"
 TOK_MCA = "/img/mtoken-purple.png"
 
-
 CATEGORIES = ["Class 2 DSC", "Class 3 DSC", "DGFT DSC", "eTender DSC", "MCA DSC", "Document Signer DSC"]
 
 PRODUCTS = [

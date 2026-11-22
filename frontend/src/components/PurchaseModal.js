@@ -108,12 +108,11 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
   const pay = async () => {
     if (busy) return;
-    let ord = order, r = rzp;
+    let ord = order;
     if (!ord || !ord.orderId) {
       const d = await createOrder();
       if (!d || !d.order) return;
       ord = d.order;
-      r = d.razorpay;
     }
 
     // Upload any pending attached documents
@@ -134,48 +133,20 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     setBusy(true);
 
     try {
-      if (!r || r.mock || !window.Razorpay) {
-        // Normal mock/simulation mode (instant payment confirmation)
-        const payment_id = "pay_mock_" + Math.random().toString(36).slice(2, 12);
-        const res = await api.post("/orders/verify-payment", {
-          orderId: ord.orderId,
-          razorpayOrderId: r?.orderId || ord.orderId,
-          razorpayPaymentId: payment_id,
-          razorpaySignature: "mock_sig_" + payment_id,
-        });
-        await finishPayment(ord, res.data?.invoiceNo);
-      } else {
-        const options = {
-          key: r.keyId,
-          amount: r.amount,
-          currency: r.currency || "INR",
-          order_id: r.orderId,
-          name: "SimpleDSC",
-          description: product.name,
-          handler: async (res) => {
-            try {
-              const verifyRes = await api.post("/orders/verify-payment", {
-                orderId: ord.orderId,
-                razorpayOrderId: res.razorpay_order_id,
-                razorpayPaymentId: res.razorpay_payment_id,
-                razorpaySignature: res.razorpay_signature,
-              });
-              await finishPayment(ord, verifyRes.data?.invoiceNo);
-            } catch (e) {
-              toast.error("Payment verification failed");
-            }
-          },
-          theme: { color: "#6F32B5" },
-        };
-        const rz = new window.Razorpay(options);
-        rz.open();
-        setBusy(false);
-      }
+      // Instant confirmation without payment gateway (free/bypass mode as requested)
+      const payment_id = "pay_mock_" + Math.random().toString(36).slice(2, 12);
+      const res = await api.post("/orders/verify-payment", {
+        orderId: ord.orderId,
+        razorpayOrderId: ord.orderId,
+        razorpayPaymentId: payment_id,
+        razorpaySignature: "mock_sig_" + payment_id,
+      });
+      await finishPayment(ord, res.data?.invoiceNo);
     } catch (e) {
-      console.warn("Payment error, using normal confirmation:", e);
+      console.warn("Payment error, using fallback confirmation:", e);
       try {
         const payment_id = "pay_mock_" + Math.random().toString(36).slice(2, 12);
-        const res = await api.post("/orders/verify-payment", {
+        const res = await api.post("/payment/verify", {
           orderId: ord.orderId,
           razorpayOrderId: ord.orderId,
           razorpayPaymentId: payment_id,
@@ -183,7 +154,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
         });
         await finishPayment(ord, res.data?.invoiceNo);
       } catch (err2) {
-        toast.error("Payment failed");
+        toast.error(err2.response?.data?.detail || "Order confirmation failed");
         setBusy(false);
       }
     }
@@ -290,11 +261,11 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
               <Separator className="my-3" />
               <Row l="Total Payable" v={`₹${totalNow.totalAmount}`} big />
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Payment secured & verified server-side.</div>
+            <div className="flex items-center gap-2 text-xs text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Instant Order Placement Active (Direct Confirmation)</div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setStep(1)} className="flex-1 rounded-xl">Back</Button>
               <Button data-testid="pay-now-btn" onClick={pay} disabled={busy} className="flex-1 bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl">
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : `Pay ₹${totalNow.totalAmount}`}
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : `Place Order (₹${totalNow.totalAmount})`}
               </Button>
             </div>
           </div>
