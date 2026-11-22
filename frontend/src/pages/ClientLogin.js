@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
+import { sendWidgetOtp, verifyWidgetOtp, retryWidgetOtp } from "@/lib/msg91Widget";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 import { Logo } from "@/components/Logo";
 import { Seo } from "@/components/Seo";
 import {
-  ShieldCheck, Smartphone, Sparkles, RefreshCw, ArrowRight,
-  User, CheckCircle2, FileText, Lock
+  ShieldCheck, Smartphone, RefreshCw, ArrowRight,
+  CheckCircle2, ArrowLeft, Loader2
 } from "lucide-react";
 
 export default function ClientLogin() {
@@ -24,12 +25,13 @@ export default function ClientLogin() {
   const [step, setStep] = useState("mobile"); // "mobile" | "otp" | "profile"
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
-  const [sessionId, setSessionId] = useState("");
-  const [devOtp, setDevOtp] = useState("");
+  const [requestId, setRequestId] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [statusNotice, setStatusNotice] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const timerRef = useRef(null);
 
   // Where to redirect after successful login
   const returnUrl = location.state?.from?.pathname || "/client";
@@ -43,6 +45,17 @@ export default function ClientLogin() {
     }
   }, [user, authLoading, navigate, returnUrl]);
 
+  // Countdown timer for resend OTP
+  useEffect(() => {
+    if (countdown > 0) {
+      timerRef.current = setTimeout(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [countdown]);
 
   const handleMobileChange = (val) => {
     let clean = val.replace(/\D/g, "");
@@ -54,59 +67,96 @@ export default function ClientLogin() {
     setMobile(clean.slice(0, 10));
   };
 
-  const sendOtp = async () => {
-    if (mobile.length !== 10) return toast.error("Enter a valid 10-digit mobile number");
+  const handleSendOtp = async () => {
+    if (mobile.length !== 10) {
+      return toast.error("Please enter a valid 10-digit mobile number");
+    }
     setLoading(true);
-    setStatusNotice("Connecting to server...");
+    setStatusNotice("Sending OTP to +91 " + mobile + "...");
     try {
-      track("login_started", { method: "otp", portal: "client" });
-      const { data } = await api.post("/auth/send-otp", { mobile });
-      setSessionId(data.sessionId);
-      setStep("otp");
-      setStatusNotice("");
-      if (data.devMode && data.devOtp) {
-        setDevOtp(data.devOtp);
-        setOtp(data.devOtp);
-        toast.success(`Test OTP: ${data.devOtp}`, {
-          description: "Test OTP auto-filled. Click Verify & Continue to log in.",
-          duration: 10000,
-        });
-      } else {
-        toast.success(`OTP sent to +91 ${mobile}`);
+      track("login_started", { method: "msg91_otp", portal: "client" });
+      const res = await sendWidgetOtp(mobile);
+      if (res?.requestId) {
+        setRequestId(res.requestId);
       }
+      setStep("otp");
+      setCountdown(30);
+      setStatusNotice("");
+      toast.success(`OTP sent to +91 ${mobile}`, {
+        description: "Please enter the 6-digit verification code sent via SMS.",
+      });
     } catch (e) {
       setStatusNotice("");
-      const detail = e.response?.data?.detail;
-      if (e.code === "ECONNABORTED" || e.message?.includes("timeout")) {
-        toast.error("Server is waking up. Please click Send OTP again in a moment.");
-      } else if (detail) {
-        toast.error(detail);
-      } else if (!e.response) {
-        toast.info("Backend is warming up (Render free tier). Please wait a few seconds and click Send OTP again.");
-      } else {
-        toast.error("Could not send OTP. Please check connection.");
-      }
+      console.error("[Send OTP Error]:", e);
+      toast.error(e.message || "Could not send OTP. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const verifyOtp = async () => {
-    if (otp.length !== 6) return toast.error("Enter the 6-digit OTP");
+  const handleVerifyOtp = async () => {
+    const cleanOtp = otp.trim();
+    if (cleanOtp.length < 4) {
+      return toast.error("Please enter the complete OTP code");
+    }
     setLoading(true);
+    setStatusNotice("Verifying OTP with MSG91...");
     try {
-      const { data } = await api.post("/auth/verify-otp", { mobile, otp, sessionId });
+      // 1. Verify OTP with MSG91 widget
+      const verifyRes = await verifyWidgetOtp(cleanOtp, requestId);
+      const verifiedToken = verifyRes.token;
+
+      setStatusNotice("Completing authentication...");
+
+      // 2. Server-side validation of token & session creation
+      const { data } = await api.post("/auth/verify-widget-token", {
+        mobile,
+        token: verifiedToken,
+        reqId: requestId,
+      });
+
       track("otp_verified", { portal: "client" });
       loginWithToken(data.token, data.user);
-      if (data.isNew) {
+
+      if (data.isNew || !data.user?.name) {
         setStep("profile");
+        setStatusNotice("");
       } else {
         toast.success("Welcome back to your Client Portal!");
         navigate(returnUrl, { replace: true });
       }
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Invalid OTP");
+      console.error("[Verify OTP Error]:", e);
+      const detail = e.response?.data?.detail || e.message || "Invalid or expired OTP. Please try again.";
+      toast.error(detail);
+      setStatusNotice("");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const handleResendOtp = async () => {
+    if (countdown > 0 || loading) return;
+    setLoading(true);
+    setStatusNotice("Resending OTP...");
+    try {
+      try {
+        await retryWidgetOtp(null, requestId);
+      } catch (retryErr) {
+        // Fallback to sending fresh OTP if retry against requestId fails
+        const res = await sendWidgetOtp(mobile);
+        if (res?.requestId) setRequestId(res.requestId);
+      }
+      setOtp("");
+      setCountdown(30);
+      setStatusNotice("");
+      toast.success(`New OTP sent to +91 ${mobile}`);
+    } catch (e) {
+      setStatusNotice("");
+      toast.error(e.message || "Failed to resend OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveProfile = async () => {
@@ -119,8 +169,9 @@ export default function ClientLogin() {
       navigate(returnUrl, { replace: true });
     } catch (e) {
       toast.error(e.response?.data?.detail || "Could not save profile");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -189,11 +240,11 @@ export default function ClientLogin() {
               </div>
               <CardTitle className="text-center font-display text-xl text-navy-900">
                 {step === "mobile" && "Sign In / Register"}
-                {step === "otp" && "Verify OTP"}
+                {step === "otp" && "Verify Mobile OTP"}
                 {step === "profile" && "Complete Your Profile"}
               </CardTitle>
               <CardDescription className="text-center text-xs text-slate-500">
-                {step === "mobile" && "Enter your 10-digit mobile number for instant OTP access"}
+                {step === "mobile" && "Enter your 10-digit mobile number for instant SMS OTP verification"}
                 {step === "otp" && `Enter the 6-digit code sent to +91 ${mobile}`}
                 {step === "profile" && "Please provide your name to setup your DSC portal"}
               </CardDescription>
@@ -206,15 +257,17 @@ export default function ClientLogin() {
                   <div>
                     <Label className="text-xs font-semibold text-slate-700">Mobile Number</Label>
                     <div className="mt-1.5 flex items-center rounded-xl border border-input focus-within:ring-2 focus-within:ring-purple-600 overflow-hidden bg-white">
-                      <span className="px-3.5 text-sm text-slate-500 font-medium border-r bg-slate-50 py-2.5">+91</span>
+                      <span className="px-3.5 text-sm text-slate-700 font-bold border-r bg-slate-50 py-2.5">
+                        +91
+                      </span>
                       <input
                         data-testid="client-mobile-input"
                         value={mobile}
                         inputMode="numeric"
                         maxLength={10}
                         onChange={(e) => handleMobileChange(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && sendOtp()}
-                        placeholder="98765 43210"
+                        onKeyDown={(e) => e.key === "Enter" && mobile.length === 10 && handleSendOtp()}
+                        placeholder="79929 99947"
                         className="w-full bg-transparent px-3 py-2.5 outline-none text-sm font-semibold tracking-wide"
                         autoFocus
                       />
@@ -222,7 +275,7 @@ export default function ClientLogin() {
                   </div>
 
                   {statusNotice && (
-                    <p className="text-xs text-amber-600 flex items-center gap-1.5 animate-pulse">
+                    <p className="text-xs text-purple-700 flex items-center gap-1.5 animate-pulse">
                       <RefreshCw className="h-3 w-3 animate-spin" />
                       {statusNotice}
                     </p>
@@ -230,16 +283,23 @@ export default function ClientLogin() {
 
                   <Button
                     data-testid="client-send-otp-btn"
-                    onClick={sendOtp}
+                    onClick={handleSendOtp}
                     disabled={loading || mobile.length !== 10}
-                    className="w-full h-11 bg-gradient-to-r from-purple-700 to-navy-900 text-white font-semibold rounded-xl shadow-md hover:from-purple-800 hover:to-navy-950 transition-all"
+                    className="w-full h-11 bg-gradient-to-r from-purple-700 to-navy-900 text-white font-semibold rounded-xl shadow-md hover:from-purple-800 hover:to-navy-950 transition-all cursor-pointer disabled:opacity-50"
                   >
-                    {loading ? "Sending OTP..." : "Continue with OTP"}
-                    <ArrowRight className="h-4 w-4 ml-1.5" />
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending OTP...
+                      </>
+                    ) : (
+                      <>
+                        Send OTP <ArrowRight className="h-4 w-4 ml-1.5" />
+                      </>
+                    )}
                   </Button>
 
                   <p className="text-center text-xs text-slate-400">
-                    Passwordless, secure verification via SMS OTP.
+                    Secured by MSG91 SMS OTP verification. No password needed.
                   </p>
                 </div>
               )}
@@ -247,59 +307,76 @@ export default function ClientLogin() {
               {/* Step 2: OTP Verification */}
               {step === "otp" && (
                 <div className="space-y-4">
-                  {devOtp && (
-                    <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 font-semibold text-amber-800">
-                          <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-                          <span>Test OTP:</span>
-                          <span className="font-mono text-sm tracking-wider font-bold bg-amber-100 px-2 py-0.5 rounded border border-amber-300 text-amber-950">
-                            {devOtp}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setOtp(devOtp)}
-                          className="text-[11px] font-semibold bg-amber-200 hover:bg-amber-300 text-amber-900 px-2.5 py-1 rounded-md transition"
-                        >
-                          Auto-fill
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between text-xs text-slate-500 pb-1">
+                    <span>Sent to: <strong className="text-slate-700">+91 {mobile}</strong></span>
+                    <button
+                      type="button"
+                      className="text-purple-700 hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                      onClick={() => {
+                        setStep("mobile");
+                        setOtp("");
+                      }}
+                    >
+                      <ArrowLeft className="h-3 w-3" /> Change Number
+                    </button>
+                  </div>
 
                   <div className="flex justify-center py-2" data-testid="client-otp-input">
-                    <InputOTP maxLength={6} value={otp} onChange={setOtp} autoFocus>
+                    <InputOTP
+                      maxLength={6}
+                      value={otp}
+                      onChange={setOtp}
+                      onComplete={handleVerifyOtp}
+                      autoFocus
+                    >
                       <InputOTPGroup>
                         {[0, 1, 2, 3, 4, 5].map((i) => (
-                          <InputOTPSlot key={i} index={i} />
+                          <InputOTPSlot key={i} index={i} className="text-base font-bold" />
                         ))}
                       </InputOTPGroup>
                     </InputOTP>
                   </div>
 
+                  {statusNotice && (
+                    <p className="text-xs text-purple-700 flex items-center justify-center gap-1.5 animate-pulse">
+                      <RefreshCw className="h-3 w-3 animate-spin" />
+                      {statusNotice}
+                    </p>
+                  )}
+
                   <Button
                     data-testid="client-verify-otp-btn"
-                    onClick={verifyOtp}
-                    disabled={loading || otp.length !== 6}
-                    className="w-full h-11 bg-gradient-to-r from-purple-700 to-navy-900 text-white font-semibold rounded-xl shadow-md hover:from-purple-800 hover:to-navy-950 transition-all"
+                    onClick={handleVerifyOtp}
+                    disabled={loading || otp.length < 4}
+                    className="w-full h-11 bg-gradient-to-r from-purple-700 to-navy-900 text-white font-semibold rounded-xl shadow-md hover:from-purple-800 hover:to-navy-950 transition-all cursor-pointer disabled:opacity-50"
                   >
-                    {loading ? "Verifying..." : "Verify & Access Dashboard"}
-                    <ArrowRight className="h-4 w-4 ml-1.5" />
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Verifying...
+                      </>
+                    ) : (
+                      <>
+                        Verify OTP & Continue <ArrowRight className="h-4 w-4 ml-1.5" />
+                      </>
+                    )}
                   </Button>
 
-                  <div className="flex items-center justify-between text-xs text-purple-700 pt-1">
-                    <button type="button" className="hover:underline" onClick={() => setStep("mobile")}>
-                      Change Mobile Number
-                    </button>
-                    <button
-                      type="button"
-                      className="hover:underline disabled:opacity-50 font-semibold"
-                      disabled={loading}
-                      onClick={sendOtp}
-                    >
-                      Resend OTP
-                    </button>
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                    <span className="text-slate-500">Didn't receive code?</span>
+                    {countdown > 0 ? (
+                      <span className="text-slate-400 font-medium">
+                        Resend in {countdown}s
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="text-purple-700 hover:underline font-semibold cursor-pointer"
+                        disabled={loading}
+                        onClick={handleResendOtp}
+                      >
+                        Resend OTP
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -333,7 +410,7 @@ export default function ClientLogin() {
                     data-testid="client-profile-save-btn"
                     onClick={saveProfile}
                     disabled={loading || !name.trim()}
-                    className="w-full h-11 bg-gradient-to-r from-purple-700 to-navy-900 text-white font-semibold rounded-xl shadow-md hover:from-purple-800 hover:to-navy-950 transition-all"
+                    className="w-full h-11 bg-gradient-to-r from-purple-700 to-navy-900 text-white font-semibold rounded-xl shadow-md hover:from-purple-800 hover:to-navy-950 transition-all cursor-pointer"
                   >
                     {loading ? "Saving..." : "Open Client Dashboard"}
                     <ArrowRight className="h-4 w-4 ml-1.5" />
@@ -356,7 +433,7 @@ export default function ClientLogin() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
-        &copy; {new Date().getFullYear()} YSMTX Solution Pvt Ltd. All rights reserved. Client Portal.
+        &copy; {new Date().getFullYear()} TSMTX Solutions Private Limited. All rights reserved. SimplDSC Client Portal.
       </footer>
     </div>
   );

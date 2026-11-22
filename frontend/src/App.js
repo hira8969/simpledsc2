@@ -84,6 +84,7 @@ export default function App() {
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/agent/login" element={<AgentLogin />} />
                 <Route path="/client/login" element={<ClientLogin />} />
+                <Route path="/login" element={<Navigate to="/client/login" replace />} />
 
                 {/* Protected Admin Routes: /admin and /admin/* */}
                 <Route

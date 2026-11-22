@@ -55,6 +55,11 @@ class VerifyOtp(BaseModel):
     otp: str
     sessionId: str
 
+class VerifyWidgetToken(BaseModel):
+    mobile: str
+    token: str
+    reqId: Optional[str] = None
+
 class ResendOtp(BaseModel):
     mobile: str
     sessionId: Optional[str] = None
@@ -295,6 +300,38 @@ async def verify_otp(payload: VerifyOtp):
 
     await db.otp_sessions.update_one({"id": sess["id"]}, {"$set": {"verified": True, "verifiedAt": now_iso()}})
     return await _login_or_create(mobile)
+
+
+@api.post("/auth/verify-widget-token")
+@api.post("/otp/verify-widget")
+async def verify_widget_token(payload: VerifyWidgetToken, request: Request):
+    clean_mobile = sanitize_mobile(payload.mobile)
+    if not clean_mobile or len(clean_mobile) != 10:
+        raise HTTPException(400, "Please provide a valid 10-digit mobile number")
+    if not payload.token or not payload.token.strip():
+        raise HTTPException(400, "Missing verification token from provider")
+
+    token_str = payload.token.strip()
+
+    # Replay protection: each verified token can only be used once
+    already_used = await db.used_widget_tokens.find_one({"token": token_str})
+    if already_used:
+        raise HTTPException(400, "This verification token has already been used. Please request a new OTP.")
+
+    # Server-side verification with MSG91
+    result = msg91_client.verify_widget_token(token_str, clean_mobile)
+    if not result.get("ok"):
+        raise HTTPException(400, result.get("message") or "Verification failed. Please try again.")
+
+    # Save to used tokens
+    await db.used_widget_tokens.insert_one({
+        "token": token_str,
+        "mobile": clean_mobile,
+        "ip": client_ip(request),
+        "verifiedAt": now_iso()
+    })
+
+    return await _login_or_create(clean_mobile, provider="msg91_widget")
 
 
 @api.post("/otp/resend")
@@ -1057,6 +1094,7 @@ async def on_startup():
     await db.documents.create_index("orderId")
     await db.dscs.create_index("userId")
     await db.product_images.create_index("id", unique=True)
+    await db.used_widget_tokens.create_index("token", unique=True, sparse=True)
     asyncio.create_task(_scheduler())
     logger.info("SimplDSC started. Cashfree mode=%s (live=%s), MSG91 configured=%s", cashfree_client.CF_ENV, cashfree_client.is_live(), msg91_client.is_configured())
 

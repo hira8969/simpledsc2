@@ -37,10 +37,58 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://sdk.cashfree.com" />
     <link rel="dns-prefetch" href="https://simpledsc2.onrender.com" />
+    <link rel="dns-prefetch" href="https://verify.msg91.com" />
+    <link rel="dns-prefetch" href="https://verify.phone91.com" />
 
     <!-- Payment SDKs -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+
+    <!-- MSG91 Official OTP Widget SDK -->
+    <script type="text/javascript">
+      window.configuration = {
+        widgetId: "366b76697a6b373331373736",
+        tokenAuth: "592529Trr8YzZZWos66b02bc2bP1",
+        identifier: "",
+        exposeMethods: true,
+        success: (data) => {
+          console.log("[MSG91 OTP Widget] Global success response:", data);
+          if (typeof window.__msg91_onSuccess === "function") {
+            window.__msg91_onSuccess(data);
+          }
+        },
+        failure: (error) => {
+          console.warn("[MSG91 OTP Widget] Global failure response:", error);
+          if (typeof window.__msg91_onFailure === "function") {
+            window.__msg91_onFailure(error);
+          }
+        }
+      };
+      (function loadOtpScript(urls) {
+        var i = 0;
+        function attempt() {
+          var s = document.createElement('script');
+          s.src = urls[i];
+          s.async = true;
+          s.onload = () => {
+            if (typeof window.initSendOTP === 'function') {
+              window.initSendOTP(window.configuration);
+            }
+          };
+          s.onerror = () => {
+            i++;
+            if (i < urls.length) {
+              attempt();
+            }
+          };
+          document.head.appendChild(s);
+        }
+        attempt();
+      })([
+        'https://verify.msg91.com/otp-provider.js',
+        'https://verify.phone91.com/otp-provider.js'
+      ]);
+    </script>
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
