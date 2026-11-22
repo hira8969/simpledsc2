@@ -31,7 +31,12 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response?.data?.token && !response.config?.url?.includes("/admin") && !response.config?.url?.includes("/agent")) {
+      localStorage.setItem("sd_token", response.data.token);
+    }
+    return response;
+  },
   (error) => {
     if (error.response && error.response.status === 401) {
       const url = error.config?.url || "";
@@ -40,7 +45,10 @@ api.interceptors.response.use(
       } else if (url.includes("/agent")) {
         localStorage.removeItem("sd_agent_token");
       } else if (url.includes("/customer") || url.includes("/auth")) {
-        localStorage.removeItem("sd_token");
+        const curToken = localStorage.getItem("sd_token") || "";
+        if (!curToken.startsWith("sd_verified_")) {
+          localStorage.removeItem("sd_token");
+        }
       }
     }
     return Promise.reject(error);

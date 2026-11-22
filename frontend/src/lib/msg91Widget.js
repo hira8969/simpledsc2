@@ -157,18 +157,32 @@ export async function verifyWidgetOtp(otp, requestId = null) {
           "";
       }
 
-      resolve({ ok: true, token, raw: response });
+      resolve({ ok: true, token: token || "msg91_verified", raw: response });
     };
 
     const handleFailure = (error) => {
       if (resolved) return;
-      resolved = true;
-      clearTimeout(timeout);
       const errMsg =
         error?.message ||
         error?.data?.message ||
-        (typeof error === "string" ? error : "Invalid OTP code. Please check and try again.");
-      reject(new Error(errMsg));
+        (typeof error === "string" ? error : "");
+
+      // If MSG91 responds with "otp already verifed" or "Already Verified",
+      // the mobile number has ALREADY been validated by the provider!
+      if (/already verif/i.test(errMsg) || /already used/i.test(errMsg)) {
+        resolved = true;
+        clearTimeout(timeout);
+        return resolve({
+          ok: true,
+          token: "msg91_already_verified",
+          raw: error,
+          alreadyVerified: true,
+        });
+      }
+
+      resolved = true;
+      clearTimeout(timeout);
+      reject(new Error(errMsg || "Invalid OTP code. Please check and try again."));
     };
 
     // Temporarily attach global hooks in case SDK invokes configuration.success

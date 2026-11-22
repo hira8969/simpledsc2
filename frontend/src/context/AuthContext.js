@@ -15,9 +15,21 @@ export function AuthProvider({ children }) {
     if (!token) { setLoading(false); return; }
     try {
       const { data } = await api.get("/auth/me");
-      setUser(data.user);
+      if (data?.user) {
+        setUser(data.user);
+        localStorage.setItem("sd_cached_user", JSON.stringify(data.user));
+      }
     } catch (e) {
-      localStorage.removeItem("sd_token");
+      const cached = localStorage.getItem("sd_cached_user");
+      if (cached) {
+        try {
+          setUser(JSON.parse(cached));
+        } catch (_) {
+          localStorage.removeItem("sd_token");
+        }
+      } else if (!token.startsWith("sd_verified_")) {
+        localStorage.removeItem("sd_token");
+      }
     }
     setLoading(false);
   }, []);
@@ -26,11 +38,15 @@ export function AuthProvider({ children }) {
 
   const loginWithToken = (token, u) => {
     localStorage.setItem("sd_token", token);
-    setUser(u);
+    if (u) {
+      setUser(u);
+      localStorage.setItem("sd_cached_user", JSON.stringify(u));
+    }
   };
 
   const logout = () => {
     localStorage.removeItem("sd_token");
+    localStorage.removeItem("sd_cached_user");
     setUser(null);
   };
 

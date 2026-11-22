@@ -88,7 +88,7 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" data-testid="nav-login-btn" onClick={() => requireAuth()} className="hidden sm:inline-flex text-navy-800">
+              <Button variant="ghost" data-testid="nav-login-btn" onClick={() => requireAuth(() => nav("/client"))} className="hidden sm:inline-flex text-navy-800">
                 Login
               </Button>
             )}
@@ -150,7 +150,7 @@ export function Navbar() {
                   ) : (
                     <button
                       onClick={() => {
-                        requireAuth();
+                        requireAuth(() => nav("/client"));
                         setMobileOpen(false);
                       }}
                       className="min-h-11 rounded-lg px-3 py-2.5 text-left font-semibold text-purple-700"

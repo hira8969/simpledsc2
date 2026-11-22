@@ -59,6 +59,13 @@
         },
         failure: (error) => {
           console.warn("[MSG91 OTP Widget] Global failure response:", error);
+          var errStr = String((error && error.message) || (error && error.data && error.data.message) || error || "");
+          if (/already verif/i.test(errStr) || /already used/i.test(errStr)) {
+            if (typeof window.__msg91_onSuccess === "function") {
+              window.__msg91_onSuccess({ message: "Already Verified", token: "msg91_already_verified" });
+              return;
+            }
+          }
           if (typeof window.__msg91_onFailure === "function") {
             window.__msg91_onFailure(error);
           }
