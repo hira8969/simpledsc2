@@ -93,14 +93,19 @@ def create_order(
     order_note: str = None,
 ) -> dict:
     """Create a Cashfree payment order and return payment_session_id."""
-    clean_phone = "".join(filter(str.isdigit, customer_phone or ""))
-    if len(clean_phone) > 10:
-        clean_phone = clean_phone[-10:]
-    elif len(clean_phone) < 10:
-        clean_phone = "9999999999"
+    import re
+
+    clean_oid = re.sub(r"[^a-zA-Z0-9_-]", "-", str(order_id))[:45]
+    clean_cid = re.sub(r"[^a-zA-Z0-9_-]", "_", str(customer_id or uuid.uuid4()))[:50]
+
+    raw_phone = "".join(filter(str.isdigit, customer_phone or ""))
+    if len(raw_phone) >= 10:
+        clean_phone = raw_phone[-10:]
+    else:
+        clean_phone = "9876543210"
 
     clean_email = customer_email or "customer@simpldsc.com"
-    clean_name = customer_name or "SimpleDSC Customer"
+    clean_name = (customer_name or "SimpleDSC Customer")[:100]
     clean_amount = round(float(amount), 2)
 
     _, _, env = get_credentials()
@@ -108,10 +113,10 @@ def create_order(
     if not is_live():
         # Mock mode for testing without active Cashfree keys
         mock_session_id = f"session_mock_{uuid.uuid4().hex}"
-        logger.info(f"[CASHFREE MOCK] Created mock order {order_id} session {mock_session_id}")
+        logger.info(f"[CASHFREE MOCK] Created mock order {clean_oid} session {mock_session_id}")
         return {
-            "cf_order_id": f"cf_mock_{order_id}",
-            "order_id": order_id,
+            "cf_order_id": f"cf_mock_{clean_oid}",
+            "order_id": clean_oid,
             "order_status": "ACTIVE",
             "payment_session_id": mock_session_id,
             "order_amount": clean_amount,
@@ -121,34 +126,35 @@ def create_order(
         }
 
     payload = {
-        "order_id": order_id,
+        "order_id": clean_oid,
         "order_amount": clean_amount,
         "order_currency": "INR",
         "customer_details": {
-            "customer_id": customer_id or str(uuid.uuid4()),
-            "customer_name": clean_name[:100],
+            "customer_id": clean_cid,
+            "customer_name": clean_name,
             "customer_email": clean_email,
             "customer_phone": clean_phone,
         },
         "order_meta": {
-            "return_url": return_url or f"https://www.simpldsc.com/dashboard?order_id={order_id}",
+            "return_url": return_url or f"https://www.simpldsc.com/dashboard?order_id={clean_oid}",
         },
-        "order_note": (order_note or f"SimpleDSC Order {order_id}")[:200],
+        "order_note": (order_note or f"SimpleDSC Order {clean_oid}")[:200],
     }
-    if notify_url:
-        payload["order_meta"]["notify_url"] = notify_url
+    # Cashfree strictly requires notify_url to be HTTPS. Never pass http:// or localhost.
+    if notify_url and str(notify_url).startswith("https://"):
+        payload["order_meta"]["notify_url"] = str(notify_url)
 
     try:
         url = f"{get_base_url()}/orders"
         status_code, data, raw_text = _http_request("POST", url, get_headers(), payload, timeout=30)
         if status_code not in (200, 201):
-            error_msg = data.get("message") or raw_text
+            error_msg = data.get("message") or data.get("sub_code") or raw_text
             logger.error(f"Cashfree create order error {status_code}: {error_msg}")
-            raise RuntimeError(f"Cashfree Error: {error_msg}")
+            raise RuntimeError(f"Cashfree API Error ({status_code}): {error_msg}")
 
         return {
             "cf_order_id": data.get("cf_order_id"),
-            "order_id": data.get("order_id", order_id),
+            "order_id": data.get("order_id", clean_oid),
             "order_status": data.get("order_status", "ACTIVE"),
             "payment_session_id": data.get("payment_session_id"),
             "order_amount": data.get("order_amount", clean_amount),
@@ -157,8 +163,8 @@ def create_order(
             "environment": env,
         }
     except Exception as e:
-        logger.error(f"Failed to connect to Cashfree: {e}")
-        raise RuntimeError(f"Failed to communicate with Cashfree: {e}")
+        logger.error(f"Failed to communicate with Cashfree: {e}")
+        raise RuntimeError(f"Cashfree Error: {e}")
 
 
 def get_order(order_id: str) -> dict:
@@ -203,10 +209,13 @@ def get_order_payments(order_id: str) -> list:
 
 
 def create_upi_qr(payment_session_id: str, order_id: str, amount: float = 0.0) -> dict:
-    """Generate dynamic UPI QR payload for an order via Cashfree."""
-    if not is_live():
+    """Generate dynamic UPI QR payload for an order via official Cashfree API.
+    Never invents or hardcodes any fake UPI ID (e.g. simpldsc@...).
+    """
+    if not is_live() or not payment_session_id or payment_session_id.startswith("session_mock_"):
         return {
-            "qr_string": f"upi://pay?pa=simpldsc@cashfree&pn=SimpleDSC&am={amount:.2f}&tr={order_id}&cu=INR",
+            "qr_string": None,
+            "use_hosted_checkout": True,
             "mock": True
         }
 
@@ -223,12 +232,13 @@ def create_upi_qr(payment_session_id: str, order_id: str, amount: float = 0.0) -
     if status_code in (200, 201):
         data_payload = data.get("data", {}).get("payload", {})
         qr_string = data_payload.get("qrcode") or data.get("payload", {}).get("qrcode")
-        return {"qr_string": qr_string, "raw": data, "mock": False}
+        return {"qr_string": qr_string, "raw": data, "use_hosted_checkout": False, "mock": False}
     else:
-        logger.warning(f"[Cashfree QR Error {status_code}]: {raw_text}")
+        logger.info(f"[Cashfree QR Sessions Response {status_code}]: {raw_text}. Routing through Cashfree Hosted Modal Checkout.")
         return {
-            "qr_string": f"upi://pay?pa=simpldsc@cashfree&pn=SimpleDSC&am={amount:.2f}&tr={order_id}&cu=INR",
-            "mock": True
+            "qr_string": None,
+            "use_hosted_checkout": True,
+            "mock": False
         }
 
 

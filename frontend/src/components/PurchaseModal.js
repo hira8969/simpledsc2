@@ -159,14 +159,15 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     setBusy(true);
     try {
       const agentCode = localStorage.getItem("sd_agent_ref") || undefined;
+      const effectiveMobile = applicant.mobile || shipping.mobile || user?.mobile || "";
       const orderApplicant = {
         ...applicant,
-        mobile: applicant.mobile || user?.mobile || "",
+        mobile: effectiveMobile,
       };
       const orderShipping = {
         ...shipping,
         name: shipping.name || user?.name || "Customer",
-        mobile: shipping.mobile || applicant.mobile || user?.mobile || "",
+        mobile: shipping.mobile || effectiveMobile,
       };
 
       const { data } = await api.post("/orders", {
@@ -187,38 +188,39 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       // Proactive session recovery on token expiration or auth error during checkout
       if (msg && (msg.toLowerCase().includes("token") || msg.toLowerCase().includes("authenticat"))) {
         try {
-          const userMob = user?.mobile || applicant.mobile || shipping.mobile;
+          const userMob = applicant.mobile || shipping.mobile || user?.mobile;
           if (userMob) {
-            const fallbackToken = `sd_verified_${userMob}_${Date.now()}`;
-            localStorage.setItem("sd_token", fallbackToken);
-          }
-          const freshToken = await refreshCustomerSession(userMob);
-          const activeToken = freshToken || localStorage.getItem("sd_token");
-          if (activeToken) {
-            const retryRes = await api.post("/orders", {
-              productId: product.id,
-              couponCode: pricing ? coupon : null,
-              agentCode: localStorage.getItem("sd_agent_ref") || undefined,
-              applicant: { ...applicant, mobile: applicant.mobile || userMob || "" },
-              shipping: { ...shipping, mobile: shipping.mobile || userMob || "" },
-            }, {
-              headers: { Authorization: `Bearer ${activeToken}`, "X-Customer-Mobile": userMob || "" }
-            });
-            if (retryRes.data?.token) {
-              localStorage.setItem("sd_token", retryRes.data.token);
+            const freshToken = await refreshCustomerSession(userMob);
+            const activeToken = freshToken || localStorage.getItem("sd_token");
+            if (activeToken) {
+              const retryRes = await api.post("/orders", {
+                productId: product.id,
+                couponCode: pricing ? coupon : null,
+                agentCode: localStorage.getItem("sd_agent_ref") || undefined,
+                applicant: { ...applicant, mobile: userMob },
+                shipping: { ...shipping, mobile: userMob },
+              }, {
+                headers: { Authorization: `Bearer ${activeToken}`, "X-Customer-Mobile": userMob }
+              });
+              if (retryRes.data?.token) {
+                localStorage.setItem("sd_token", retryRes.data.token);
+              }
+              setOrder(retryRes.data.order);
+              return retryRes.data;
             }
-            setOrder(retryRes.data.order);
-            return retryRes.data;
           }
         } catch (retryErr) {
           console.warn("[Checkout token auto-recovery notice]:", retryErr);
         }
       }
 
-      if (msg && msg !== "Not Found" && !msg.toLowerCase().includes("token") && !msg.toLowerCase().includes("authenticat")) {
-        toast.error(msg);
+      const errMsg = msg || e.message;
+      if (errMsg && (errMsg.toLowerCase().includes("authenticat") || errMsg.toLowerCase().includes("token") || errMsg.toLowerCase().includes("log in"))) {
+        toast.error("Please verify your mobile number or log in to complete checkout.");
+      } else if (errMsg && errMsg !== "Not Found") {
+        toast.error(errMsg);
       } else {
-        toast.error("Could not create order. Please verify your details.");
+        toast.error("Unable to create order. Please check your mobile number and details.");
       }
       return null;
     } finally {
@@ -237,21 +239,13 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     setUploaded((u) => ({ ...u, [docType]: file.name }));
     toast.success(`${docType} attached: ${file.name}`);
 
-    let activeOrder = order;
-    if (!activeOrder) {
-      const d = await createOrder();
-      if (d && d.order) {
-        activeOrder = d.order;
-        setOrder(d.order);
-      }
-    }
-
-    if (activeOrder && activeOrder.orderId) {
+    // If order already created, upload to server in background
+    if (order && order.orderId) {
       const fd = new FormData();
       fd.append("documentType", docType);
       fd.append("file", file);
       try {
-        await api.post(`/customer/orders/${activeOrder.orderId}/documents`, fd);
+        await api.post(`/customer/orders/${order.orderId}/documents`, fd);
         track("document_upload", { type: docType });
       } catch (e) {
         console.warn("Background upload notice:", e);
@@ -438,16 +432,15 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     }
 
     if (ord && ord.orderId) {
-      const defaultQr = `upi://pay?pa=simpldsc@cashfree&pn=SimpleDSC&am=${totalNow.totalAmount}&tr=${ord.orderId}&cu=INR`;
       try {
         const res = await api.post("/payment/upi-qr", { orderId: ord.orderId });
         if (res.data?.qr_string) {
           setQrString(res.data.qr_string);
         } else {
-          setQrString(defaultQr);
+          setQrString(null);
         }
       } catch (e) {
-        setQrString(defaultQr);
+        setQrString(null);
       }
       setQrTimer(300);
       startQrPolling(ord.orderId, ord);
@@ -840,14 +833,22 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
                                 <RefreshCw className="h-3 w-3 mr-1" /> Regenerate
                               </Button>
                             </div>
-                          ) : (
+                          ) : qrString ? (
                             <img
-                              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                                qrString || `upi://pay?pa=simpldsc@cashfree&pn=SimpleDSC&am=${totalNow.totalAmount}&cu=INR`
-                              )}`}
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrString)}`}
                               alt="Cashfree UPI Dynamic QR"
                               className="h-44 w-44 object-contain rounded-lg"
                             />
+                          ) : (
+                            <div className="flex h-44 w-44 flex-col items-center justify-center gap-2 p-3 text-center">
+                              <div className="p-3 bg-purple-50 rounded-2xl border border-purple-100">
+                                <QrCode className="h-9 w-9 text-purple-700 mx-auto" />
+                              </div>
+                              <p className="text-xs font-bold text-navy-950">Cashfree Dynamic QR</p>
+                              <p className="text-[10px] text-slate-500 leading-tight">
+                                Verified NPCI Dynamic QR with auto-settlement to registered PNB account
+                              </p>
+                            </div>
                           )}
                           <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
                             <span className="relative flex h-2 w-2">
@@ -859,7 +860,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
                         </div>
 
                         <p className="text-[11px] text-slate-500">
-                          Scan using Google Pay, PhonePe, Paytm, BHIM, Amazon Pay or any banking UPI app. You will be redirected automatically once confirmed.
+                          Scan using Google Pay, PhonePe, Paytm, BHIM, Amazon Pay or any banking UPI app. Cashfree confirms payment automatically.
                         </p>
 
                         <div className="flex items-center gap-2">
@@ -877,7 +878,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
                             disabled={busy}
                             className="flex-1 bg-purple-700 hover:bg-purple-800 text-white text-xs rounded-xl font-bold"
                           >
-                            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "I Have Paid / Open Checkout"}
+                            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Open Cashfree QR Checkout"}
                           </Button>
                         </div>
                       </div>

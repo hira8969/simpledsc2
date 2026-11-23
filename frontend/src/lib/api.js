@@ -138,8 +138,11 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return api(originalRequest);
         }
-        // If recovery failed, clear stale customer token to avoid loop
-        localStorage.removeItem("sd_token");
+        // If recovery failed, clear stale customer token only if no cached mobile
+        const cached = localStorage.getItem("sd_cached_user");
+        if (!cached) {
+          localStorage.removeItem("sd_token");
+        }
       }
     }
     return Promise.reject(error);

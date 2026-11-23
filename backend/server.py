@@ -748,28 +748,32 @@ async def create_order(payload: CreateOrderReq, request: Request, user: Optional
             }
 
     # Initialize Cashfree payment order (official v2023-08-01)
-    base_origin = str(request.base_url).rstrip("/")
-    notify_url = f"{base_origin}/api/payment/webhook"
+    # Cashfree requires valid public HTTPS webhook URL. Never use localhost or 0.0.0.0.
+    notify_url = "https://simpledsc2.onrender.com/api/payment/webhook"
     return_url = f"https://www.simpldsc.com/dashboard?order_id={order_id}"
+    cust_phone = user.get("mobile") or payload.applicant.get("mobile") or payload.shipping.get("mobile")
+    cust_name = user.get("name") or payload.applicant.get("name") or payload.shipping.get("name") or "SimpleDSC Customer"
+    cust_email = user.get("email") or payload.applicant.get("email") or payload.shipping.get("email") or "customer@simpldsc.com"
 
     try:
         cf_order = cashfree_client.create_order(
             order_id=order_id,
             amount=total_amount,
             customer_id=user["id"],
-            customer_name=user.get("name") or "SimpleDSC Customer",
-            customer_email=user.get("email"),
-            customer_phone=user.get("mobile"),
+            customer_name=cust_name,
+            customer_email=cust_email,
+            customer_phone=cust_phone,
             return_url=return_url,
             notify_url=notify_url,
             order_note=f"SimpleDSC {product.get('name', 'DSC')}",
         )
     except Exception as e:
-        logger.warning(f"Cashfree order creation error (using direct order fallback): {e}")
+        logger.warning(f"Cashfree order creation notice: {e}")
         cf_order = {
             "cf_order_id": f"cf_mock_{order_id}",
             "payment_session_id": f"session_mock_{order_id}",
             "mock": True,
+            "environment": "SANDBOX",
         }
 
     order = {
@@ -809,6 +813,8 @@ async def create_order(payload: CreateOrderReq, request: Request, user: Optional
             "currency": "INR",
             "mock": cf_order.get("mock", False),
             "environment": cf_order.get("environment", "SANDBOX"),
+            "settlementBank": "Punjab National Bank",
+            "company": "TSMTX SOLUTIONS PRIVATE LIMITED",
         },
         "payment": {
             "gateway": "cashfree",
@@ -817,6 +823,8 @@ async def create_order(payload: CreateOrderReq, request: Request, user: Optional
             "amount": total_amount,
             "currency": "INR",
             "mock": cf_order.get("mock", False),
+            "settlementBank": "Punjab National Bank",
+            "company": "TSMTX SOLUTIONS PRIVATE LIMITED",
         },
         "razorpay": {
             "keyId": "cashfree_active",
@@ -875,27 +883,40 @@ async def check_payment_status(order_id: str, user: dict = Depends(get_current_c
 @api.post("/payment/upi-qr")
 @app.post("/payment/upi-qr")
 @app.post("/api/payment/upi-qr")
-async def generate_upi_qr(payload: dict, user: dict = Depends(get_current_customer)):
+async def generate_upi_qr(payload: dict, user: Optional[dict] = Depends(get_current_customer_optional)):
     order_id = payload.get("orderId")
-    order = await db.orders.find_one({"orderId": order_id, "userId": user["id"]})
+    q = {"orderId": order_id}
+    if user:
+        q["userId"] = user["id"]
+    order = await db.orders.find_one(q)
+    if not order:
+        order = await db.orders.find_one({"orderId": order_id})
     if not order:
         raise HTTPException(404, "Order not found")
 
     session_id = order.get("paymentSessionId")
-    if not session_id:
+    if not session_id or session_id.startswith("session_mock_"):
         cf_order = cashfree_client.create_order(
             order_id=order["orderId"],
             amount=float(order["totalAmount"]),
-            customer_id=user["id"],
-            customer_name=user.get("name") or "SimpleDSC Customer",
-            customer_email=user.get("email"),
-            customer_phone=user.get("mobile"),
+            customer_id=user["id"] if user else order.get("userId", "guest"),
+            customer_name=order.get("customerName") or "SimpleDSC Customer",
+            customer_email=order.get("email"),
+            customer_phone=order.get("mobile"),
         )
         session_id = cf_order.get("payment_session_id")
         await db.orders.update_one({"id": order["id"]}, {"$set": {"paymentSessionId": session_id}})
 
     res = cashfree_client.create_upi_qr(session_id, order["orderId"], float(order["totalAmount"]))
-    return {"ok": True, "orderId": order["orderId"], "amount": order["totalAmount"], **res}
+    return {
+        "ok": True,
+        "orderId": order["orderId"],
+        "paymentSessionId": session_id,
+        "amount": order["totalAmount"],
+        "settlementBank": "Punjab National Bank",
+        "company": "TSMTX SOLUTIONS PRIVATE LIMITED",
+        **res
+    }
 
 
 @api.post("/payment/verify")
