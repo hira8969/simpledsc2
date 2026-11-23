@@ -490,6 +490,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       stopQrPolling();
     }
     return () => stopQrPolling();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, selectedMethod]);
 
   const copyOrderId = () => {
