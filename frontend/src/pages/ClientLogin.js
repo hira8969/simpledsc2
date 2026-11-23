@@ -190,7 +190,7 @@ export default function ClientLogin() {
         const localUser = {
           id: `usr_${mobile}`,
           mobile,
-          name: "Amit kumar",
+          name: name || "Client User",
           mobileVerified: true,
           simplDscId: `SPLDSC-2026-D-${mobile.slice(-6)}`,
         };
@@ -210,7 +210,7 @@ export default function ClientLogin() {
         const localUser = {
           id: `usr_${mobile}`,
           mobile,
-          name: "Amit kumar",
+          name: name || "Client User",
           mobileVerified: true,
           simplDscId: `SPLDSC-2026-D-${mobile.slice(-6)}`,
         };
@@ -226,7 +226,7 @@ export default function ClientLogin() {
         const localUser = {
           id: `usr_${mobile}`,
           mobile,
-          name: "Amit kumar",
+          name: name || "Client User",
           mobileVerified: true,
           simplDscId: `SPLDSC-2026-D-${mobile.slice(-6)}`,
         };

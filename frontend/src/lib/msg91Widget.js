@@ -5,8 +5,8 @@
  */
 
 export const MSG91_CONFIG = {
-  widgetId: "366b76697a6b373331373736",
-  tokenAuth: "592529Trr8YzZZWos66b02bc2bP1",
+  widgetId: process.env.REACT_APP_MSG91_WIDGET_ID || "366b76697a6b373331373736",
+  tokenAuth: process.env.REACT_APP_MSG91_TOKEN_AUTH || "592529Trr8YzZZWos66b02bc2bP1",
 };
 
 /**

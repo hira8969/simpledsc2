@@ -104,15 +104,14 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
   const pollingRef = useRef(null);
 
-  if (!product) return null;
   const steps = ["Applicant Details", "Documents", "Payment & Review", "Confirmation"];
 
   const totalNow = pricing || {
-    amount: product.price,
+    amount: product?.price || 0,
     discount: 0,
-    gst: Math.round(product.price - product.price / 1.18),
-    professionalFee: Math.round(product.price / 1.18),
-    totalAmount: product.price,
+    gst: product ? Math.round(product.price - product.price / 1.18) : 0,
+    professionalFee: product ? Math.round(product.price / 1.18) : 0,
+    totalAmount: product?.price || 0,
   };
 
   const applyCoupon = async () => {
@@ -457,6 +456,8 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       setPaymentState("idle");
     }, 200);
   };
+
+  if (!product) return null;
 
   return (
     <>

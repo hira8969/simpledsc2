@@ -158,6 +158,8 @@ def verify_widget_token(token: str, expected_mobile: str) -> dict:
         headers["authkey"] = active_auth
 
     payload = {"access-token": token}
+    if active_auth:
+        payload["authkey"] = active_auth
     status_code, data, raw_text = _http_request("POST", WIDGET_VERIFY_URL, headers, payload)
     logger.info(f"[MSG91 verifyAccessToken] status={status_code} data={data}")
 
