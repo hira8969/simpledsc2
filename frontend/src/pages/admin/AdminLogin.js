@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { Seo } from "@/components/Seo";
 import { Logo } from "@/components/Logo";
+import { CompanyAttribution } from "@/components/CompanyAttribution";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,6 +59,7 @@ export default function AdminLogin() {
           <Button data-testid="admin-login-btn" onClick={submit} disabled={busy} className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl py-6">{busy ? "Signing in…" : "Sign In"}</Button>
         </div>
         <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-500"><ShieldCheck className="h-3.5 w-3.5" /> Protected with rate-limiting & lockout</p>
+        <CompanyAttribution variant="subtle" className="mt-4 text-slate-500 text-[11px]" />
       </div>
     </div>
   );

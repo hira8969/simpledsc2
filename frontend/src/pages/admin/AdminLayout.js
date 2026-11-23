@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation, Navigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { Logo } from "@/components/Logo";
+import { CompanyAttribution } from "@/components/CompanyAttribution";
 import { Input } from "@/components/ui/input";
 import api from "@/lib/api";
 import {
@@ -62,6 +63,7 @@ export default function AdminLayout() {
             <Link to="/" data-testid="admin-logo-link" className="inline-block transition-opacity hover:opacity-90">
               <Logo dark />
             </Link>
+            <CompanyAttribution variant="sidebar" className="mt-2 text-left text-slate-400" />
           </div>
           <nav className="mt-4 space-y-1">
             {NAV.map((n) => (
@@ -93,6 +95,7 @@ export default function AdminLayout() {
                 </div>
               )}
             </div>
+            <CompanyAttribution variant="badge" className="hidden lg:inline-flex shrink-0" />
             <button className="relative p-2" data-testid="admin-notif-bell"><Bell className="h-5 w-5 text-navy-700" />{notifs.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500" />}</button>
           </header>
           <main className="p-4 sm:p-6"><Outlet /></main>

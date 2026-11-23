@@ -19,7 +19,7 @@ export function CompanyAttribution({ variant = "header", className = "" }) {
     return (
       <span
         data-testid="header-company-attribution"
-        className={`hidden md:inline-flex items-center rounded-full bg-purple-50/90 border border-purple-200/80 px-2.5 py-0.5 text-[10px] font-semibold text-purple-700 tracking-wide select-none ${className}`}
+        className={`hidden sm:inline-flex items-center rounded-full bg-purple-50/90 border border-purple-200/80 px-2.5 py-0.5 text-[10px] font-semibold text-purple-700 tracking-wide select-none ${className}`}
         title={SITE.companyAttribution}
       >
         A Product of {SITE.companyLegalName}

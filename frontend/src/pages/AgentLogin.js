@@ -11,6 +11,8 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import { ShieldCheck, Handshake, ArrowRight, UserPlus, LogIn, Lock, Phone, User, Building, MapPin, Mail, Award, CheckCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { SITE } from "@/lib/site";
+import { CompanyAttribution } from "@/components/CompanyAttribution";
 
 export default function AgentLogin() {
   const navigate = useNavigate();
@@ -345,7 +347,7 @@ export default function AgentLogin() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
-        &copy; {new Date().getFullYear()} YSMTX Solution Pvt Ltd. All rights reserved. Agent Portal.
+        &copy; {new Date().getFullYear()} {SITE.companyLegalName}. All rights reserved. SimpleDSC Agent Portal.
       </footer>
     </div>
   );

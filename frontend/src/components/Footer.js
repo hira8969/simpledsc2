@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { SITE } from "@/lib/site";
+import { CompanyAttribution } from "@/components/CompanyAttribution";
 import { Phone, Mail, MapPin, ShieldCheck, Clock } from "lucide-react";
 
 export function Footer() {
@@ -12,7 +13,7 @@ export function Footer() {
             <Link to="/" data-testid="footer-logo-link" className="inline-block transition-opacity hover:opacity-90">
               <Logo dark />
             </Link>
-            <p className="mt-4 text-sm text-slate-400 leading-relaxed">Digital Signatures, Made Simple. A digital-first platform to get and manage your DSC securely across India.</p>
+            <CompanyAttribution variant="footer" className="mt-4 text-xs" />
             <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-purple-900/60 bg-purple-950/40 px-3 py-1 text-xs text-lavender-200">
               <ShieldCheck className="h-3.5 w-3.5" /> Secure & Encrypted Process
             </div>
@@ -52,8 +53,8 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-6 border-t border-purple-950/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <p>© {SITE.footerYear} SimplDSC™. All rights reserved.</p>
-          <p>SimplDSC operates as a registration assistance platform for CCA-licensed Certifying Authorities.</p>
+          <p>© {SITE.footerYear} SimpleDSC. A platform by {SITE.companyLegalName}. All rights reserved.</p>
+          <p>SimpleDSC operates as a registration assistance platform for CCA-licensed Certifying Authorities.</p>
         </div>
       </div>
     </footer>

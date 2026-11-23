@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Logo } from "@/components/Logo";
+import { CompanyAttribution } from "@/components/CompanyAttribution";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useAgentAuth } from "@/context/AgentAuthContext";
@@ -42,7 +43,10 @@ export function Navbar() {
     <header className={`sticky top-0 z-40 border-b transition-all ${scrolled ? "glass-nav border-purple-100/70 shadow-sm" : "bg-white border-transparent"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" data-testid="nav-logo-link" className="shrink-0"><Logo /></Link>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Link to="/" data-testid="nav-logo-link" className="shrink-0"><Logo /></Link>
+            <CompanyAttribution variant="header" />
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden xl:flex items-center gap-1">
@@ -165,6 +169,7 @@ export function Navbar() {
                   >
                     Get Your DSC
                   </Button>
+                  <CompanyAttribution variant="subtle" className="pt-2 text-left text-[11px]" />
                 </div>
               </SheetContent>
             </Sheet>

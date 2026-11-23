@@ -92,7 +92,7 @@ export function InvoiceModal({ open, onOpenChange, invoice }) {
               <div>
                 <Logo />
                 <div className="mt-3 text-xs text-slate-600 space-y-0.5 leading-relaxed">
-                  <p className="font-bold text-navy-900 text-sm">{SITE.companyLegalName || "YSMTX Solution Pvt Ltd"}</p>
+                  <p className="font-bold text-navy-900 text-sm">{SITE.companyLegalName}</p>
                   <p>{SITE.address}</p>
                   <p>
                     <span className="text-slate-500">Tel:</span> {SITE.phone} / {SITE.phone2} &nbsp;|&nbsp;{" "}
@@ -284,14 +284,15 @@ export function InvoiceModal({ open, onOpenChange, invoice }) {
                   </div>
                   <p className="text-[10px] text-slate-400">Digitally Authenticated</p>
                 </div>
-                <p className="font-bold text-navy-900 text-xs">For {SITE.companyLegalName || "YSMTX Solution Pvt Ltd"}</p>
+                <p className="font-bold text-navy-900 text-xs">For {SITE.companyLegalName}</p>
                 <p className="text-[10px] text-slate-400">Authorized Signatory</p>
               </div>
             </div>
 
             {/* Bottom Footer Note */}
-            <div className="mt-6 pt-3 border-t border-slate-100 text-center text-[10px] text-slate-400">
-              Thank you for trusting SimplDSC™ · For support or inquiries, email {SITE.email} or call {SITE.phone}
+            <div className="mt-6 pt-3 border-t border-slate-100 text-center text-[10px] text-slate-400 space-y-1">
+              <p>Thank you for trusting SimpleDSC · For support or inquiries, email {SITE.email} or call {SITE.phone}</p>
+              <p className="text-slate-500 font-medium">SimpleDSC is a digital signature service platform provided by {SITE.companyLegalName}.</p>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { Seo } from "@/components/Seo";
+import { SITE } from "@/lib/site";
 import { Home, ArrowLeft, ShieldAlert } from "lucide-react";
 
 export default function NotFound() {
@@ -63,7 +64,7 @@ export default function NotFound() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-400">
-        &copy; {new Date().getFullYear()} YSMTX Solution Pvt Ltd. All rights reserved.
+        &copy; {new Date().getFullYear()} {SITE.companyLegalName}. All rights reserved.
       </footer>
     </div>
   );

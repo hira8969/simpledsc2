@@ -5,6 +5,7 @@ import { Seo } from "@/components/Seo";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
+import { CompanyAttribution } from "@/components/CompanyAttribution";
 import { StatusBadge } from "@/components/StatusBadge";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { InvoiceModal } from "@/components/InvoiceModal";
@@ -116,6 +117,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <button className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-purple-50 lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="dash-menu-toggle"><Menu className="h-5 w-5" /></button>
             <button onClick={() => nav("/")} className="shrink-0"><Logo className="[&_img]:h-7 sm:[&_img]:h-9" /></button>
+            <CompanyAttribution variant="header" className="hidden md:inline-flex" />
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -157,6 +159,7 @@ export default function Dashboard() {
             ))}
             <button onClick={handleLogout} data-testid="dash-logout" className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 mt-4"><LogOut className="h-4 w-4" /> Logout</button>
           </nav>
+          <CompanyAttribution variant="sidebar" className="mt-6" />
         </aside>
 
         {/* Main */}
