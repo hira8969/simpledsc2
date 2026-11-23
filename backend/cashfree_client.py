@@ -78,14 +78,7 @@ def _http_request(method: str, url: str, headers: dict, data_dict: dict = None, 
                 return e.code, {}, err_body
 
 
-def get_headers() -> dict:
-    return {
-        "x-client-id": CASHFREE_APP_ID,
-        "x-client-secret": CASHFREE_SECRET_KEY,
-        "x-api-version": CASHFREE_API_VERSION,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
+
 
 
 def create_order(

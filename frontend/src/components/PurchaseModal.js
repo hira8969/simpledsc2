@@ -10,6 +10,27 @@ import { track } from "@/lib/analytics";
 import { CheckCircle2, Upload, Tag, ShieldCheck, Loader2 } from "lucide-react";
 import { ProductImage } from "@/components/ProductImage";
 
+const loadCashfreeSdk = () => {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== "undefined" && typeof window.Cashfree === "function") {
+      return resolve(window.Cashfree);
+    }
+    const existing = document.getElementById("cashfree-sdk-script");
+    if (existing) {
+      existing.addEventListener("load", () => resolve(window.Cashfree));
+      existing.addEventListener("error", () => reject(new Error("Failed to load Cashfree SDK")));
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "cashfree-sdk-script";
+    script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+    script.async = true;
+    script.onload = () => resolve(window.Cashfree);
+    script.onerror = () => reject(new Error("Failed to load Cashfree SDK"));
+    document.body.appendChild(script);
+  });
+};
+
 export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const [step, setStep] = useState(0);
   const [applicant, setApplicant] = useState({ pan: "", aadhaar: "", dob: "", address: "", city: "", state: "", pin: "", organization: "" });
@@ -180,9 +201,10 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     const cfMode = (cfData.environment || "SANDBOX").toLowerCase();
 
     // 1. If live/sandbox Cashfree session is available, open official Cashfree JS SDK Checkout
-    if (!isMock && session_id && typeof window !== "undefined" && typeof window.Cashfree === "function") {
+    if (!isMock && session_id) {
       try {
-        const cashfree = window.Cashfree({ mode: cfMode });
+        const CashfreeSDK = await loadCashfreeSdk();
+        const cashfree = CashfreeSDK({ mode: cfMode });
         const checkoutOptions = {
           paymentSessionId: session_id,
           redirectTarget: "_modal",
@@ -322,11 +344,14 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
               <Separator className="my-3" />
               <Row l="Total Payable" v={`₹${totalNow.totalAmount}`} big />
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Instant Order Placement Active (Direct Confirmation)</div>
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>100% Secure Checkout via Cashfree Payment Gateway</span>
+            </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setStep(1)} className="flex-1 rounded-xl">Back</Button>
-              <Button data-testid="pay-now-btn" onClick={pay} disabled={busy} className="flex-1 bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl">
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : `Place Order (₹${totalNow.totalAmount})`}
+              <Button data-testid="pay-now-btn" onClick={pay} disabled={busy} className="flex-1 bg-gradient-to-r from-purple-700 to-navy-800 text-white rounded-xl shadow-md hover:shadow-lg">
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : `Pay Now (₹${totalNow.totalAmount})`}
               </Button>
             </div>
           </div>

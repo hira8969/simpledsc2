@@ -1084,12 +1084,18 @@ else:
         return HTMLResponse(content=html)
 
 cors_origins_raw = os.environ.get('CORS_ORIGINS', '').strip()
+default_origins = [
+    "https://simpldsc.com",
+    "https://www.simpldsc.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
 if cors_origins_raw and cors_origins_raw != '*':
-    cors_origins = [o.strip() for o in cors_origins_raw.split(',') if o.strip()]
-    allow_regex = None
+    parsed = [o.strip() for o in cors_origins_raw.split(',') if o.strip()]
+    cors_origins = list(set(default_origins + parsed))
+    allow_regex = r"^https:\/\/.*\.vercel\.app$"
 else:
-    # Allow any origin with credentials without triggering browser CORS errors
-    cors_origins = []
+    cors_origins = default_origins
     allow_regex = r"^https?://.*"
 
 app.add_middleware(
