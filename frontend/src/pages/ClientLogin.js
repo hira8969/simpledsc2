@@ -33,6 +33,7 @@ export default function ClientLogin() {
   const [statusNotice, setStatusNotice] = useState("");
   const [countdown, setCountdown] = useState(0);
   const timerRef = useRef(null);
+  const sessionIdRef = useRef("");
 
   // Where to redirect after successful login
   const returnUrl = location.state?.from?.pathname || "/client";
@@ -77,18 +78,28 @@ export default function ClientLogin() {
     try {
       track("login_started", { method: "msg91_otp", portal: "client" });
 
-      // Start backend session in parallel
-      api.post("/auth/send-otp", { mobile })
-        .then((resp) => {
-          if (resp?.data?.sessionId) setSessionId(resp.data.sessionId);
-        })
-        .catch(() => {});
-
-      // Send real SMS OTP via MSG91 official widget
-      const res = await sendWidgetOtp(mobile);
-      if (res?.requestId) {
-        setRequestId(res.requestId);
+      // 1. Initialize real backend session first and await it
+      try {
+        const resp = await api.post("/auth/send-otp", { mobile });
+        if (resp?.data?.sessionId) {
+          sessionIdRef.current = resp.data.sessionId;
+          setSessionId(resp.data.sessionId);
+          sessionStorage.setItem("sd_otp_session", resp.data.sessionId);
+        }
+      } catch (sessErr) {
+        console.warn("[Backend send-otp notice]:", sessErr?.response?.data || sessErr.message);
       }
+
+      // 2. Send SMS OTP via MSG91 widget
+      try {
+        const res = await sendWidgetOtp(mobile);
+        if (res?.requestId) {
+          setRequestId(res.requestId);
+        }
+      } catch (widgetErr) {
+        console.warn("[Widget send notice]:", widgetErr?.message);
+      }
+
       setStep("otp");
       setCountdown(39);
       setStatusNotice("");
@@ -129,7 +140,10 @@ export default function ClientLogin() {
 
       setStatusNotice("Completing authentication...");
 
-      // 2. Server-side session verification (robust multi-endpoint fallback)
+      // 2. Resolve active sessionId
+      const activeSessionId = sessionIdRef.current || sessionId || sessionStorage.getItem("sd_otp_session") || "msg91_session";
+
+      // 3. Server-side session verification (robust multi-endpoint fallback)
       let authData = null;
 
       // Attempt 1: Call standard /auth/verify-otp with session & token
@@ -137,7 +151,7 @@ export default function ClientLogin() {
         const res1 = await api.post("/auth/verify-otp", {
           mobile,
           otp: cleanOtp,
-          sessionId: sessionId || "msg91_session",
+          sessionId: activeSessionId,
           token: verifiedToken || "msg91_verified",
           reqId: requestId || "",
         });
@@ -145,23 +159,22 @@ export default function ClientLogin() {
       } catch (err1) {
         console.warn("Attempt 1 verify-otp failed:", err1?.response?.status);
 
-        // Attempt 2: Call /auth/verify-widget-token
+        // Attempt 2: Call /auth/refresh-session
         try {
-          const res2 = await api.post("/auth/verify-widget-token", {
+          const res2 = await api.post("/auth/refresh-session", {
             mobile,
             token: verifiedToken || cleanOtp,
-            reqId: requestId || "",
           });
           authData = res2?.data;
         } catch (err2) {
-          console.warn("Attempt 2 verify-widget-token failed:", err2?.response?.status);
+          console.warn("Attempt 2 refresh-session failed:", err2?.response?.status);
 
-          // Attempt 3: Call /auth/verify-otp with verified flag or test code
+          // Attempt 3: Call /auth/verify-widget-token
           try {
-            const res3 = await api.post("/auth/verify-otp", {
+            const res3 = await api.post("/auth/verify-widget-token", {
               mobile,
-              otp: "123456",
-              sessionId: sessionId || "msg91_session",
+              token: verifiedToken || cleanOtp,
+              reqId: requestId || "",
             });
             authData = res3?.data;
           } catch (err3) {

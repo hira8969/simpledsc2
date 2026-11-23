@@ -15,7 +15,8 @@ export function PurchaseProvider({ children }) {
 
   const startPurchase = (p) => {
     track("buy_now_click", { product: p?.name });
-    requireAuth(() => { setProduct(p); setOpen(true); });
+    setProduct(p);
+    setOpen(true);
   };
 
   return (

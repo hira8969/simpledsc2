@@ -81,9 +81,9 @@ const PAYMENT_METHODS = [
 ];
 
 export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
-  const { user, setAuthOpen } = useAuth();
+  const { user, setAuthOpen, setAfterAuth } = useAuth();
   const [step, setStep] = useState(0); // 0: Applicant, 1: Documents, 2: Review & Universal Checkout, 3: Success
-  const [applicant, setApplicant] = useState({ pan: "", aadhaar: "", dob: "", address: "", city: "", state: "", pin: "", organization: "", mobile: "" });
+  const [applicant, setApplicant] = useState({ name: "", email: "", mobile: "", pan: "", aadhaar: "", dob: "", address: "", city: "", state: "", pin: "", organization: "" });
   const [shipping, setShipping] = useState({ name: "", address: "", city: "", state: "", pin: "", mobile: "" });
   const [coupon, setCoupon] = useState("");
   const [pricing, setPricing] = useState(null);
@@ -98,6 +98,8 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     if (user && open) {
       setApplicant((prev) => ({
         ...prev,
+        name: prev.name || user.name || "",
+        email: prev.email || user.email || "",
         mobile: prev.mobile || user.mobile || "",
         address: prev.address || user.billing?.address || user.profile?.address || "",
         city: prev.city || user.billing?.city || user.profile?.city || "",
@@ -216,7 +218,12 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
       const errMsg = msg || e.message;
       if (errMsg && (errMsg.toLowerCase().includes("authenticat") || errMsg.toLowerCase().includes("token") || errMsg.toLowerCase().includes("log in"))) {
-        toast.error("Please verify your mobile number or log in to complete checkout.");
+        toast.info("Please verify your mobile number to complete checkout.");
+        const effMobile = applicant.mobile || shipping.mobile || user?.mobile || "";
+        if (effMobile) sessionStorage.setItem("sd_pending_mobile", effMobile);
+        if (typeof setAfterAuth === "function") {
+          setAfterAuth(() => () => handleUniversalPay(selectedMethod));
+        }
         if (typeof setAuthOpen === "function") {
           setAuthOpen(true);
         }
@@ -344,6 +351,22 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   // Launch Universal Cashfree Checkout
   const handleUniversalPay = async (methodType = selectedMethod) => {
     if (busy) return;
+
+    // Check authentication: If user is not authenticated or token missing
+    const token = localStorage.getItem("sd_token");
+    const isAuthenticated = user && (user.id || user.mobile) && token && token !== "null" && token !== "undefined";
+    if (!isAuthenticated) {
+      const effMobile = applicant.mobile || shipping.mobile || user?.mobile || "";
+      if (effMobile) sessionStorage.setItem("sd_pending_mobile", effMobile);
+      if (typeof setAfterAuth === "function") {
+        setAfterAuth(() => () => handleUniversalPay(methodType));
+      }
+      if (typeof setAuthOpen === "function") {
+        setAuthOpen(true);
+      }
+      return;
+    }
+
     setBusy(true);
     setPaymentState("processing");
     setPaymentErrorReason("");
@@ -598,6 +621,12 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
                 <span>Enter applicant details exactly as they appear on your PAN and Aadhaar identity cards.</span>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Field label="Applicant Full Name" v={applicant.name} on={(v) => setApplicant({ ...applicant, name: v })} testId="applicant-name" placeholder="Full name as per PAN" />
+                <Field label="Mobile Number" v={applicant.mobile} on={(v) => {
+                  const cleaned = v.replace(/\D/g, "").slice(-10);
+                  setApplicant({ ...applicant, mobile: cleaned });
+                }} testId="applicant-mobile" placeholder="10-digit mobile number" />
+                <Field label="Email Address" v={applicant.email} on={(v) => setApplicant({ ...applicant, email: v })} testId="applicant-email" placeholder="name@example.com" full />
                 <Field label="PAN Card Number" v={applicant.pan} on={(v) => setApplicant({ ...applicant, pan: v.toUpperCase() })} testId="applicant-pan" placeholder="e.g. ABCDE1234F" />
                 <Field label="Aadhaar / ID Number" v={applicant.aadhaar} on={(v) => setApplicant({ ...applicant, aadhaar: v })} testId="applicant-aadhaar" placeholder="e.g. 1234 5678 9012" />
                 <Field label="Date of Birth" type="date" v={applicant.dob} on={(v) => setApplicant({ ...applicant, dob: v })} testId="applicant-dob" />

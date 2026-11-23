@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
 
   const requireAuth = (cb) => {
     const token = localStorage.getItem("sd_token");
-    if (user && user.name && token && token !== "null" && token !== "undefined") {
+    if (user && (user.id || user.mobile) && token && token !== "null" && token !== "undefined") {
       cb && cb();
       return;
     }

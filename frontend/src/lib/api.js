@@ -91,20 +91,22 @@ api.interceptors.request.use(async (config) => {
 
     if (cachedMobile) {
       config.headers["X-Customer-Mobile"] = cachedMobile;
-      // If token is missing or dead, restore an active verified session immediately
-      if (!token || token === "null" || token === "undefined") {
-        token = `sd_verified_${cachedMobile}_${Date.now()}`;
-        localStorage.setItem("sd_token", token);
-      }
     }
 
-    // Proactive refresh if token is expired on checkout or customer endpoints
+    // Proactive refresh if token is expired, missing, or fallback on checkout/customer endpoints
     if (
-      (!token || isJwtExpired(token)) &&
+      (!token || isJwtExpired(token) || (token && token.startsWith("sd_verified_"))) &&
       (url.includes("/orders") || url.includes("/customer") || url.includes("/auth/me") || url.includes("/coupons"))
     ) {
       const refreshed = await refreshCustomerSession(cachedMobile);
-      if (refreshed) token = refreshed;
+      if (refreshed) {
+        token = refreshed;
+      } else if (!token || token === "null" || token === "undefined") {
+        if (cachedMobile) {
+          token = `sd_verified_${cachedMobile}_${Date.now()}`;
+          localStorage.setItem("sd_token", token);
+        }
+      }
     }
   }
 

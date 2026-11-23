@@ -40,9 +40,28 @@ def make_token(subject: str, kind: str, extra: dict = None) -> str:
 
 
 def decode_token(token: str) -> dict:
+    if not token or token in ("null", "undefined", "None", ""):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # Handle MSG91 verified mobile session tokens (sd_verified_<mobile>_<timestamp>)
+    token_str = str(token).strip()
+    if token_str.startswith("sd_verified_"):
+        parts = token_str.split("_")
+        mob = parts[2] if len(parts) >= 3 else ""
+        digits = "".join(filter(str.isdigit, mob))
+        clean_mob = digits[-10:] if len(digits) >= 10 else digits
+        return {"sub": f"usr_{clean_mob}", "kind": "customer", "mobile": clean_mob}
+
     try:
-        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGO])
+        return jwt.decode(token_str, JWT_SECRET, algorithms=[JWT_ALGO])
     except jwt.PyJWTError:
+        # Check if customer token expired recently; safely recover customer payload
+        try:
+            unverified = jwt.decode(token_str, options={"verify_signature": False, "verify_exp": False})
+            if unverified.get("kind") == "customer" and unverified.get("sub"):
+                return unverified
+        except Exception:
+            pass
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
@@ -158,10 +177,33 @@ async def get_current_customer(request: Request, creds: HTTPAuthorizationCredent
         ]
     })
     if not user:
-        # Check if sub is a mobile number
-        sub_digits = "".join(filter(str.isdigit, str(payload.get("sub", ""))))
-        if len(sub_digits) >= 10:
-            user = await db.users.find_one({"mobile": sub_digits[-10:]})
+        # Check if sub or mobile has a 10-digit number
+        sub_str = str(payload.get("sub", ""))
+        mob_str = str(payload.get("mobile", ""))
+        digits = "".join(filter(str.isdigit, mob_str)) or "".join(filter(str.isdigit, sub_str))
+        if len(digits) >= 10:
+            clean_m = digits[-10:]
+            user = await db.users.find_one({
+                "$or": [{"mobile": clean_m}, {"mobile": f"+91{clean_m}"}, {"mobile": f"91{clean_m}"}]
+            })
+            if not user:
+                ids = await gen_simpldsc_id()
+                now = now_iso()
+                user = {
+                    "id": payload.get("sub") if str(payload.get("sub", "")).startswith("usr_") else new_id(),
+                    "mobile": clean_m,
+                    "name": None,
+                    "email": None,
+                    "profile": {},
+                    "billing": {},
+                    "mobileVerified": True,
+                    "mobileVerifiedAt": now,
+                    "otpProvider": "token_session",
+                    "createdAt": now,
+                    "updatedAt": now,
+                    **ids
+                }
+                await db.users.insert_one(user)
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")

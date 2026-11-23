@@ -25,6 +25,7 @@ export function OtpAuthModal() {
   const [statusNotice, setStatusNotice] = useState("");
   const [countdown, setCountdown] = useState(0);
   const timerRef = useRef(null);
+  const sessionIdRef = useRef("");
 
   const [sessionId, setSessionId] = useState("");
 
@@ -34,6 +35,8 @@ export function OtpAuthModal() {
     setOtp("");
     setRequestId("");
     setSessionId("");
+    sessionIdRef.current = "";
+    sessionStorage.removeItem("sd_otp_session");
     setName("");
     setEmail("");
     setStatusNotice("");
@@ -59,7 +62,12 @@ export function OtpAuthModal() {
     if (authOpen) {
       // Pre-warm Render backend on modal open
       api.get("/settings").catch(() => {});
+      const pendingMobile = sessionStorage.getItem("sd_pending_mobile");
+      if (pendingMobile && !mobile) {
+        handleMobileChange(pendingMobile);
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authOpen]);
 
   // Countdown timer for resend
@@ -77,20 +85,29 @@ export function OtpAuthModal() {
   const handleSendOtp = async () => {
     if (mobile.length !== 10) return toast.error("Enter a valid 10-digit mobile number");
     setLoading(true);
-    setStatusNotice("Sending OTP via MSG91...");
+    setStatusNotice("Sending verification OTP...");
     try {
       track("login_started", { method: "msg91_otp" });
 
-      // Start backend session in parallel
-      api.post("/auth/send-otp", { mobile })
-        .then((resp) => {
-          if (resp?.data?.sessionId) setSessionId(resp.data.sessionId);
-        })
-        .catch(() => {});
+      // 1. Initialize real backend session first and await it
+      try {
+        const resp = await api.post("/auth/send-otp", { mobile });
+        if (resp?.data?.sessionId) {
+          sessionIdRef.current = resp.data.sessionId;
+          setSessionId(resp.data.sessionId);
+          sessionStorage.setItem("sd_otp_session", resp.data.sessionId);
+        }
+      } catch (sessErr) {
+        console.warn("[Backend send-otp notice]:", sessErr?.response?.data || sessErr.message);
+      }
 
-      // Send real SMS OTP via MSG91 official widget
-      const res = await sendWidgetOtp(mobile);
-      if (res?.requestId) setRequestId(res.requestId);
+      // 2. Send SMS OTP via MSG91 widget
+      try {
+        const res = await sendWidgetOtp(mobile);
+        if (res?.requestId) setRequestId(res.requestId);
+      } catch (widgetErr) {
+        console.warn("[Widget send notice]:", widgetErr?.message);
+      }
 
       setStep("otp");
       setCountdown(39);
@@ -126,15 +143,18 @@ export function OtpAuthModal() {
         }
       }
 
-      // 2. Server-side session verification (robust multi-endpoint fallback)
+      // 2. Resolve active sessionId
+      const activeSessionId = sessionIdRef.current || sessionId || sessionStorage.getItem("sd_otp_session") || "msg91_session";
+
+      // 3. Server-side session verification (robust multi-endpoint fallback)
       let authData = null;
 
-      // Attempt 1: Call standard /auth/verify-otp with session & token
+      // Attempt 1: Call standard /auth/verify-otp with active session
       try {
         const res1 = await api.post("/auth/verify-otp", {
           mobile,
           otp: cleanOtp,
-          sessionId: sessionId || "msg91_session",
+          sessionId: activeSessionId,
           token: verifiedToken || "msg91_verified",
           reqId: requestId || "",
         });
@@ -142,23 +162,22 @@ export function OtpAuthModal() {
       } catch (err1) {
         console.warn("Attempt 1 verify-otp failed:", err1?.response?.status);
 
-        // Attempt 2: Call /auth/verify-widget-token
+        // Attempt 2: Call /auth/refresh-session with verified mobile
         try {
-          const res2 = await api.post("/auth/verify-widget-token", {
+          const res2 = await api.post("/auth/refresh-session", {
             mobile,
             token: verifiedToken || cleanOtp,
-            reqId: requestId || "",
           });
           authData = res2?.data;
         } catch (err2) {
-          console.warn("Attempt 2 verify-widget-token failed:", err2?.response?.status);
+          console.warn("Attempt 2 refresh-session failed:", err2?.response?.status);
 
-          // Attempt 3: Call /auth/verify-otp with verified flag or test code
+          // Attempt 3: Call /auth/verify-widget-token
           try {
-            const res3 = await api.post("/auth/verify-otp", {
+            const res3 = await api.post("/auth/verify-widget-token", {
               mobile,
-              otp: "123456",
-              sessionId: sessionId || "msg91_session",
+              token: verifiedToken || cleanOtp,
+              reqId: requestId || "",
             });
             authData = res3?.data;
           } catch (err3) {
@@ -171,11 +190,11 @@ export function OtpAuthModal() {
       if (authData?.token && authData?.user) {
         track("otp_verified");
         loginWithToken(authData.token, authData.user);
-        toast.success("Welcome to your Client Portal!");
-        if (authData.isNew || !authData.user?.name) {
-          setStep("profile");
-        } else {
+        toast.success("Mobile number verified successfully!");
+        if (afterAuth || (authData.user?.name && !authData.isNew)) {
           finish();
+        } else {
+          setStep("profile");
         }
         return;
       }
@@ -191,7 +210,7 @@ export function OtpAuthModal() {
         };
         const localToken = `sd_verified_${mobile}_${Date.now()}`;
         loginWithToken(localToken, localUser);
-        toast.success("Welcome to your Client Portal!");
+        toast.success("Mobile number verified!");
         finish();
         return;
       }
@@ -283,11 +302,9 @@ export function OtpAuthModal() {
         try {
           cb();
         } catch (err) {
-          console.warn("[afterAuth error]:", err);
-          navigate("/client");
+          console.error("[afterAuth error]:", err);
         }
-      } else {
-        // Direct to Client Dashboard
+      } else if (window.location.pathname.startsWith("/client/login") || window.location.pathname === "/login") {
         navigate("/client");
       }
       setAfterAuth(null);
