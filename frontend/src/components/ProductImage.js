@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 
-const DEFAULT_FALLBACK_IMAGE = "/img/epass2003-token.png";
+export const DEFAULT_FALLBACK_CARD = "/products/product-default-card.webp";
+export const DEFAULT_FALLBACK_DETAIL = "/products/product-default-details.webp";
+export const DEFAULT_FALLBACK_IMAGE = "/img/epass2003-token.png";
 
 /**
  * Resolves any image URL with complete backward compatibility.
@@ -113,9 +115,18 @@ export function ProductImage({
     }
   }
 
-  rawSrc = rawSrc || DEFAULT_FALLBACK_IMAGE;
+  const fallbackForVariant =
+    variant === "detail" || variant === "preview-detail"
+      ? DEFAULT_FALLBACK_DETAIL
+      : DEFAULT_FALLBACK_CARD;
+
+  rawSrc = rawSrc || fallbackForVariant;
   const resolvedSrc = resolveImageUrl(rawSrc);
-  const resolvedWebpSrc = rawWebpSrc ? resolveImageUrl(rawWebpSrc) : null;
+  const resolvedWebpSrc = rawWebpSrc
+    ? resolveImageUrl(rawWebpSrc)
+    : resolvedSrc?.endsWith(".webp")
+    ? resolvedSrc
+    : null;
 
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);

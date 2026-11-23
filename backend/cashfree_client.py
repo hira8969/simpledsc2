@@ -19,27 +19,35 @@ except ImportError:
 
 logger = logging.getLogger("simpldsc.cashfree")
 
-CASHFREE_APP_ID = os.environ.get("CASHFREE_APP_ID", "").strip()
-CASHFREE_SECRET_KEY = os.environ.get("CASHFREE_SECRET_KEY", "").strip()
-CASHFREE_ENV = os.environ.get("CASHFREE_ENV", "SANDBOX").strip().upper()
-CF_ENV = CASHFREE_ENV
 CASHFREE_API_VERSION = "2023-08-01"
 
-# Determine live / configured status
-IS_CONFIGURED = bool(CASHFREE_APP_ID and CASHFREE_SECRET_KEY)
-IS_PRODUCTION = CASHFREE_ENV == "PRODUCTION"
 
-BASE_URL = (
-    "https://api.cashfree.com/pg"
-    if IS_PRODUCTION
-    else "https://sandbox.cashfree.com/pg"
-)
+def get_credentials():
+    app_id = os.environ.get("CASHFREE_APP_ID", "").strip()
+    secret_key = os.environ.get("CASHFREE_SECRET_KEY", "").strip()
+    env = os.environ.get("CASHFREE_ENV", "SANDBOX").strip().upper()
+    return app_id, secret_key, env
+
+
+def get_base_url() -> str:
+    _, _, env = get_credentials()
+    return "https://api.cashfree.com/pg" if env == "PRODUCTION" else "https://sandbox.cashfree.com/pg"
 
 
 def is_live() -> bool:
-    app_id = os.environ.get("CASHFREE_APP_ID", "").strip() or CASHFREE_APP_ID
-    secret = os.environ.get("CASHFREE_SECRET_KEY", "").strip() or CASHFREE_SECRET_KEY
-    return bool(app_id and secret)
+    app_id, secret_key, _ = get_credentials()
+    return bool(app_id and secret_key)
+
+
+def get_headers() -> dict:
+    app_id, secret_key, _ = get_credentials()
+    return {
+        "x-client-id": app_id,
+        "x-client-secret": secret_key,
+        "x-api-version": CASHFREE_API_VERSION,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
 
 
 def _http_request(method: str, url: str, headers: dict, data_dict: dict = None, timeout: int = 30):
@@ -102,6 +110,8 @@ def create_order(
     clean_name = customer_name or "SimpleDSC Customer"
     clean_amount = round(float(amount), 2)
 
+    _, _, env = get_credentials()
+
     if not is_live():
         # Mock mode for testing without active Cashfree keys
         mock_session_id = f"session_mock_{uuid.uuid4().hex}"
@@ -114,7 +124,7 @@ def create_order(
             "order_amount": clean_amount,
             "order_currency": "INR",
             "mock": True,
-            "environment": CASHFREE_ENV,
+            "environment": env,
         }
 
     payload = {
@@ -136,7 +146,7 @@ def create_order(
         payload["order_meta"]["notify_url"] = notify_url
 
     try:
-        url = f"{BASE_URL}/orders"
+        url = f"{get_base_url()}/orders"
         status_code, data, raw_text = _http_request("POST", url, get_headers(), payload, timeout=30)
         if status_code not in (200, 201):
             error_msg = data.get("message") or raw_text
@@ -151,7 +161,7 @@ def create_order(
             "order_amount": data.get("order_amount", clean_amount),
             "order_currency": data.get("order_currency", "INR"),
             "mock": False,
-            "environment": CASHFREE_ENV,
+            "environment": env,
         }
     except Exception as e:
         logger.error(f"Failed to connect to Cashfree: {e}")
@@ -167,7 +177,7 @@ def get_order(order_id: str) -> dict:
             "mock": True,
         }
 
-    url = f"{BASE_URL}/orders/{order_id}"
+    url = f"{get_base_url()}/orders/{order_id}"
     status_code, data, raw_text = _http_request("GET", url, get_headers(), timeout=30)
     if status_code != 200:
         logger.error(f"Cashfree get order error {status_code}: {raw_text}")
@@ -191,7 +201,7 @@ def get_order_payments(order_id: str) -> list:
             }
         ]
 
-    url = f"{BASE_URL}/orders/{order_id}/payments"
+    url = f"{get_base_url()}/orders/{order_id}/payments"
     status_code, data, raw_text = _http_request("GET", url, get_headers(), timeout=30)
     if status_code != 200:
         logger.error(f"Cashfree get payments error {status_code}: {raw_text}")
@@ -201,7 +211,7 @@ def get_order_payments(order_id: str) -> list:
 
 def verify_webhook_signature(signature: str, timestamp: str, raw_body: bytes) -> bool:
     """Verify Cashfree webhook signature using HMAC SHA256 of timestamp + raw_body."""
-    secret = os.environ.get("CASHFREE_SECRET_KEY", "").strip() or CASHFREE_SECRET_KEY
+    _, secret, _ = get_credentials()
     if not secret:
         # If in mock mode without secret, accept mock signatures
         return signature.startswith("mock_sig_") if signature else False

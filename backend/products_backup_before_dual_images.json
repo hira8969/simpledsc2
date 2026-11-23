@@ -1,0 +1,294 @@
+[
+  {
+    "id": "11014563-f1e1-454f-ac1b-f407e0c5eddb",
+    "name": "Class 3 Organization DSC (Signing + Token)",
+    "category": "Class 2 DSC",
+    "slug": "class-2-dsc",
+    "description": "Authenticates both the individual representative and the company name. Includes a premium blue cryptographic USB token, ideal for corporate banking, GST return signing, and legal compliance.",
+    "price": 1799,
+    "validity": "1 Year",
+    "imageUrl": "/img/blue-token.png",
+    "features": [
+      "Organization Named Digital Signature Certificate",
+      "Blue High-Speed Crypto USB Token with Cap",
+      "Authorized Signatory Verification & Branding",
+      "Government Portals & E-filing Compatible",
+      "1 & 2 Year Validity Options Available"
+    ],
+    "requiredDocuments": [
+      "Authorized Signatory PAN & Aadhaar",
+      "Company Registration Proof",
+      "Authorization Letter",
+      "Photograph"
+    ],
+    "sortOrder": 6,
+    "purposeTags": [
+      "individual",
+      "business",
+      "document_signing"
+    ],
+    "active": true,
+    "issuingCAs": [
+      "e89f612c-f1b3-4dcf-943d-c9497b708292",
+      "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+      "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+    ],
+    "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+    "seo": {
+      "title": "Class 3 Organization DSC (Signing + Token) | SimplDSC",
+      "metaDescription": "Authenticates both the individual representative and the company name. Includes a premium blue cryptographic USB token, ideal for corporate banking, GST return signing, and legal compliance.",
+      "slug": "class-2-dsc",
+      "ogImage": "/img/blue-token.png",
+      "index": true
+    },
+    "createdAt": "2026-10-02T17:34:42.798653+00:00",
+    "updatedAt": "2026-11-02T08:16:20.959612+00:00",
+    "badgeText": "Corporate Authorized",
+    "isPopular": false,
+    "rating": 4.8,
+    "brand": "ePass2003"
+  },
+  {
+    "id": "10c9e37b-9f3f-41f7-acd4-76b27301f2ab",
+    "name": "Class 3 Individual DSC",
+    "category": "Class 3 DSC",
+    "slug": "class-3-dsc",
+    "description": "India's most trusted Class 3 Digital Signature Certificate. Pre-loaded on a certified high-security USB crypto token for ITR filing, MCA-21, GST portal, trademark filings, and digital PDF signing.",
+    "price": 1999,
+    "validity": "1 Year",
+    "imageUrl": "/img/epass2003-token.png",
+    "isPopular": true,
+    "rating": 5.0,
+    "badgeText": "Most Popular",
+    "features": [
+      "FIPS 140-2 Level 3 Cryptographic USB Token",
+      "CCA Govt of India Approved & Legally Valid",
+      "Paperless Aadhaar & PAN eKYC in 15 Minutes",
+      "Valid for Income Tax, GST, MCA & ROC Filings",
+      "Instant Video Verification & Free Cloud Backup"
+    ],
+    "requiredDocuments": [
+      "PAN Card",
+      "Aadhaar Card",
+      "Photograph",
+      "Address Proof"
+    ],
+    "sortOrder": 1,
+    "purposeTags": [
+      "individual",
+      "business",
+      "document_signing"
+    ],
+    "active": true,
+    "issuingCAs": [
+      "e89f612c-f1b3-4dcf-943d-c9497b708292",
+      "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+      "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+    ],
+    "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+    "seo": {
+      "title": "Class 3 Individual DSC | SimplDSC",
+      "metaDescription": "India's most trusted Class 3 Digital Signature Certificate. Pre-loaded on a certified high-security USB crypto token for ITR filing, MCA-21, GST portal, trademark filings, and digital PDF signing.",
+      "slug": "class-3-dsc",
+      "ogImage": "/img/epass2003-token.png",
+      "index": true
+    },
+    "createdAt": "2026-10-02T17:34:43.119129+00:00",
+    "updatedAt": "2026-11-02T08:16:19.973700+00:00",
+    "docsStr": "PAN, Aadhaar, Photograph, Address Proof",
+    "featuresStr": "Aadhaar eKYC, PAN Verification, Video Verification, Priority Support, Free Reissuance",
+    "brand": "ePass2003"
+  },
+  {
+    "id": "13edf612-3a20-40b7-93bb-d27dc4cfe60d",
+    "name": "DGFT Digital Signature (Import / Export)",
+    "category": "DGFT DSC",
+    "slug": "dgft-dsc",
+    "description": "Specially configured Digital Signature for Indian exporters and importers. Pre-mapped with your IEC code on a certified mToken crypto key for quick DGFT licensing and ICEGATE customs clearance.",
+    "price": 2499,
+    "validity": "1 Year",
+    "imageUrl": "/img/mtoken-blue.png",
+    "features": [
+      "Pre-embedded Import Export Code (IEC) Mapping",
+      "High-Speed mToken CryptoID USB Dongle",
+      "Seamless DGFT Portal Licensing & Schemes",
+      "ICEGATE Customs Online Filing & Bill of Entry",
+      "Export Duty Drawback & EPCG Compliance"
+    ],
+    "requiredDocuments": [
+      "Director / Partner PAN",
+      "Aadhaar Card",
+      "IEC Certificate / DGFT Profile",
+      "Company PAN & Proof"
+    ],
+    "sortOrder": 3,
+    "purposeTags": [
+      "import_export",
+      "business"
+    ],
+    "active": true,
+    "issuingCAs": [
+      "e89f612c-f1b3-4dcf-943d-c9497b708292",
+      "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+      "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+    ],
+    "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+    "seo": {
+      "title": "DGFT Digital Signature (Import / Export) | SimplDSC",
+      "metaDescription": "Specially configured Digital Signature for Indian exporters and importers. Pre-mapped with your IEC code on a certified mToken crypto key for quick DGFT licensing and ICEGATE customs clearance.",
+      "slug": "dgft-dsc",
+      "ogImage": "/img/mtoken-blue.png",
+      "index": true
+    },
+    "createdAt": "2026-10-02T17:34:43.440330+00:00",
+    "updatedAt": "2026-11-02T08:16:20.779506+00:00",
+    "badgeText": "ICEGATE Ready",
+    "isPopular": false,
+    "rating": 4.8,
+    "brand": "mToken"
+  },
+  {
+    "id": "e6285505-2969-4a92-a872-a251ff06a959",
+    "name": "Class 3 eTender DSC",
+    "category": "eTender DSC",
+    "slug": "etender-dsc",
+    "description": "High-security combo Digital Signature Certificate engineered for government e-tendering. Includes Signing and Encryption certificates on a Watchdata PROXKey USB dongle for GeM, CPPP, defense, and PSU bids.",
+    "price": 2499,
+    "validity": "1 Year",
+    "imageUrl": "/img/proxkey-token.png",
+    "features": [
+      "Dual Certificate: Class 3 Signing + Encryption",
+      "Watchdata PROXKey FIPS 140-2 Crypto Dongle",
+      "100% Compatible with GeM, CPPP & IREPS Railways",
+      "State Tender Portals & Defense Procurement Ready",
+      "Dedicated Technical Setup & Priority Support"
+    ],
+    "requiredDocuments": [
+      "PAN Card",
+      "Aadhaar Card",
+      "Organization / Firm Proof",
+      "Authorization Letter"
+    ],
+    "sortOrder": 2,
+    "purposeTags": [
+      "government",
+      "business"
+    ],
+    "active": true,
+    "issuingCAs": [
+      "e89f612c-f1b3-4dcf-943d-c9497b708292",
+      "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+      "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+    ],
+    "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+    "seo": {
+      "title": "Class 3 eTender DSC | SimplDSC",
+      "metaDescription": "High-security combo Digital Signature Certificate engineered for government e-tendering. Includes Signing and Encryption certificates on a Watchdata PROXKey USB dongle for GeM, CPPP, defense, and PSU bids.",
+      "slug": "etender-dsc",
+      "ogImage": "/img/proxkey-token.png",
+      "index": true
+    },
+    "createdAt": "2026-10-02T17:34:43.788243+00:00",
+    "updatedAt": "2026-11-02T08:16:20.721059+00:00",
+    "badgeText": "eProcurement Ready",
+    "isPopular": false,
+    "rating": 4.9,
+    "brand": "Watchdata ProxKey"
+  },
+  {
+    "id": "bd76c565-e9fa-49c8-8726-e1a58f667679",
+    "name": "MCA / ROC Director DSC",
+    "category": "MCA DSC",
+    "slug": "mca-dsc",
+    "description": "Designed specifically for Company Directors and Partners. Seamlessly submit ROC annual returns, DIR-3 KYC, DIN approvals, and SPICe+ incorporation forms on the Ministry of Corporate Affairs portal.",
+    "price": 1999,
+    "validity": "1 Year",
+    "imageUrl": "/img/mtoken-purple.png",
+    "features": [
+      "Class 3 Signing Certificate for MCA-21 Portal",
+      "Compact Purple mToken FIPS Certified USB Key",
+      "DIN (Director Identification Number) Mapping",
+      "SPICe+ Company & LLP Incorporation Ready",
+      "DIR-3 KYC & Annual ROC Compliance Forms"
+    ],
+    "requiredDocuments": [
+      "Director PAN",
+      "Aadhaar Card",
+      "Photograph",
+      "Company CIN / LLPIN (if applicable)"
+    ],
+    "sortOrder": 4,
+    "purposeTags": [
+      "business",
+      "individual"
+    ],
+    "active": true,
+    "issuingCAs": [
+      "e89f612c-f1b3-4dcf-943d-c9497b708292",
+      "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+      "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+    ],
+    "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+    "seo": {
+      "title": "MCA / ROC Director DSC | SimplDSC",
+      "metaDescription": "Designed specifically for Company Directors and Partners. Seamlessly submit ROC annual returns, DIR-3 KYC, DIN approvals, and SPICe+ incorporation forms on the Ministry of Corporate Affairs portal.",
+      "slug": "mca-dsc",
+      "ogImage": "/img/mtoken-purple.png",
+      "index": true
+    },
+    "createdAt": "2026-10-02T17:34:44.109076+00:00",
+    "updatedAt": "2026-11-02T08:16:20.840551+00:00",
+    "badgeText": "Director Essential",
+    "isPopular": false,
+    "rating": 4.9,
+    "brand": "mToken"
+  },
+  {
+    "id": "2d565853-4cb6-4d73-99c0-ec0e48738a74",
+    "name": "Document Signer Certificate (Bulk / Automated)",
+    "category": "Document Signer DSC",
+    "slug": "document-signer-dsc",
+    "description": "Heavy-duty organizational certificate for automated, high-volume digital signing. Integrates directly with ERPs, invoicing pipelines, and accounting software for tamper-proof corporate document signing.",
+    "price": 3999,
+    "validity": "1 Year",
+    "imageUrl": "/img/innait-token.png",
+    "features": [
+      "Automated Bulk PDF & Invoicing Signatures",
+      "Innait Precision Heavy-Duty Hardware Crypto Module",
+      "ERP & API Server Integration Support (SAP / Tally)",
+      "Legally Binding Organization Identity Verification",
+      "Automated GST e-Invoice & Payroll Signing"
+    ],
+    "requiredDocuments": [
+      "Company Certificate of Incorporation",
+      "Board Resolution",
+      "Signatory Identity Proof",
+      "GST Certificate"
+    ],
+    "sortOrder": 5,
+    "purposeTags": [
+      "business",
+      "document_signing"
+    ],
+    "active": true,
+    "issuingCAs": [
+      "e89f612c-f1b3-4dcf-943d-c9497b708292",
+      "cf7610e4-7aff-4c4f-91ec-52af190295ba",
+      "bd80e8e6-e278-4abb-b6f3-6cd1de479c3c"
+    ],
+    "preferredCA": "e89f612c-f1b3-4dcf-943d-c9497b708292",
+    "seo": {
+      "title": "Document Signer Certificate (Bulk / Automated) | SimplDSC",
+      "metaDescription": "Heavy-duty organizational certificate for automated, high-volume digital signing. Integrates directly with ERPs, invoicing pipelines, and accounting software for tamper-proof corporate document signing.",
+      "slug": "document-signer-dsc",
+      "ogImage": "/img/innait-token.png",
+      "index": true
+    },
+    "createdAt": "2026-10-02T17:34:44.427904+00:00",
+    "updatedAt": "2026-11-02T08:16:20.899571+00:00",
+    "badgeText": "Enterprise Ready",
+    "isPopular": false,
+    "rating": 5.0,
+    "brand": "Innait"
+  }
+]

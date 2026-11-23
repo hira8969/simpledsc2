@@ -287,11 +287,24 @@ async def verify_document(doc_id: str, payload: dict, request: Request,
 
 # ---------- PRODUCTS ----------
 @admin_router.get("/admin/products")
+@admin_router.get("/admin/products/")
 async def admin_products(admin: dict = Depends(get_current_admin)):
     return await db.products.find({}, {"_id": 0}).sort("sortOrder", 1).to_list(500)
 
+@admin_router.get("/admin/products/{pid}")
+@admin_router.get("/admin/products/{pid}/")
+async def get_admin_product(pid: str, admin: dict = Depends(get_current_admin)):
+    p = await db.products.find_one({"$or": [{"id": pid}, {"slug": pid}]}, {"_id": 0})
+    if not p:
+        raise HTTPException(404, "Product not found")
+    return {"product": clean(p)}
+
 @admin_router.post("/admin/products")
+@admin_router.post("/admin/products/")
 @admin_router.put("/admin/products")
+@admin_router.put("/admin/products/")
+@admin_router.patch("/admin/products")
+@admin_router.patch("/admin/products/")
 async def create_or_update_product(payload: dict, request: Request, admin: dict = Depends(require_roles("staff"))):
     pid = payload.get("id")
     # Normalize dual image fields with backward compatibility

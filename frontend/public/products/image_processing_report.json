@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-11-23T08:27:48.038927+00:00",
+  "totalProducts": 6,
+  "totalCardImages": 6,
+  "totalDetailsImages": 6,
+  "processed": [
+    {
+      "id": "11014563-f1e1-454f-ac1b-f407e0c5eddb",
+      "slug": "class-2-dsc",
+      "name": "Class 3 Organization DSC (Signing + Token)",
+      "cardImage": "/products/product-11014563-f1e1-454f-ac1b-f407e0c5eddb-card.webp",
+      "detailsImage": "/products/product-11014563-f1e1-454f-ac1b-f407e0c5eddb-details.webp",
+      "cardDimensions": "1200x960 (5:4)",
+      "detailsDimensions": "1200x1200 (1:1)",
+      "format": "WEBP",
+      "source": "blue-token.png"
+    },
+    {
+      "id": "10c9e37b-9f3f-41f7-acd4-76b27301f2ab",
+      "slug": "class-3-dsc",
+      "name": "Class 3 Individual DSC",
+      "cardImage": "/products/product-10c9e37b-9f3f-41f7-acd4-76b27301f2ab-card.webp",
+      "detailsImage": "/products/product-10c9e37b-9f3f-41f7-acd4-76b27301f2ab-details.webp",
+      "cardDimensions": "1200x960 (5:4)",
+      "detailsDimensions": "1200x1200 (1:1)",
+      "format": "WEBP",
+      "source": "epass2003-token.png"
+    },
+    {
+      "id": "13edf612-3a20-40b7-93bb-d27dc4cfe60d",
+      "slug": "dgft-dsc",
+      "name": "DGFT Digital Signature (Import / Export)",
+      "cardImage": "/products/product-13edf612-3a20-40b7-93bb-d27dc4cfe60d-card.webp",
+      "detailsImage": "/products/product-13edf612-3a20-40b7-93bb-d27dc4cfe60d-details.webp",
+      "cardDimensions": "1200x960 (5:4)",
+      "detailsDimensions": "1200x1200 (1:1)",
+      "format": "WEBP",
+      "source": "mtoken-blue.png"
+    },
+    {
+      "id": "e6285505-2969-4a92-a872-a251ff06a959",
+      "slug": "etender-dsc",
+      "name": "Class 3 eTender DSC",
+      "cardImage": "/products/product-e6285505-2969-4a92-a872-a251ff06a959-card.webp",
+      "detailsImage": "/products/product-e6285505-2969-4a92-a872-a251ff06a959-details.webp",
+      "cardDimensions": "1200x960 (5:4)",
+      "detailsDimensions": "1200x1200 (1:1)",
+      "format": "WEBP",
+      "source": "proxkey-token.png"
+    },
+    {
+      "id": "bd76c565-e9fa-49c8-8726-e1a58f667679",
+      "slug": "mca-dsc",
+      "name": "MCA / ROC Director DSC",
+      "cardImage": "/products/product-bd76c565-e9fa-49c8-8726-e1a58f667679-card.webp",
+      "detailsImage": "/products/product-bd76c565-e9fa-49c8-8726-e1a58f667679-details.webp",
+      "cardDimensions": "1200x960 (5:4)",
+      "detailsDimensions": "1200x1200 (1:1)",
+      "format": "WEBP",
+      "source": "mtoken-purple.png"
+    },
+    {
+      "id": "2d565853-4cb6-4d73-99c0-ec0e48738a74",
+      "slug": "document-signer-dsc",
+      "name": "Document Signer Certificate (Bulk / Automated)",
+      "cardImage": "/products/product-2d565853-4cb6-4d73-99c0-ec0e48738a74-card.webp",
+      "detailsImage": "/products/product-2d565853-4cb6-4d73-99c0-ec0e48738a74-details.webp",
+      "cardDimensions": "1200x960 (5:4)",
+      "detailsDimensions": "1200x1200 (1:1)",
+      "format": "WEBP",
+      "source": "innait-token.png"
+    }
+  ],
+  "failed": [],
+  "requiresReview": []
+}

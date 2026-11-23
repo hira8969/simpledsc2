@@ -104,11 +104,17 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
   const pay = async () => {
     if (busy) return;
+    setBusy(true);
+
+    let activeOrderData = null;
     let ord = order;
     if (!ord || !ord.orderId) {
-      const d = await createOrder();
-      if (!d || !d.order) return;
-      ord = d.order;
+      activeOrderData = await createOrder();
+      if (!activeOrderData || !activeOrderData.order) {
+        setBusy(false);
+        return;
+      }
+      ord = activeOrderData.order;
     }
 
     // Upload any pending attached documents
@@ -126,33 +132,56 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     }
 
     track("payment_initiated", { amount: (pricing || product).totalAmount });
-    setBusy(true);
 
-    try {
-      // Instant confirmation without payment gateway (free/bypass mode as requested)
-      const payment_id = "pay_mock_" + Math.random().toString(36).slice(2, 12);
-      const res = await api.post("/orders/verify-payment", {
-        orderId: ord.orderId,
-        razorpayOrderId: ord.orderId,
-        razorpayPaymentId: payment_id,
-        razorpaySignature: "mock_sig_" + payment_id,
-      });
-      await finishPayment(ord, res.data?.invoiceNo);
-    } catch (e) {
-      console.warn("Payment error, using fallback confirmation:", e);
+    const cfData = activeOrderData?.cashfree || {
+      paymentSessionId: ord.paymentSessionId,
+      mock: ord.paymentSessionId?.startsWith("session_mock_"),
+      environment: "SANDBOX"
+    };
+
+    const session_id = cfData.paymentSessionId || ord.paymentSessionId;
+    const isMock = cfData.mock || !session_id || session_id.startsWith("session_mock_");
+    const cfMode = (cfData.environment || "SANDBOX").toLowerCase();
+
+    // 1. If live/sandbox Cashfree session is available, open official Cashfree JS SDK Checkout
+    if (!isMock && session_id && typeof window !== "undefined" && typeof window.Cashfree === "function") {
       try {
-        const payment_id = "pay_mock_" + Math.random().toString(36).slice(2, 12);
-        const res = await api.post("/payment/verify", {
-          orderId: ord.orderId,
-          razorpayOrderId: ord.orderId,
-          razorpayPaymentId: payment_id,
-          razorpaySignature: "mock_sig_" + payment_id,
+        const cashfree = window.Cashfree({ mode: cfMode });
+        const checkoutOptions = {
+          paymentSessionId: session_id,
+          redirectTarget: "_modal",
+        };
+
+        cashfree.checkout(checkoutOptions).then(async (result) => {
+          if (result.error) {
+            console.warn("[Cashfree Checkout Error]:", result.error);
+            toast.error(result.error.message || "Payment cancelled or dismissed. You can try again.");
+            setBusy(false);
+            return;
+          }
+          if (result.redirect) {
+            console.log("[Cashfree Checkout Redirecting]");
+            return;
+          }
+          // Checkout window closed or completed: verify order status server-side
+          await verifyOrderPayment(ord.orderId, ord);
+        }).catch((err) => {
+          console.error("[Cashfree Checkout Exception]:", err);
+          toast.error("Checkout window closed. Checking payment status...");
+          verifyOrderPayment(ord.orderId, ord);
         });
-        await finishPayment(ord, res.data?.invoiceNo);
-      } catch (err2) {
-        toast.error(err2.response?.data?.detail || "Order confirmation failed");
-        setBusy(false);
+        return;
+      } catch (sdkErr) {
+        console.warn("[Cashfree SDK Init Warning]:", sdkErr);
       }
+    }
+
+    // 2. Fallback / direct verification for sandbox testing
+    try {
+      await verifyOrderPayment(ord.orderId, ord);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Order confirmation failed");
+      setBusy(false);
     }
   };
 
