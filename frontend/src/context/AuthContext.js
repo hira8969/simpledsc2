@@ -54,7 +54,11 @@ export function AuthProvider({ children }) {
   };
 
   const requireAuth = (cb) => {
-    if (user && user.name) { cb && cb(); return; }
+    const token = localStorage.getItem("sd_token");
+    if (user && user.name && token && token !== "null" && token !== "undefined") {
+      cb && cb();
+      return;
+    }
     setAfterAuth(() => cb);
     setAuthOpen(true);
   };

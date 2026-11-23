@@ -81,7 +81,7 @@ const PAYMENT_METHODS = [
 ];
 
 export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
-  const { user } = useAuth();
+  const { user, setAuthOpen } = useAuth();
   const [step, setStep] = useState(0); // 0: Applicant, 1: Documents, 2: Review & Universal Checkout, 3: Success
   const [applicant, setApplicant] = useState({ pan: "", aadhaar: "", dob: "", address: "", city: "", state: "", pin: "", organization: "", mobile: "" });
   const [shipping, setShipping] = useState({ name: "", address: "", city: "", state: "", pin: "", mobile: "" });
@@ -217,6 +217,9 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       const errMsg = msg || e.message;
       if (errMsg && (errMsg.toLowerCase().includes("authenticat") || errMsg.toLowerCase().includes("token") || errMsg.toLowerCase().includes("log in"))) {
         toast.error("Please verify your mobile number or log in to complete checkout.");
+        if (typeof setAuthOpen === "function") {
+          setAuthOpen(true);
+        }
       } else if (errMsg && errMsg !== "Not Found") {
         toast.error(errMsg);
       } else {
