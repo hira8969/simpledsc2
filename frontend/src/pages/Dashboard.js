@@ -117,7 +117,6 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <button className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-purple-50 lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="dash-menu-toggle"><Menu className="h-5 w-5" /></button>
             <button onClick={() => nav("/")} className="shrink-0"><Logo className="[&_img]:h-7 sm:[&_img]:h-9" /></button>
-            <CompanyAttribution variant="header" className="hidden md:inline-flex" />
           </div>
           <div className="flex items-center gap-3">
             <Button
