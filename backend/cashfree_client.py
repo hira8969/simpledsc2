@@ -202,6 +202,36 @@ def get_order_payments(order_id: str) -> list:
     return data if isinstance(data, list) else []
 
 
+def create_upi_qr(payment_session_id: str, order_id: str, amount: float = 0.0) -> dict:
+    """Generate dynamic UPI QR payload for an order via Cashfree."""
+    if not is_live():
+        return {
+            "qr_string": f"upi://pay?pa=simpldsc@cashfree&pn=SimpleDSC&am={amount:.2f}&tr={order_id}&cu=INR",
+            "mock": True
+        }
+
+    url = f"{get_base_url()}/orders/sessions"
+    payload = {
+        "payment_session_id": payment_session_id,
+        "payment_method": {
+            "upi": {
+                "channel": "qrcode"
+            }
+        }
+    }
+    status_code, data, raw_text = _http_request("POST", url, get_headers(), payload)
+    if status_code in (200, 201):
+        data_payload = data.get("data", {}).get("payload", {})
+        qr_string = data_payload.get("qrcode") or data.get("payload", {}).get("qrcode")
+        return {"qr_string": qr_string, "raw": data, "mock": False}
+    else:
+        logger.warning(f"[Cashfree QR Error {status_code}]: {raw_text}")
+        return {
+            "qr_string": f"upi://pay?pa=simpldsc@cashfree&pn=SimpleDSC&am={amount:.2f}&tr={order_id}&cu=INR",
+            "mock": True
+        }
+
+
 def verify_webhook_signature(signature: str, timestamp: str, raw_body: bytes) -> bool:
     """Verify Cashfree webhook signature using HMAC SHA256 of timestamp + raw_body."""
     _, secret, _ = get_credentials()

@@ -702,6 +702,39 @@ async def verify_payment_by_id(order_id: str, user: dict = Depends(get_current_c
         return res
 
 
+@api.get("/payment/status/{order_id}")
+@app.get("/payment/status/{order_id}")
+@app.get("/api/payment/status/{order_id}")
+async def check_payment_status(order_id: str, user: dict = Depends(get_current_customer)):
+    return await verify_payment_by_id(order_id, user)
+
+
+@api.post("/payment/upi-qr")
+@app.post("/payment/upi-qr")
+@app.post("/api/payment/upi-qr")
+async def generate_upi_qr(payload: dict, user: dict = Depends(get_current_customer)):
+    order_id = payload.get("orderId")
+    order = await db.orders.find_one({"orderId": order_id, "userId": user["id"]})
+    if not order:
+        raise HTTPException(404, "Order not found")
+
+    session_id = order.get("paymentSessionId")
+    if not session_id:
+        cf_order = cashfree_client.create_order(
+            order_id=order["orderId"],
+            amount=float(order["totalAmount"]),
+            customer_id=user["id"],
+            customer_name=user.get("name") or "SimpleDSC Customer",
+            customer_email=user.get("email"),
+            customer_phone=user.get("mobile"),
+        )
+        session_id = cf_order.get("payment_session_id")
+        await db.orders.update_one({"id": order["id"]}, {"$set": {"paymentSessionId": session_id}})
+
+    res = cashfree_client.create_upi_qr(session_id, order["orderId"], float(order["totalAmount"]))
+    return {"ok": True, "orderId": order["orderId"], "amount": order["totalAmount"], **res}
+
+
 @api.post("/payment/verify")
 @api.post("/orders/verify-payment")
 async def verify_payment(payload: VerifyPaymentReq, user: dict = Depends(get_current_customer)):
