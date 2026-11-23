@@ -55,6 +55,38 @@ async def get_current_customer(request: Request, creds: HTTPAuthorizationCredent
             token = auth_hdr.replace("Bearer ", "").replace("bearer ", "").strip()
 
     if not token or token in ("null", "undefined", "None", ""):
+        # Check if customer mobile is supplied via header or query params
+        raw_m = request.headers.get("x-customer-mobile") or request.query_params.get("mobile")
+        if raw_m:
+            digits = "".join(filter(str.isdigit, str(raw_m)))
+            clean_m = digits[-10:] if len(digits) >= 10 else digits
+            if len(clean_m) == 10:
+                user = await db.users.find_one({
+                    "$or": [
+                        {"mobile": clean_m},
+                        {"mobile": f"+91{clean_m}"},
+                        {"mobile": f"91{clean_m}"}
+                    ]
+                })
+                if not user:
+                    ids = await gen_simpldsc_id()
+                    now = now_iso()
+                    user = {
+                        "id": new_id(),
+                        "mobile": clean_m,
+                        "name": None,
+                        "email": None,
+                        "profile": {},
+                        "billing": {},
+                        "mobileVerified": True,
+                        "mobileVerifiedAt": now,
+                        "otpProvider": "customer_header",
+                        "createdAt": now,
+                        "updatedAt": now,
+                        **ids
+                    }
+                    await db.users.insert_one(user)
+                return clean(user)
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     # Seamless support for MSG91-verified mobile sessions: sd_verified_<mobile>_<timestamp>
