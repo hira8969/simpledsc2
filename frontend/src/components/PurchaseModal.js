@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import api from "@/lib/api";
+import api, { refreshCustomerSession } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 import {
@@ -80,8 +81,9 @@ const PAYMENT_METHODS = [
 ];
 
 export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
+  const { user } = useAuth();
   const [step, setStep] = useState(0); // 0: Applicant, 1: Documents, 2: Review & Universal Checkout, 3: Success
-  const [applicant, setApplicant] = useState({ pan: "", aadhaar: "", dob: "", address: "", city: "", state: "", pin: "", organization: "" });
+  const [applicant, setApplicant] = useState({ pan: "", aadhaar: "", dob: "", address: "", city: "", state: "", pin: "", organization: "", mobile: "" });
   const [shipping, setShipping] = useState({ name: "", address: "", city: "", state: "", pin: "", mobile: "" });
   const [coupon, setCoupon] = useState("");
   const [pricing, setPricing] = useState(null);
@@ -90,6 +92,30 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const [busy, setBusy] = useState(false);
   const [uploaded, setUploaded] = useState({});
   const [docFiles, setDocFiles] = useState({});
+
+  // Prefill applicant & shipping from logged-in customer profile
+  useEffect(() => {
+    if (user && open) {
+      setApplicant((prev) => ({
+        ...prev,
+        mobile: prev.mobile || user.mobile || "",
+        address: prev.address || user.billing?.address || user.profile?.address || "",
+        city: prev.city || user.billing?.city || user.profile?.city || "",
+        state: prev.state || user.billing?.state || user.profile?.state || "",
+        pin: prev.pin || user.billing?.pin || user.profile?.pin || "",
+        organization: prev.organization || user.profile?.organization || "",
+      }));
+      setShipping((prev) => ({
+        ...prev,
+        name: prev.name || user.name || "",
+        mobile: prev.mobile || user.mobile || "",
+        address: prev.address || user.billing?.address || "",
+        city: prev.city || user.billing?.city || "",
+        state: prev.state || user.billing?.state || "",
+        pin: prev.pin || user.billing?.pin || "",
+      }));
+    }
+  }, [user, open]);
 
   // Universal Payment State
   const [selectedMethod, setSelectedMethod] = useState("upi_intent");
@@ -121,7 +147,10 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       setPricing(data);
       toast.success(`Coupon applied — you save ₹${data.discount}`);
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Invalid coupon");
+      const detail = e.response?.data?.detail;
+      if (!detail?.toLowerCase().includes("token")) {
+        toast.error(detail || "Invalid coupon");
+      }
       setPricing(null);
     }
   };
@@ -130,18 +159,55 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     setBusy(true);
     try {
       const agentCode = localStorage.getItem("sd_agent_ref") || undefined;
+      const orderApplicant = {
+        ...applicant,
+        mobile: applicant.mobile || user?.mobile || "",
+      };
+      const orderShipping = {
+        ...shipping,
+        name: shipping.name || user?.name || "Customer",
+        mobile: shipping.mobile || applicant.mobile || user?.mobile || "",
+      };
+
       const { data } = await api.post("/orders", {
         productId: product.id,
         couponCode: pricing ? coupon : null,
         agentCode,
-        applicant,
-        shipping,
+        applicant: orderApplicant,
+        shipping: orderShipping,
       });
+
+      if (data?.token) {
+        localStorage.setItem("sd_token", data.token);
+      }
       setOrder(data.order);
       return data;
     } catch (e) {
       const msg = e.response?.data?.detail;
-      if (msg && msg !== "Not Found") {
+      // Proactive session recovery on token expiration during checkout
+      if (msg && msg.toLowerCase().includes("token")) {
+        try {
+          const freshToken = await refreshCustomerSession(user?.mobile || applicant.mobile);
+          if (freshToken) {
+            const retryRes = await api.post("/orders", {
+              productId: product.id,
+              couponCode: pricing ? coupon : null,
+              agentCode: localStorage.getItem("sd_agent_ref") || undefined,
+              applicant: { ...applicant, mobile: applicant.mobile || user?.mobile || "" },
+              shipping: { ...shipping, mobile: shipping.mobile || user?.mobile || "" },
+            });
+            if (retryRes.data?.token) {
+              localStorage.setItem("sd_token", retryRes.data.token);
+            }
+            setOrder(retryRes.data.order);
+            return retryRes.data;
+          }
+        } catch (retryErr) {
+          console.warn("[Checkout token auto-recovery notice]:", retryErr);
+        }
+      }
+
+      if (msg && msg !== "Not Found" && !msg.toLowerCase().includes("token")) {
         toast.error(msg);
       } else {
         toast.error("Could not create order. Please verify your details.");

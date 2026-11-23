@@ -502,7 +502,11 @@ function ProfileTab({ user }) {
   const save = async () => {
     setBusy(true);
     try {
-      const { data } = await api.put("/customer/profile", p);
+      const payload = {
+        ...p,
+        mobile: user?.mobile,
+      };
+      const { data } = await api.put("/customer/profile", payload);
       if (data?.user) {
         setUser(data.user);
         localStorage.setItem("sd_cached_user", JSON.stringify(data.user));
@@ -517,6 +521,7 @@ function ProfileTab({ user }) {
         ...user,
         name: p.name || user?.name || "",
         email: p.email || user?.email || "",
+        mobile: user?.mobile || "",
         profile: { ...(user?.profile || {}), ...(p.profile || {}) },
         billing: { ...(user?.billing || {}), ...(p.billing || {}) },
         updatedAt: new Date().toISOString(),

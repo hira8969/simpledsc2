@@ -2,7 +2,8 @@
 import io
 import csv
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, EmailStr
 
@@ -874,6 +875,8 @@ async def admin_get_agents(search: str = "", admin: dict = Depends(get_current_a
 
 
 @admin_router.put("/admin/agents/{agent_id}/commission")
+@admin_router.post("/admin/agents/{agent_id}/commission")
+@admin_router.patch("/admin/agents/{agent_id}/commission")
 async def admin_set_agent_commission(
     agent_id: str,
     payload: dict,
@@ -904,6 +907,8 @@ async def admin_set_agent_commission(
 
 
 @admin_router.put("/admin/agents/{agent_id}")
+@admin_router.post("/admin/agents/{agent_id}")
+@admin_router.patch("/admin/agents/{agent_id}")
 async def admin_update_agent(
     agent_id: str,
     payload: dict,
@@ -930,4 +935,9 @@ async def admin_update_agent(
     await db.agents.update_one({"id": agent["id"]}, {"$set": updates})
     await audit(admin, "agent_updated", "agent", agent["id"], agent.get("status"), payload.get("status", agent.get("status")), client_ip(request))
     updated = await db.agents.find_one({"id": agent["id"]}, {"_id": 0, "password": 0})
-    return {"ok": True, "agent": updated}
+    return {
+        "ok": True,
+        "agent": updated,
+        "commissionRate": updated.get("commissionRate", 15.0),
+        "message": f"Agent {updated.get('name')} updated successfully"
+    }

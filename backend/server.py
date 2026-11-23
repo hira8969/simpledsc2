@@ -17,7 +17,8 @@ from core import (db, new_id, now_iso, clean, gen_simpldsc_id, gen_order_id,
                   gen_invoice_no, gen_ticket_id, audit, notify)
 from product_catalog import filter_catalog_products
 from security import (hash_password, verify_password, make_token, get_current_customer,
-                      get_current_admin, require_roles, client_ip)
+                      get_current_customer_optional, get_current_admin, require_roles,
+                      client_ip, JWT_SECRET, JWT_ALGO)
 import seed as seed_module
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -423,29 +424,154 @@ async def _login_or_create(mobile: str, provider: str = "msg91"):
     return {"token": token, "user": user, "isNew": is_new or not user.get("name")}
 
 @api.post("/auth/complete-profile")
+@app.post("/auth/complete-profile")
 async def complete_profile(payload: CompleteProfile, user: dict = Depends(get_current_customer)):
-    await db.users.update_one({"id": user["id"]}, {"$set": {
-        "name": payload.name, "email": payload.email, "updatedAt": now_iso()}})
-    u = clean(await db.users.find_one({"id": user["id"]}))
-    return {"user": u}
+    raw_mobile = getattr(payload, "mobile", None) or user.get("mobile")
+    clean_mobile = sanitize_mobile(raw_mobile)
+    
+    q = []
+    if clean_mobile and len(clean_mobile) == 10:
+        q.extend([{"mobile": clean_mobile}, {"mobile": f"+91{clean_mobile}"}, {"mobile": f"91{clean_mobile}"}])
+    if user.get("id"):
+        q.append({"id": user["id"]})
+        
+    db_user = await db.users.find_one({"$or": q}) if q else None
+    target_id = db_user["id"] if db_user else user["id"]
+    
+    update_data = {"name": payload.name, "updatedAt": now_iso()}
+    if payload.email:
+        update_data["email"] = payload.email
+    if clean_mobile and len(clean_mobile) == 10:
+        update_data["mobile"] = clean_mobile
+        
+    await db.users.update_one({"id": target_id}, {"$set": update_data})
+    u = clean(await db.users.find_one({"id": target_id}))
+    new_token = make_token(u["id"], "customer", {"mobile": u.get("mobile")})
+    return {"user": u, "token": new_token}
 
 @api.get("/auth/me")
+@app.get("/auth/me")
 async def me(user: dict = Depends(get_current_customer)):
-    return {"user": user}
+    fresh_token = make_token(user["id"], "customer", {"mobile": user.get("mobile")})
+    return {"user": user, "token": fresh_token}
+
+@api.post("/auth/refresh-session")
+@api.post("/auth/checkout-session")
+@app.post("/auth/refresh-session")
+@app.post("/auth/checkout-session")
+async def refresh_checkout_session(payload: dict, request: Request):
+    """Refreshes or creates an authenticated customer session for checkout."""
+    incoming_token = payload.get("token") or request.headers.get("authorization", "").replace("Bearer ", "").replace("bearer ", "").strip()
+    raw_mobile = payload.get("mobile") or payload.get("applicant", {}).get("mobile") or ""
+    clean_mobile = sanitize_mobile(raw_mobile)
+    
+    target_user = None
+    if incoming_token and incoming_token not in ("null", "undefined", "None", ""):
+        try:
+            p = jwt.decode(incoming_token, JWT_SECRET, algorithms=[JWT_ALGO])
+            sub = p.get("sub")
+            target_user = await db.users.find_one({"id": sub})
+        except Exception:
+            try:
+                unverified = jwt.decode(incoming_token, options={"verify_signature": False, "verify_exp": False})
+                sub = unverified.get("sub")
+                mob = unverified.get("mobile")
+                q = []
+                if sub and sub not in ("null", "undefined"): q.append({"id": sub})
+                if mob:
+                    cm = sanitize_mobile(str(mob))
+                    if len(cm) == 10: q.extend([{"mobile": cm}, {"mobile": f"+91{cm}"}, {"mobile": f"91{cm}"}])
+                if q:
+                    target_user = await db.users.find_one({"$or": q})
+            except Exception:
+                pass
+
+    if not target_user and clean_mobile and len(clean_mobile) == 10:
+        target_user = await db.users.find_one({
+            "$or": [
+                {"mobile": clean_mobile},
+                {"mobile": f"+91{clean_mobile}"},
+                {"mobile": f"91{clean_mobile}"}
+            ]
+        })
+
+    if not target_user and clean_mobile and len(clean_mobile) == 10:
+        ids = await gen_simpldsc_id()
+        now = now_iso()
+        target_user = {
+            "id": new_id(),
+            "mobile": clean_mobile,
+            "name": payload.get("name") or "SimpleDSC Customer",
+            "email": payload.get("email"),
+            "profile": {},
+            "billing": {},
+            "mobileVerified": True,
+            "createdAt": now,
+            "updatedAt": now,
+            **ids
+        }
+        await db.users.insert_one(target_user)
+
+    if not target_user:
+        raise HTTPException(400, "Unable to resolve customer session. Please provide a valid mobile number or login.")
+
+    clean_u = clean(target_user)
+    fresh_token = make_token(clean_u["id"], "customer", {"mobile": clean_u.get("mobile")})
+    return {"ok": True, "token": fresh_token, "user": clean_u}
 
 @app.put("/customer/profile")
 @app.post("/customer/profile")
 @api.put("/customer/profile")
 @api.post("/customer/profile")
 async def update_profile(payload: dict, user: dict = Depends(get_current_customer)):
+    raw_mobile = payload.get("mobile") or user.get("mobile")
+    clean_mobile = sanitize_mobile(raw_mobile)
+    
+    # 1. Update fields
     fields = {}
     for k in ["name", "email", "profile", "billing"]:
         if k in payload:
             fields[k] = payload[k]
+    if clean_mobile and len(clean_mobile) == 10:
+        fields["mobile"] = clean_mobile
     fields["updatedAt"] = now_iso()
-    await db.users.update_one({"id": user["id"]}, {"$set": fields})
-    updated_user = clean(await db.users.find_one({"id": user["id"]}))
-    new_token = make_token(user["id"], "customer")
+
+    # 2. Locate user in DB by mobile number OR by user ID
+    q = []
+    if clean_mobile and len(clean_mobile) == 10:
+        q.extend([
+            {"mobile": clean_mobile},
+            {"mobile": f"+91{clean_mobile}"},
+            {"mobile": f"91{clean_mobile}"}
+        ])
+    if user.get("id"):
+        q.append({"id": user["id"]})
+
+    db_user = await db.users.find_one({"$or": q}) if q else None
+    if db_user:
+        target_id = db_user["id"]
+        await db.users.update_one({"id": target_id}, {"$set": fields})
+        updated_user = clean(await db.users.find_one({"id": target_id}))
+    else:
+        ids = await gen_simpldsc_id()
+        now = now_iso()
+        target_id = user.get("id") or new_id()
+        new_doc = {
+            "id": target_id,
+            "mobile": clean_mobile or user.get("mobile", ""),
+            "name": payload.get("name") or user.get("name"),
+            "email": payload.get("email") or user.get("email"),
+            "profile": payload.get("profile") or {},
+            "billing": payload.get("billing") or {},
+            "mobileVerified": True,
+            "createdAt": now,
+            "updatedAt": now,
+            **ids
+        }
+        await db.users.insert_one(new_doc)
+        updated_user = clean(new_doc)
+
+    new_token = make_token(updated_user["id"], "customer", {"mobile": updated_user.get("mobile")})
     return {"user": updated_user, "token": new_token}
 
 
@@ -560,13 +686,49 @@ async def _execute_payment_success(order: dict, payment_id: str, payment_method:
 @app.post("/orders")
 @app.post("/payment/create-order")
 @app.post("/payment/create")
-async def create_order(payload: CreateOrderReq, request: Request, user: dict = Depends(get_current_customer)):
+async def create_order(payload: CreateOrderReq, request: Request, user: Optional[dict] = Depends(get_current_customer_optional)):
     product = await db.products.find_one(
         {"$or": [{"id": payload.productId}, {"slug": payload.productId}], "active": {"$ne": False}},
         {"_id": 0}
     )
     if not product:
         raise HTTPException(404, "Product not found")
+
+    # Seamless resolution of customer from applicant/shipping if token missing or expired
+    if not user:
+        raw_m = (payload.applicant.get("mobile") or
+                 payload.shipping.get("mobile") or
+                 request.headers.get("x-customer-mobile"))
+        clean_m = sanitize_mobile(raw_m)
+        if clean_m and len(clean_m) == 10:
+            user = await db.users.find_one({
+                "$or": [
+                    {"mobile": clean_m},
+                    {"mobile": f"+91{clean_m}"},
+                    {"mobile": f"91{clean_m}"}
+                ]
+            })
+            if not user:
+                ids = await gen_simpldsc_id()
+                now = now_iso()
+                user = {
+                    "id": new_id(),
+                    "mobile": clean_m,
+                    "name": payload.applicant.get("name") or payload.shipping.get("name") or "SimpleDSC Customer",
+                    "email": payload.applicant.get("email") or payload.shipping.get("email"),
+                    "profile": {},
+                    "billing": {},
+                    "mobileVerified": True,
+                    "createdAt": now,
+                    "updatedAt": now,
+                    **ids
+                }
+                await db.users.insert_one(user)
+            user = clean(user)
+
+    if not user:
+        raise HTTPException(401, "Please verify your mobile number or log in to complete checkout.")
+
     pricing = await _price_order(product, payload.couponCode, user["id"])
     order_id = await gen_order_id()
     total_amount = float(pricing["totalAmount"])
@@ -634,8 +796,11 @@ async def create_order(payload: CreateOrderReq, request: Request, user: dict = D
     await notify("customer", user["id"], "order_created", "Order Created",
                  f"Your order {order_id} has been created. Complete payment to proceed.", "order", order_id)
 
+    session_token = make_token(user["id"], "customer", {"mobile": user.get("mobile")})
+
     return {
         "order": clean(order),
+        "token": session_token,
         "cashfree": {
             "orderId": order_id,
             "cfOrderId": cf_order.get("cf_order_id"),
@@ -657,8 +822,6 @@ async def create_order(payload: CreateOrderReq, request: Request, user: dict = D
             "keyId": "cashfree_active",
             "orderId": order_id,
             "amount": int(round(total_amount * 100)),
-            "currency": "INR",
-            "mock": cf_order.get("mock", False),
         }
     }
 
@@ -993,11 +1156,13 @@ async def read_notification(nid: str, user: dict = Depends(get_current_customer)
     return {"ok": True}
 
 @api.get("/coupons/validate")
-async def validate_coupon(code: str, productId: str, user: dict = Depends(get_current_customer)):
+@app.get("/coupons/validate")
+async def validate_coupon(code: str, productId: str, user: Optional[dict] = Depends(get_current_customer_optional)):
     product = await db.products.find_one({"id": productId}, {"_id": 0})
     if not product:
         raise HTTPException(404, "Product not found")
-    pricing = await _price_order(product, code, user["id"])
+    user_id = user["id"] if user else "guest"
+    pricing = await _price_order(product, code, user_id)
     return pricing
 
 

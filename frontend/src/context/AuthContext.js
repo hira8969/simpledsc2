@@ -19,6 +19,9 @@ export function AuthProvider({ children }) {
         setUser(data.user);
         localStorage.setItem("sd_cached_user", JSON.stringify(data.user));
       }
+      if (data?.token) {
+        localStorage.setItem("sd_token", data.token);
+      }
     } catch (e) {
       const cached = localStorage.getItem("sd_cached_user");
       if (cached) {

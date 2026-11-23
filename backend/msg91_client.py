@@ -11,7 +11,8 @@ import logging
 import urllib.request
 import urllib.error
 import urllib.parse
-import jwt
+# pyrefly: ignore[missing-import]
+import jwt 
 
 try:
     import requests

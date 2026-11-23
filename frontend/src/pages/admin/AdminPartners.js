@@ -104,16 +104,23 @@ export default function AdminPartners() {
     }
 
     setSavingCommission(true);
+    const targetId = selectedAgentForCommission.id || selectedAgentForCommission.agentCode;
     try {
-      await api.put(`/admin/agents/${selectedAgentForCommission.id}/commission`, {
-        commissionRate: rate,
-      });
-
-      // Update status if changed
-      if (agentStatus !== selectedAgentForCommission.status) {
-        await api.put(`/admin/agents/${selectedAgentForCommission.id}`, {
+      try {
+        await api.put(`/admin/agents/${targetId}`, {
+          commissionRate: rate,
           status: agentStatus,
         });
+      } catch (err1) {
+        // Resilient fallback for dedicated commission endpoint
+        await api.put(`/admin/agents/${targetId}/commission`, {
+          commissionRate: rate,
+        });
+        if (agentStatus !== selectedAgentForCommission.status) {
+          await api.put(`/admin/agents/${targetId}`, {
+            status: agentStatus,
+          });
+        }
       }
 
       toast.success(`Commission rate for ${selectedAgentForCommission.name} (${selectedAgentForCommission.agentCode}) updated to ${rate}%!`);
