@@ -1,7 +1,10 @@
 // Centralized site/business info — update here only (do not duplicate across components).
 export const SITE = {
   name: "SimpleDSC",
-  companyLegalName: "YSMTX Solution Pvt Ltd",
+  companyLegalName: "TSMTX SOLUTIONS PRIVATE LIMITED",
+  companyAttribution: "A Product of TSMTX SOLUTIONS PRIVATE LIMITED",
+  companyAttributionPowered: "Powered by TSMTX SOLUTIONS PRIVATE LIMITED",
+  companyFooterStatement: "SimpleDSC is a digital signature service platform by TSMTX SOLUTIONS PRIVATE LIMITED.",
   tagline: "Digital Signatures, Made Simple.",
   canonicalBase: "https://www.simpldsc.com",
   phone: "7992999947",
