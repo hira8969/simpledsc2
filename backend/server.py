@@ -561,7 +561,10 @@ async def _execute_payment_success(order: dict, payment_id: str, payment_method:
 @app.post("/payment/create-order")
 @app.post("/payment/create")
 async def create_order(payload: CreateOrderReq, request: Request, user: dict = Depends(get_current_customer)):
-    product = await db.products.find_one({"id": payload.productId, "active": True}, {"_id": 0})
+    product = await db.products.find_one(
+        {"$or": [{"id": payload.productId}, {"slug": payload.productId}], "active": {"$ne": False}},
+        {"_id": 0}
+    )
     if not product:
         raise HTTPException(404, "Product not found")
     pricing = await _price_order(product, payload.couponCode, user["id"])
