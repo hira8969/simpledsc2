@@ -612,9 +612,13 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
     // 2. Prevent fake success if gateway credentials are missing
     if (isMock || !session_id) {
-      toast.error("Real payment gateway is awaiting Cashfree Production credentials. Please configure CASHFREE_APP_ID and CASHFREE_SECRET_KEY.");
+      const specificErr = activeOrderData?.cashfree?.error || activeOrderData?.error;
+      const displayMsg = specificErr
+        ? `Payment Gateway Error: ${specificErr}`
+        : "Payment gateway session could not be established. If Render deployment is currently in progress, please wait a minute and try again.";
+      toast.error(displayMsg);
       setPaymentState("failed");
-      setPaymentErrorReason("Cashfree live credentials are not set in the server environment. Once your Live API Keys are configured, real payments will be deducted directly from client bank accounts.");
+      setPaymentErrorReason(displayMsg);
       setBusy(false);
       return;
     }

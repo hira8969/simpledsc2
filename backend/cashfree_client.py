@@ -23,9 +23,17 @@ CASHFREE_API_VERSION = "2023-08-01"
 
 
 def get_credentials():
-    app_id = os.environ.get("CASHFREE_APP_ID", "").strip()
-    secret_key = os.environ.get("CASHFREE_SECRET_KEY", "").strip()
-    env = os.environ.get("CASHFREE_ENV", "SANDBOX").strip().upper()
+    app_id = os.environ.get("CASHFREE_APP_ID", "").strip().strip('"').strip("'")
+    secret_key = os.environ.get("CASHFREE_SECRET_KEY", "").strip().strip('"').strip("'")
+    raw_env = os.environ.get("CASHFREE_ENV", "").strip().upper().strip('"').strip("'")
+    if raw_env in ("PRODUCTION", "PROD"):
+        env = "PRODUCTION"
+    elif raw_env in ("SANDBOX", "TEST"):
+        env = "SANDBOX"
+    elif secret_key.startswith("cfsk_ma_prod_"):
+        env = "PRODUCTION"
+    else:
+        env = "SANDBOX"
     return app_id, secret_key, env
 
 
