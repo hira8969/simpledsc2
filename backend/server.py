@@ -654,16 +654,6 @@ async def customer_lookup(request: Request, mobile: Optional[str] = Query(None))
         "pin": pin,
         "simplDscId": user.get("simplDscId") if user else None,
     }
-            "mobileVerified": True,
-            "createdAt": now,
-            "updatedAt": now,
-            **ids
-        }
-        await db.users.insert_one(new_doc)
-        updated_user = clean(new_doc)
-
-    new_token = make_token(updated_user["id"], "customer", {"mobile": updated_user.get("mobile")})
-    return {"user": updated_user, "token": new_token}
 
 
 # ================= ORDERS / PAYMENT =================

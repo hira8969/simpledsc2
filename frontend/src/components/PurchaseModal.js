@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,7 +92,7 @@ const getSavedApplicant = () => {
 };
 
 export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
-  const { user, setUser, setAuthOpen, setAfterAuth } = useAuth();
+  const { user, setUser } = useAuth();
   const [step, setStep] = useState(0); // 0: Applicant, 1: Documents, 2: Review & Universal Checkout, 3: Success
   const [applicant, setApplicant] = useState(getSavedApplicant);
   const [shipping, setShipping] = useState(() => {
