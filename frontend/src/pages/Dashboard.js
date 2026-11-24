@@ -84,11 +84,19 @@ export default function Dashboard() {
   const [invoiceView, setInvoiceView] = useState(null);
 
   const load = useCallback(async () => {
-    const [o, d, i, t, n] = await Promise.all([
-      api.get("/customer/orders"), api.get("/customer/dscs"), api.get("/customer/invoices"),
-      api.get("/customer/tickets"), api.get("/customer/notifications"),
-    ]);
-    setOrders(o.data); setDscs(d.data); setInvoices(i.data); setTickets(t.data); setNotifs(n.data);
+    try {
+      const [o, d, i, t, n] = await Promise.allSettled([
+        api.get("/customer/orders"), api.get("/customer/dscs"), api.get("/customer/invoices"),
+        api.get("/customer/tickets"), api.get("/customer/notifications"),
+      ]);
+      if (o.status === "fulfilled") setOrders(o.value?.data || []);
+      if (d.status === "fulfilled") setDscs(d.value?.data || []);
+      if (i.status === "fulfilled") setInvoices(i.value?.data || []);
+      if (t.status === "fulfilled") setTickets(t.value?.data || []);
+      if (n.status === "fulfilled") setNotifs(n.value?.data || []);
+    } catch (e) {
+      console.warn("[Dashboard load notice]:", e);
+    }
   }, []);
 
   const handleLogout = () => {

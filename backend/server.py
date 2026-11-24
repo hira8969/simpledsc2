@@ -538,8 +538,8 @@ async def refresh_checkout_session(payload: dict, request: Request):
 @app.post("/customer/profile")
 @api.put("/customer/profile")
 @api.post("/customer/profile")
-async def update_profile(payload: dict, user: dict = Depends(get_current_customer)):
-    raw_mobile = payload.get("mobile") or user.get("mobile")
+async def update_profile(payload: dict, request: Request, user: Optional[dict] = Depends(get_current_customer_optional)):
+    raw_mobile = payload.get("mobile") or (user.get("mobile") if user else "") or request.headers.get("x-customer-mobile", "")
     clean_mobile = sanitize_mobile(raw_mobile)
     
     # 1. Update fields
@@ -559,7 +559,7 @@ async def update_profile(payload: dict, user: dict = Depends(get_current_custome
             {"mobile": f"+91{clean_mobile}"},
             {"mobile": f"91{clean_mobile}"}
         ])
-    if user.get("id"):
+    if user and user.get("id"):
         q.append({"id": user["id"]})
 
     db_user = await db.users.find_one({"$or": q}) if q else None
@@ -570,14 +570,90 @@ async def update_profile(payload: dict, user: dict = Depends(get_current_custome
     else:
         ids = await gen_simpldsc_id()
         now = now_iso()
-        target_id = user.get("id") or new_id()
+        target_id = (user.get("id") if user else None) or new_id()
         new_doc = {
             "id": target_id,
-            "mobile": clean_mobile or user.get("mobile", ""),
-            "name": payload.get("name") or user.get("name"),
-            "email": payload.get("email") or user.get("email"),
+            "mobile": clean_mobile or (user.get("mobile", "") if user else ""),
+            "name": payload.get("name") or (user.get("name") if user else None),
+            "email": payload.get("email") or (user.get("email") if user else None),
             "profile": payload.get("profile") or {},
             "billing": payload.get("billing") or {},
+            "mobileVerified": True,
+            "createdAt": now,
+            "updatedAt": now,
+            **ids
+        }
+        await db.users.insert_one(new_doc)
+        updated_user = clean(new_doc)
+
+    new_token = make_token(updated_user["id"], "customer", {"mobile": updated_user.get("mobile")})
+    return {"user": updated_user, "token": new_token}
+
+
+# ================= CUSTOMER LOOKUP (AUTO-PREFILL) =================
+@api.get("/customer/lookup")
+@app.get("/customer/lookup")
+@api.post("/customer/lookup")
+@app.post("/customer/lookup")
+async def customer_lookup(request: Request, mobile: Optional[str] = Query(None)):
+    """Lookup existing customer profile and recent order details by mobile to auto-prefill checkout."""
+    body_mobile = ""
+    try:
+        body = await request.json()
+        if isinstance(body, dict):
+            body_mobile = body.get("mobile", "")
+    except Exception:
+        pass
+    raw_m = mobile or body_mobile or request.query_params.get("mobile", "")
+    clean_m = sanitize_mobile(raw_m)
+    if not clean_m or len(clean_m) != 10:
+        return {"found": False, "detail": "Invalid mobile number"}
+
+    # 1. Lookup in users collection
+    user = await db.users.find_one({
+        "$or": [{"mobile": clean_m}, {"mobile": f"+91{clean_m}"}, {"mobile": f"91{clean_m}"}]
+    })
+
+    # 2. Lookup in orders collection for any past applicant details
+    recent_order = await db.orders.find_one(
+        {"$or": [{"mobile": clean_m}, {"applicant.mobile": clean_m}, {"shipping.mobile": clean_m}]},
+        sort=[("createdAt", -1)]
+    )
+
+    if not user and not recent_order:
+        return {"found": False}
+
+    profile = (user.get("profile") if user else {}) or {}
+    billing = (user.get("billing") if user else {}) or {}
+    app_data = (recent_order.get("applicant") if recent_order else {}) or {}
+    ship_data = (recent_order.get("shipping") if recent_order else {}) or {}
+
+    name = (user.get("name") if user else None) or app_data.get("name") or ship_data.get("name") or ""
+    email = (user.get("email") if user else None) or app_data.get("email") or ship_data.get("email") or ""
+    pan = profile.get("pan") or app_data.get("pan") or ""
+    aadhaar = profile.get("aadhaar") or app_data.get("aadhaar") or ""
+    dob = profile.get("dob") or app_data.get("dob") or ""
+    organization = profile.get("organization") or app_data.get("organization") or ""
+    address = profile.get("address") or billing.get("address") or app_data.get("address") or ship_data.get("address") or ""
+    city = profile.get("city") or billing.get("city") or app_data.get("city") or ship_data.get("city") or ""
+    state = profile.get("state") or billing.get("state") or app_data.get("state") or ship_data.get("state") or ""
+    pin = profile.get("pin") or billing.get("pin") or app_data.get("pin") or ship_data.get("pin") or ""
+
+    return {
+        "found": True,
+        "mobile": clean_m,
+        "name": name,
+        "email": email,
+        "pan": pan,
+        "aadhaar": aadhaar,
+        "dob": dob,
+        "organization": organization,
+        "address": address,
+        "city": city,
+        "state": state,
+        "pin": pin,
+        "simplDscId": user.get("simplDscId") if user else None,
+    }
             "mobileVerified": True,
             "createdAt": now,
             "updatedAt": now,
@@ -744,6 +820,34 @@ async def create_order(payload: CreateOrderReq, request: Request, user: Optional
     if not user:
         raise HTTPException(401, "Please verify your mobile number or log in to complete checkout.")
 
+    # 2. Persistently sync applicant details into user profile in db.users so client data is NEVER lost
+    user_updates = {"updatedAt": now_iso()}
+    app_name = payload.applicant.get("name") or payload.shipping.get("name")
+    app_email = payload.applicant.get("email") or payload.shipping.get("email")
+    if app_name:
+        user_updates["name"] = app_name
+        user["name"] = app_name
+    if app_email:
+        user_updates["email"] = app_email
+        user["email"] = app_email
+
+    cur_profile = (user.get("profile") or {})
+    for pk in ["pan", "aadhaar", "dob", "organization", "address", "city", "state", "pin"]:
+        if payload.applicant.get(pk):
+            cur_profile[pk] = payload.applicant.get(pk)
+    user_updates["profile"] = cur_profile
+    user["profile"] = cur_profile
+
+    cur_billing = (user.get("billing") or {})
+    for bk in ["address", "city", "state", "pin"]:
+        val = payload.shipping.get(bk) or payload.applicant.get(bk)
+        if val:
+            cur_billing[bk] = val
+    user_updates["billing"] = cur_billing
+    user["billing"] = cur_billing
+
+    await db.users.update_one({"id": user["id"]}, {"$set": user_updates})
+
     pricing = await _price_order(product, payload.couponCode, user["id"])
     order_id = await gen_order_id()
     total_amount = float(pricing["totalAmount"])
@@ -820,6 +924,7 @@ async def create_order(payload: CreateOrderReq, request: Request, user: Optional
     return {
         "order": clean(order),
         "token": session_token,
+        "user": clean(user),
         "cashfree": {
             "orderId": order_id,
             "cfOrderId": cf_order.get("cf_order_id"),

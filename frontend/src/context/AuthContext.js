@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import api from "@/lib/api";
+import api, { refreshCustomerSession } from "@/lib/api";
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -33,11 +33,18 @@ export function AuthProvider({ children }) {
       if (cached) {
         try {
           setUser(JSON.parse(cached));
-        } catch (_) {
-          localStorage.removeItem("sd_token");
-        }
-      } else if (!token.startsWith("sd_verified_")) {
-        localStorage.removeItem("sd_token");
+        } catch (_) {}
+      } else {
+        try {
+          const fresh = await refreshCustomerSession();
+          if (fresh) {
+            const { data } = await api.get("/auth/me");
+            if (data?.user) {
+              setUser(data.user);
+              localStorage.setItem("sd_cached_user", JSON.stringify(data.user));
+            }
+          }
+        } catch (_) {}
       }
     }
     setLoading(false);

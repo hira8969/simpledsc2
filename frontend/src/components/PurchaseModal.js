@@ -92,7 +92,7 @@ const getSavedApplicant = () => {
 };
 
 export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
-  const { user, setAuthOpen, setAfterAuth } = useAuth();
+  const { user, setUser, setAuthOpen, setAfterAuth } = useAuth();
   const [step, setStep] = useState(0); // 0: Applicant, 1: Documents, 2: Review & Universal Checkout, 3: Success
   const [applicant, setApplicant] = useState(getSavedApplicant);
   const [shipping, setShipping] = useState(() => {
@@ -106,6 +106,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const [busy, setBusy] = useState(false);
   const [uploaded, setUploaded] = useState({});
   const [docFiles, setDocFiles] = useState({});
+  const lastLookedUpMobile = useRef("");
 
   // Auto-save applicant details into persistent local storage whenever updated
   useEffect(() => {
@@ -116,10 +117,72 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     }
   }, [applicant]);
 
+  // Lookup existing customer profile and past applicant details by mobile to auto-prefill form
+  const lookupCustomer = useCallback(async (mob) => {
+    const cleanMob = String(mob || "").replace(/\D/g, "").slice(-10);
+    if (!cleanMob || cleanMob.length !== 10) return;
+    try {
+      const res = await api.get(`/customer/lookup`, { params: { mobile: cleanMob } });
+      if (res.data?.found) {
+        const d = res.data;
+        setApplicant((prev) => {
+          const updated = {
+            ...prev,
+            name: prev.name || d.name || "",
+            email: prev.email || d.email || "",
+            mobile: cleanMob,
+            pan: prev.pan || d.pan || "",
+            aadhaar: prev.aadhaar || d.aadhaar || "",
+            dob: prev.dob || d.dob || "",
+            organization: prev.organization || d.organization || "",
+            address: prev.address || d.address || "",
+            city: prev.city || d.city || "",
+            state: prev.state || d.state || "",
+            pin: prev.pin || d.pin || "",
+          };
+          try {
+            localStorage.setItem("sd_applicant_draft", JSON.stringify(updated));
+          } catch (_) {}
+          return updated;
+        });
+
+        setShipping((prev) => ({
+          ...prev,
+          name: prev.name || d.name || "",
+          mobile: cleanMob,
+          address: prev.address || d.address || "",
+          city: prev.city || d.city || "",
+          state: prev.state || d.state || "",
+          pin: prev.pin || d.pin || "",
+        }));
+
+        if (d.name) {
+          toast.success(`Welcome back, ${d.name}! Your saved details have been restored.`);
+        }
+      }
+    } catch (e) {
+      console.warn("[Customer lookup notice]:", e?.response?.data || e.message);
+    }
+  }, []);
+
+  // When applicant mobile reaches 10 digits, auto-lookup to prefill existing customer data
+  useEffect(() => {
+    const mob = applicant.mobile?.replace(/\D/g, "").slice(-10);
+    if (mob && mob.length === 10 && mob !== lastLookedUpMobile.current) {
+      lastLookedUpMobile.current = mob;
+      lookupCustomer(mob);
+    }
+  }, [applicant.mobile, lookupCustomer]);
+
   // Prefill applicant & shipping from logged-in customer profile or saved draft
   useEffect(() => {
     if (open) {
       const saved = getSavedApplicant();
+      const effMob = (user?.mobile || saved.mobile || "").replace(/\D/g, "").slice(-10);
+      if (effMob && effMob.length === 10 && effMob !== lastLookedUpMobile.current) {
+        lastLookedUpMobile.current = effMob;
+        lookupCustomer(effMob);
+      }
       setApplicant((prev) => ({
         ...prev,
         ...saved,
@@ -142,7 +205,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
         pin: prev.pin || user?.billing?.pin || saved.pin || "",
       }));
     }
-  }, [user, open]);
+  }, [user, open, lookupCustomer]);
 
   // Universal Payment State
   const [selectedMethod, setSelectedMethod] = useState("upi_intent");
@@ -208,33 +271,39 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       if (data?.token) {
         localStorage.setItem("sd_token", data.token);
       }
+      if (data?.user) {
+        localStorage.setItem("sd_cached_user", JSON.stringify(data.user));
+        if (typeof setUser === "function") setUser(data.user);
+      }
       setOrder(data.order);
       return data;
     } catch (e) {
       const msg = e.response?.data?.detail;
-      // Proactive session recovery on token expiration or auth error during checkout
-      if (msg && (msg.toLowerCase().includes("token") || msg.toLowerCase().includes("authenticat"))) {
+      const userMob = applicant.mobile || shipping.mobile || user?.mobile;
+      // Proactive silent session recovery on token expiration or auth error during checkout
+      if (userMob) {
         try {
-          const userMob = applicant.mobile || shipping.mobile || user?.mobile;
-          if (userMob) {
-            const freshToken = await refreshCustomerSession(userMob);
-            const activeToken = freshToken || localStorage.getItem("sd_token");
-            if (activeToken) {
-              const retryRes = await api.post("/orders", {
-                productId: product.id,
-                couponCode: pricing ? coupon : null,
-                agentCode: localStorage.getItem("sd_agent_ref") || undefined,
-                applicant: { ...applicant, mobile: userMob },
-                shipping: { ...shipping, mobile: userMob },
-              }, {
-                headers: { Authorization: `Bearer ${activeToken}`, "X-Customer-Mobile": userMob }
-              });
-              if (retryRes.data?.token) {
-                localStorage.setItem("sd_token", retryRes.data.token);
-              }
-              setOrder(retryRes.data.order);
-              return retryRes.data;
+          const freshToken = await refreshCustomerSession(userMob);
+          const activeToken = freshToken || localStorage.getItem("sd_token");
+          if (activeToken) {
+            const retryRes = await api.post("/orders", {
+              productId: product.id,
+              couponCode: pricing ? coupon : null,
+              agentCode: localStorage.getItem("sd_agent_ref") || undefined,
+              applicant: { ...applicant, mobile: userMob },
+              shipping: { ...shipping, mobile: userMob },
+            }, {
+              headers: { Authorization: `Bearer ${activeToken}`, "X-Customer-Mobile": userMob }
+            });
+            if (retryRes.data?.token) {
+              localStorage.setItem("sd_token", retryRes.data.token);
             }
+            if (retryRes.data?.user) {
+              localStorage.setItem("sd_cached_user", JSON.stringify(retryRes.data.user));
+              if (typeof setUser === "function") setUser(retryRes.data.user);
+            }
+            setOrder(retryRes.data.order);
+            return retryRes.data;
           }
         } catch (retryErr) {
           console.warn("[Checkout token auto-recovery notice]:", retryErr);
@@ -242,17 +311,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       }
 
       const errMsg = msg || e.message;
-      if (errMsg && (errMsg.toLowerCase().includes("authenticat") || errMsg.toLowerCase().includes("token") || errMsg.toLowerCase().includes("log in"))) {
-        toast.info("Please verify your mobile number to complete checkout.");
-        const effMobile = applicant.mobile || shipping.mobile || user?.mobile || "";
-        if (effMobile) sessionStorage.setItem("sd_pending_mobile", effMobile);
-        if (typeof setAfterAuth === "function") {
-          setAfterAuth(() => () => handleUniversalPay(selectedMethod));
-        }
-        if (typeof setAuthOpen === "function") {
-          setAuthOpen(true);
-        }
-      } else if (errMsg && errMsg !== "Not Found") {
+      if (errMsg && errMsg !== "Not Found") {
         toast.error(errMsg);
       } else {
         toast.error("Unable to create order. Please check your mobile number and details.");
@@ -377,30 +436,25 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const handleUniversalPay = async (methodType = selectedMethod) => {
     if (busy) return;
 
-    // Check authentication: If user has a valid active token
-    const token = localStorage.getItem("sd_token");
-    const hasValidToken = Boolean(token && token !== "null" && token !== "undefined" && !isJwtExpired(token));
-
-    if (!hasValidToken) {
-      const effMobile = applicant.mobile || shipping.mobile || user?.mobile || "";
-      if (!effMobile || effMobile.length !== 10) {
-        toast.error("Please enter a valid 10-digit mobile number in Applicant Details");
-        setStep(0);
-        return;
-      }
-      sessionStorage.setItem("sd_pending_mobile", effMobile);
-      if (typeof setAfterAuth === "function") {
-        setAfterAuth(() => () => handleUniversalPay(methodType));
-      }
-      if (typeof setAuthOpen === "function") {
-        setAuthOpen(true);
-      }
+    const effMobile = applicant.mobile || shipping.mobile || user?.mobile || "";
+    if (!effMobile || effMobile.length !== 10) {
+      toast.error("Please enter a valid 10-digit mobile number in Applicant Details");
+      setStep(0);
       return;
     }
 
     setBusy(true);
     setPaymentState("processing");
     setPaymentErrorReason("");
+
+    // Seamlessly ensure valid customer session in background without popping up login prompts
+    const token = localStorage.getItem("sd_token");
+    const hasValidToken = Boolean(token && token !== "null" && token !== "undefined" && !isJwtExpired(token));
+
+    if (!hasValidToken) {
+      sessionStorage.setItem("sd_pending_mobile", effMobile);
+      await refreshCustomerSession(effMobile);
+    }
 
     let activeOrderData = null;
     let ord = order;
