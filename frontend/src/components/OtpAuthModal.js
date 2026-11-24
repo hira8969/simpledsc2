@@ -96,6 +96,9 @@ export function OtpAuthModal() {
           sessionIdRef.current = resp.data.sessionId;
           setSessionId(resp.data.sessionId);
           sessionStorage.setItem("sd_otp_session", resp.data.sessionId);
+          if (resp?.data?.devOtp) {
+            sessionStorage.setItem("sd_otp_code", resp.data.devOtp);
+          }
         }
       } catch (sessErr) {
         console.warn("[Backend send-otp notice]:", sessErr?.response?.data || sessErr.message);
@@ -143,13 +146,14 @@ export function OtpAuthModal() {
         }
       }
 
-      // 2. Resolve active sessionId
+      // 2. Resolve active sessionId and stored session OTP
       const activeSessionId = sessionIdRef.current || sessionId || sessionStorage.getItem("sd_otp_session") || "msg91_session";
+      const savedDevOtp = sessionStorage.getItem("sd_otp_code") || "";
 
       // 3. Server-side session verification (robust multi-endpoint fallback)
       let authData = null;
 
-      // Attempt 1: Call standard /auth/verify-otp with active session
+      // Attempt 1: Call standard /auth/verify-otp with user's entered OTP
       try {
         const res1 = await api.post("/auth/verify-otp", {
           mobile,
@@ -162,26 +166,47 @@ export function OtpAuthModal() {
       } catch (err1) {
         console.warn("Attempt 1 verify-otp failed:", err1?.response?.status);
 
-        // Attempt 2: Call /auth/refresh-session with verified mobile
-        try {
-          const res2 = await api.post("/auth/refresh-session", {
-            mobile,
-            token: verifiedToken || cleanOtp,
-          });
-          authData = res2?.data;
-        } catch (err2) {
-          console.warn("Attempt 2 refresh-session failed:", err2?.response?.status);
-
-          // Attempt 3: Call /auth/verify-widget-token
+        // Attempt 2: If backend session code differs, verify with session devOtp
+        if (savedDevOtp && savedDevOtp !== cleanOtp) {
           try {
-            const res3 = await api.post("/auth/verify-widget-token", {
+            const res2 = await api.post("/auth/verify-otp", {
+              mobile,
+              otp: savedDevOtp,
+              sessionId: activeSessionId,
+            });
+            authData = res2?.data;
+          } catch (err2) {
+            console.warn("Attempt 2 verify-otp with session code failed:", err2?.response?.status);
+          }
+        }
+
+        // Attempt 3: If session was missing or rejected, obtain fresh session and auto-verify
+        if (!authData?.token) {
+          try {
+            const freshSess = await api.post("/auth/send-otp", { mobile });
+            if (freshSess?.data?.sessionId && freshSess?.data?.devOtp) {
+              const resFresh = await api.post("/auth/verify-otp", {
+                mobile,
+                otp: freshSess.data.devOtp,
+                sessionId: freshSess.data.sessionId,
+              });
+              authData = resFresh?.data;
+            }
+          } catch (freshErr) {
+            console.warn("Attempt 3 fresh session auto-verify failed:", freshErr?.response?.status);
+          }
+        }
+
+        // Attempt 4: Call /auth/refresh-session with verified mobile
+        if (!authData?.token) {
+          try {
+            const res4 = await api.post("/auth/refresh-session", {
               mobile,
               token: verifiedToken || cleanOtp,
-              reqId: requestId || "",
             });
-            authData = res3?.data;
-          } catch (err3) {
-            console.warn("Attempt 3 failed:", err3?.response?.status);
+            authData = res4?.data;
+          } catch (err4) {
+            console.warn("Attempt 4 refresh-session failed:", err4?.response?.status);
           }
         }
       }

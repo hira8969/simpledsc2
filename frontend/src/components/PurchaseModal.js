@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import api, { refreshCustomerSession } from "@/lib/api";
+import api, { refreshCustomerSession, isJwtExpired } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
@@ -80,11 +80,25 @@ const PAYMENT_METHODS = [
   },
 ];
 
+const getSavedApplicant = () => {
+  try {
+    const raw = localStorage.getItem("sd_applicant_draft");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+    }
+  } catch (_) {}
+  return { name: "", email: "", mobile: "", pan: "", aadhaar: "", dob: "", address: "", city: "", state: "", pin: "", organization: "" };
+};
+
 export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const { user, setAuthOpen, setAfterAuth } = useAuth();
   const [step, setStep] = useState(0); // 0: Applicant, 1: Documents, 2: Review & Universal Checkout, 3: Success
-  const [applicant, setApplicant] = useState({ name: "", email: "", mobile: "", pan: "", aadhaar: "", dob: "", address: "", city: "", state: "", pin: "", organization: "" });
-  const [shipping, setShipping] = useState({ name: "", address: "", city: "", state: "", pin: "", mobile: "" });
+  const [applicant, setApplicant] = useState(getSavedApplicant);
+  const [shipping, setShipping] = useState(() => {
+    const app = getSavedApplicant();
+    return { name: app.name || "", address: app.address || "", city: app.city || "", state: app.state || "", pin: app.pin || "", mobile: app.mobile || "" };
+  });
   const [coupon, setCoupon] = useState("");
   const [pricing, setPricing] = useState(null);
   const [order, setOrder] = useState(null);
@@ -93,28 +107,39 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const [uploaded, setUploaded] = useState({});
   const [docFiles, setDocFiles] = useState({});
 
-  // Prefill applicant & shipping from logged-in customer profile
+  // Auto-save applicant details into persistent local storage whenever updated
   useEffect(() => {
-    if (user && open) {
+    if (applicant && (applicant.name || applicant.mobile || applicant.pan || applicant.aadhaar || applicant.address || applicant.email)) {
+      try {
+        localStorage.setItem("sd_applicant_draft", JSON.stringify(applicant));
+      } catch (_) {}
+    }
+  }, [applicant]);
+
+  // Prefill applicant & shipping from logged-in customer profile or saved draft
+  useEffect(() => {
+    if (open) {
+      const saved = getSavedApplicant();
       setApplicant((prev) => ({
         ...prev,
-        name: prev.name || user.name || "",
-        email: prev.email || user.email || "",
-        mobile: prev.mobile || user.mobile || "",
-        address: prev.address || user.billing?.address || user.profile?.address || "",
-        city: prev.city || user.billing?.city || user.profile?.city || "",
-        state: prev.state || user.billing?.state || user.profile?.state || "",
-        pin: prev.pin || user.billing?.pin || user.profile?.pin || "",
-        organization: prev.organization || user.profile?.organization || "",
+        ...saved,
+        name: prev.name || user?.name || saved.name || "",
+        email: prev.email || user?.email || saved.email || "",
+        mobile: prev.mobile || user?.mobile || saved.mobile || "",
+        address: prev.address || user?.billing?.address || user?.profile?.address || saved.address || "",
+        city: prev.city || user?.billing?.city || user?.profile?.city || saved.city || "",
+        state: prev.state || user?.billing?.state || user?.profile?.state || saved.state || "",
+        pin: prev.pin || user?.billing?.pin || user?.profile?.pin || saved.pin || "",
+        organization: prev.organization || user?.profile?.organization || saved.organization || "",
       }));
       setShipping((prev) => ({
         ...prev,
-        name: prev.name || user.name || "",
-        mobile: prev.mobile || user.mobile || "",
-        address: prev.address || user.billing?.address || "",
-        city: prev.city || user.billing?.city || "",
-        state: prev.state || user.billing?.state || "",
-        pin: prev.pin || user.billing?.pin || "",
+        name: prev.name || user?.name || saved.name || "",
+        mobile: prev.mobile || user?.mobile || saved.mobile || "",
+        address: prev.address || user?.billing?.address || saved.address || "",
+        city: prev.city || user?.billing?.city || saved.city || "",
+        state: prev.state || user?.billing?.state || saved.state || "",
+        pin: prev.pin || user?.billing?.pin || saved.pin || "",
       }));
     }
   }, [user, open]);
@@ -352,12 +377,18 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const handleUniversalPay = async (methodType = selectedMethod) => {
     if (busy) return;
 
-    // Check authentication: If user is not authenticated or token missing
+    // Check authentication: If user has a valid active token
     const token = localStorage.getItem("sd_token");
-    const isAuthenticated = user && (user.id || user.mobile) && token && token !== "null" && token !== "undefined";
-    if (!isAuthenticated) {
+    const hasValidToken = Boolean(token && token !== "null" && token !== "undefined" && !isJwtExpired(token));
+
+    if (!hasValidToken) {
       const effMobile = applicant.mobile || shipping.mobile || user?.mobile || "";
-      if (effMobile) sessionStorage.setItem("sd_pending_mobile", effMobile);
+      if (!effMobile || effMobile.length !== 10) {
+        toast.error("Please enter a valid 10-digit mobile number in Applicant Details");
+        setStep(0);
+        return;
+      }
+      sessionStorage.setItem("sd_pending_mobile", effMobile);
       if (typeof setAfterAuth === "function") {
         setAfterAuth(() => () => handleUniversalPay(methodType));
       }

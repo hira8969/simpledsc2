@@ -5,7 +5,13 @@ const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const cached = localStorage.getItem("sd_cached_user");
+      if (cached) return JSON.parse(cached);
+    } catch (_) {}
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
   const [afterAuth, setAfterAuth] = useState(null);
