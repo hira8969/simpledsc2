@@ -242,6 +242,62 @@ def create_upi_qr(payment_session_id: str, order_id: str, amount: float = 0.0) -
         }
 
 
+def create_upi_intent(payment_session_id: str, order_id: str, upi_provider: str = None) -> dict:
+    """Generate dynamic UPI app intent payload (GPay, PhonePe, Paytm, universal intent)
+    via official Cashfree API v2023-08-01. Never invents synthetic merchant UPI IDs.
+    All settlements route to the registered Punjab National Bank (PNB) account of
+    TSMTX SOLUTIONS PRIVATE LIMITED.
+    """
+    if not is_live() or not payment_session_id or payment_session_id.startswith("session_mock_"):
+        return {
+            "intent_url": None,
+            "gpay_url": None,
+            "phonepe_url": None,
+            "paytm_url": None,
+            "use_sdk": True,
+            "mock": True
+        }
+
+    url = f"{get_base_url()}/orders/sessions"
+    payload = {
+        "payment_session_id": payment_session_id,
+        "payment_method": {
+            "upi": {
+                "channel": "intent"
+            }
+        }
+    }
+
+    status_code, data, raw_text = _http_request("POST", url, get_headers(), payload)
+    if status_code in (200, 201):
+        data_payload = data.get("data", {}).get("payload", {})
+        intent_url = data_payload.get("intent_url") or data.get("payload", {}).get("intent_url")
+        gpay_url = data_payload.get("gpay") or data_payload.get("gpay_link")
+        phonepe_url = data_payload.get("phonepe") or data_payload.get("phonepe_link")
+        paytm_url = data_payload.get("paytm") or data_payload.get("paytm_link")
+        bhim_url = data_payload.get("bhim") or data_payload.get("bhim_link")
+        return {
+            "intent_url": intent_url,
+            "gpay_url": gpay_url,
+            "phonepe_url": phonepe_url,
+            "paytm_url": paytm_url,
+            "bhim_url": bhim_url,
+            "raw": data,
+            "use_sdk": False,
+            "mock": False
+        }
+    else:
+        logger.info(f"[Cashfree Intent Sessions Response {status_code}]: {raw_text}")
+        return {
+            "intent_url": None,
+            "gpay_url": None,
+            "phonepe_url": None,
+            "paytm_url": None,
+            "use_sdk": True,
+            "mock": False
+        }
+
+
 def verify_webhook_signature(signature: str, timestamp: str, raw_body: bytes) -> bool:
     """Verify Cashfree webhook signature using HMAC SHA256 of timestamp + raw_body."""
     _, secret, _ = get_credentials()

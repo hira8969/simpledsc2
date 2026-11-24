@@ -51,34 +51,110 @@ const loadCashfreeSdk = () => {
   });
 };
 
-const PAYMENT_METHODS = [
+// Official Brand SVG Icons for Blinkit-style Payment Checkout
+const GPayIcon = ({ className = "h-5 w-5" }) => (
+  <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M44.5 20H24V28.92H35.83C34.74 33.8 30.56 37.07 24 37.07C16.82 37.07 11 31.25 11 24.07C11 16.89 16.82 11.07 24 11.07C27.18 11.07 30.04 12.18 32.28 14.02L38.93 7.37C34.88 3.59 29.74 1.32 24 1.32C11.45 1.32 1.25 11.52 1.25 24.07C1.25 36.62 11.45 46.82 24 46.82C36.03 46.82 44.07 38.35 44.07 26.35C44.07 24.18 43.86 22.04 44.5 20Z"
+      fill="#4285F4"
+    />
+    <path
+      d="M6.31 14.71L13.78 20.19C15.77 15.17 20.47 11.07 24 11.07C27.18 11.07 30.04 12.18 32.28 14.02L38.93 7.37C34.88 3.59 29.74 1.32 24 1.32C16.32 1.32 9.66 6.88 6.31 14.71Z"
+      fill="#EA4335"
+    />
+    <path
+      d="M24 46.82C29.61 46.82 34.64 44.64 38.63 41.05L31.52 35.15C29.47 36.45 26.89 37.07 24 37.07C17.47 37.07 13.31 33.84 11.24 28.98L3.71 34.78C7.02 42.34 14.86 46.82 24 46.82Z"
+      fill="#34A853"
+    />
+    <path
+      d="M44.07 26.35C44.07 24.18 43.86 22.04 44.5 20H24V28.92H35.83C35.25 31.42 33.72 33.58 31.52 35.15L38.63 41.05C42.75 37.24 44.07 31.85 44.07 26.35Z"
+      fill="#4285F4"
+    />
+    <path
+      d="M3.71 34.78L11.24 28.98C10.66 27.42 10.33 25.75 10.33 24C10.33 22.25 10.66 20.58 11.24 19.02L3.71 13.22C2.16 16.39 1.25 20.08 1.25 24C1.25 27.92 2.16 31.61 3.71 34.78Z"
+      fill="#FBBC05"
+    />
+  </svg>
+);
+
+const PhonePeIcon = ({ className = "h-6 w-6" }) => (
+  <div className={`relative inline-flex items-center justify-center rounded-full bg-[#5F259F] shadow-xs shrink-0 ${className}`}>
+    <span className="font-bold text-white text-[14px] leading-none select-none" style={{ fontFamily: "Arial, sans-serif" }}>पे</span>
+  </div>
+);
+
+const PaytmIcon = ({ className = "h-5 w-auto" }) => (
+  <div className={`relative inline-flex items-center justify-center rounded-md bg-[#002E6E] px-1.5 py-0.5 shrink-0 shadow-xs ${className}`}>
+    <span className="font-black text-white text-[11px] tracking-tight">Pay</span>
+    <span className="font-black text-[#00BAF2] text-[11px] tracking-tight">tm</span>
+  </div>
+);
+
+const UPI_APPS = [
   {
-    id: "upi_intent",
-    name: "Pay with Any UPI App",
-    subtitle: "Google Pay, PhonePe, Paytm, BHIM, Amazon Pay & More",
-    icon: Smartphone,
+    id: "gpay",
+    name: "Google Pay",
+    subtitle: "Fast 1-tap checkout · Opens Google Pay app",
+    customIcon: GPayIcon,
     popular: true,
+    badge: "Fastest",
+    buttonText: "Pay with Google Pay",
+    brandBorder: "border-blue-500",
+    brandBg: "bg-blue-50/40",
+    buttonBg: "bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-md shadow-blue-500/20",
   },
+  {
+    id: "phonepe",
+    name: "PhonePe",
+    subtitle: "Direct 1-tap payment · Opens PhonePe app",
+    customIcon: PhonePeIcon,
+    badge: "Recommended",
+    buttonText: "Pay with PhonePe",
+    brandBorder: "border-[#5f259f]",
+    brandBg: "bg-purple-50/40",
+    buttonBg: "bg-[#5f259f] hover:bg-[#4d1d82] text-white shadow-md shadow-purple-600/25",
+  },
+  {
+    id: "paytm",
+    name: "Paytm UPI",
+    subtitle: "Instant payment via Paytm app",
+    customIcon: PaytmIcon,
+    badge: "Popular",
+    buttonText: "Pay with Paytm",
+    brandBorder: "border-[#002e6e]",
+    brandBg: "bg-sky-50/40",
+    buttonBg: "bg-[#002e6e] hover:bg-[#001f4d] text-white shadow-md shadow-sky-600/20",
+  },
+];
+
+const OTHER_METHODS = [
   {
     id: "upi_qr",
     name: "Scan & Pay (UPI QR)",
     subtitle: "Dynamic QR code with real-time payment radar",
     icon: QrCode,
-    badge: "Instant",
+    badge: "Instant Radar",
+    buttonText: "Scan Dynamic QR",
+    brandBorder: "border-emerald-500",
+    brandBg: "bg-emerald-50/20",
   },
   {
     id: "card",
     name: "Debit / Credit Cards",
     subtitle: "Visa, MasterCard, RuPay, Maestro (Domestic & Intl)",
     icon: CreditCard,
+    buttonText: "Pay via Card",
   },
   {
     id: "netbanking",
     name: "Net Banking",
     subtitle: "HDFC, ICICI, SBI, Axis, Kotak & 50+ Banks",
     icon: Building2,
+    buttonText: "Pay via Net Banking",
   },
 ];
+
+const PAYMENT_METHODS = [...UPI_APPS, ...OTHER_METHODS];
 
 const getSavedApplicant = () => {
   try {
@@ -207,8 +283,8 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     }
   }, [user, open, lookupCustomer]);
 
-  // Universal Payment State
-  const [selectedMethod, setSelectedMethod] = useState("upi_intent");
+  // Universal Payment State (Default to Google Pay - 1-tap UPI)
+  const [selectedMethod, setSelectedMethod] = useState("gpay");
   const [qrString, setQrString] = useState("");
   const [qrTimer, setQrTimer] = useState(300); // 5 minutes countdown
   const [qrLoading, setQrLoading] = useState(false);
@@ -484,6 +560,35 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
     track("payment_initiated", { amount: totalNow.totalAmount, method: methodType });
 
+    const isMobileDevice = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // Direct Mobile App Intent trigger for GPay, PhonePe, Paytm
+    if (["gpay", "phonepe", "paytm"].includes(methodType) && isMobileDevice) {
+      try {
+        const intentRes = await api.post("/payment/upi-intent", {
+          orderId: ord.orderId,
+          provider: methodType,
+        });
+        const data = intentRes.data || {};
+        let targetAppUrl = null;
+        if (methodType === "gpay") targetAppUrl = data.gpay_url || data.intent_url;
+        else if (methodType === "phonepe") targetAppUrl = data.phonepe_url || data.intent_url;
+        else if (methodType === "paytm") targetAppUrl = data.paytm_url || data.intent_url;
+        else targetAppUrl = data.intent_url;
+
+        if (targetAppUrl) {
+          startQrPolling(ord.orderId, ord);
+          const appName = methodType === "gpay" ? "Google Pay" : methodType === "phonepe" ? "PhonePe" : "Paytm";
+          toast.info(`Opening ${appName}... Please complete payment in your app.`);
+          window.location.href = targetAppUrl;
+          setBusy(false);
+          return;
+        }
+      } catch (intentErr) {
+        console.warn("[UPI Intent request notice]:", intentErr);
+      }
+    }
+
     const cfData = activeOrderData?.cashfree || {
       paymentSessionId: ord.paymentSessionId,
       mock: ord.paymentSessionId?.startsWith("session_mock_"),
@@ -583,10 +688,10 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     setPollingActive(false);
   };
 
-  // Effect to manage QR timer and auto-refresh
+  // Effect to manage QR timer and auto-refresh for UPI options
   useEffect(() => {
     let timer = null;
-    if (step === 2 && selectedMethod === "upi_qr" && qrTimer > 0) {
+    if (step === 2 && ["gpay", "phonepe", "paytm", "upi_qr"].includes(selectedMethod) && qrTimer > 0) {
       timer = setInterval(() => {
         setQrTimer((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
@@ -596,7 +701,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
   // Clean up polling on unmount or step switch
   useEffect(() => {
-    if (step === 2 && selectedMethod === "upi_qr") {
+    if (step === 2 && ["gpay", "phonepe", "paytm", "upi_qr"].includes(selectedMethod)) {
       initQrPayment();
     } else {
       stopQrPolling();
@@ -631,7 +736,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       setUploaded({});
       setDocFiles({});
       setBusy(false);
-      setSelectedMethod("upi_intent");
+      setSelectedMethod("gpay");
       setPaymentState("idle");
     }, 200);
   };
@@ -823,59 +928,96 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
                 {/* Left Column (7 cols): Payment Method Selection */}
                 <div className="md:col-span-7 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-navy-950 uppercase tracking-wider">Select Payment Method</h3>
+                    <div>
+                      <h3 className="text-sm font-bold text-navy-950 uppercase tracking-wider">Select Payment Method</h3>
+                      <p className="text-[11px] text-slate-500">Fast 1-tap checkout via UPI or Universal Gateway</p>
+                    </div>
                     <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                      Universal UPI & Gateway
+                      Zero Extra Fee
                     </span>
                   </div>
 
-                  {/* Payment Methods Tabs */}
+                  {/* Section 1: Prominent Blinkit-style UPI App Buttons */}
                   <div className="space-y-2">
-                    {PAYMENT_METHODS.map((method) => {
-                      const Icon = method.icon;
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Direct 1-Tap UPI Apps (Recommended)</p>
+                    {UPI_APPS.map((method) => {
+                      const CustomIcon = method.customIcon;
                       const isSelected = selectedMethod === method.id;
                       return (
                         <div
                           key={method.id}
                           onClick={() => setSelectedMethod(method.id)}
-                          className={`cursor-pointer rounded-xl border p-3.5 transition-all ${
+                          className={`cursor-pointer rounded-2xl border p-3 sm:p-3.5 transition-all ${
                             isSelected
-                              ? "border-purple-600 bg-purple-50/40 shadow-sm ring-1 ring-purple-600"
+                              ? `${method.brandBorder} ${method.brandBg} shadow-sm ring-1 ring-offset-0 ${
+                                  method.id === "gpay"
+                                    ? "ring-blue-500"
+                                    : method.id === "phonepe"
+                                    ? "ring-[#5f259f]"
+                                    : "ring-[#002e6e]"
+                                }`
                               : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
                           }`}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
                               <div
-                                className={`flex h-9 w-9 items-center justify-center rounded-lg ${
-                                  isSelected ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-600"
-                                }`}
+                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-white shadow-xs p-1.5"
                               >
-                                <Icon className="h-5 w-5" />
+                                <CustomIcon className="h-6 w-6" />
                               </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="text-xs sm:text-sm font-bold text-navy-900">{method.name}</p>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <p className="text-sm font-bold text-navy-950 truncate">{method.name}</p>
                                   {method.badge && (
-                                    <span className="text-[10px] font-bold text-purple-700 bg-purple-100/80 px-1.5 py-0.2 rounded">
+                                    <span
+                                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                                        method.id === "gpay"
+                                          ? "text-blue-700 bg-blue-100/80"
+                                          : method.id === "phonepe"
+                                          ? "text-purple-700 bg-purple-100/80"
+                                          : "text-sky-700 bg-sky-100/80"
+                                      }`}
+                                    >
                                       {method.badge}
                                     </span>
                                   )}
-                                  {method.popular && (
-                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.2 rounded">
-                                      Recommended
-                                    </span>
-                                  )}
                                 </div>
-                                <p className="text-[11px] text-slate-500 line-clamp-1">{method.subtitle}</p>
+                                <p className="text-[11px] text-slate-500 truncate">{method.subtitle}</p>
                               </div>
                             </div>
-                            <div
-                              className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                                isSelected ? "border-purple-600 bg-purple-600" : "border-slate-300"
-                              }`}
-                            >
-                              {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+
+                            {/* Direct Action Button on each prominent brand row */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Button
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedMethod(method.id);
+                                  handleUniversalPay(method.id);
+                                }}
+                                disabled={busy}
+                                className={`rounded-xl px-3.5 py-2 font-bold text-xs shadow-sm hover:shadow transition-all ${method.buttonBg}`}
+                              >
+                                {busy && selectedMethod === method.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <>Pay ₹{totalNow.totalAmount}</>
+                                )}
+                              </Button>
+                              <div
+                                className={`h-4 w-4 rounded-full border flex items-center justify-center ${
+                                  isSelected
+                                    ? method.id === "gpay"
+                                      ? "border-blue-600 bg-blue-600"
+                                      : method.id === "phonepe"
+                                      ? "border-[#5f259f] bg-[#5f259f]"
+                                      : "border-[#002e6e] bg-[#002e6e]"
+                                    : "border-slate-300"
+                                }`}
+                              >
+                                {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -883,50 +1025,274 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
                     })}
                   </div>
 
-                  {/* Dynamic Action Area for Selected Method */}
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
-                    {/* OPTION A: UPI APPS INTENT */}
-                    {selectedMethod === "upi_intent" && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-bold text-navy-900">Supported UPI Applications</p>
-                          <span className="text-[10px] text-slate-400">Zero Convenience Fee</span>
-                        </div>
-                        {/* UPI Brand Badges */}
-                        <div className="grid grid-cols-4 gap-2">
-                          {[
-                            { name: "Google Pay", bg: "bg-white", border: "border-slate-200", color: "text-blue-600" },
-                            { name: "PhonePe", bg: "bg-white", border: "border-slate-200", color: "text-purple-600" },
-                            { name: "Paytm", bg: "bg-white", border: "border-slate-200", color: "text-sky-600" },
-                            { name: "BHIM UPI", bg: "bg-white", border: "border-slate-200", color: "text-emerald-600" },
-                            { name: "Amazon Pay", bg: "bg-white", border: "border-slate-200", color: "text-amber-600" },
-                            { name: "WhatsApp", bg: "bg-white", border: "border-slate-200", color: "text-green-600" },
-                            { name: "Navi UPI", bg: "bg-white", border: "border-slate-200", color: "text-indigo-600" },
-                            { name: "Slice", bg: "bg-white", border: "border-slate-200", color: "text-rose-600" },
-                          ].map((app) => (
-                            <div
-                              key={app.name}
-                              className={`flex flex-col items-center justify-center rounded-xl border ${app.border} ${app.bg} p-2 text-center shadow-xs`}
-                            >
-                              <span className={`text-[11px] font-bold ${app.color}`}>{app.name}</span>
+                  {/* Section 2: Other Payment Methods */}
+                  <div className="space-y-2 pt-1">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Scan & Pay / Cards / Net Banking</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {OTHER_METHODS.map((method) => {
+                        const Icon = method.icon;
+                        const isSelected = selectedMethod === method.id;
+                        return (
+                          <div
+                            key={method.id}
+                            onClick={() => setSelectedMethod(method.id)}
+                            className={`cursor-pointer rounded-xl border p-2.5 transition-all text-center flex sm:flex-col items-center justify-between sm:justify-center gap-2 ${
+                              isSelected
+                                ? "border-purple-600 bg-purple-50/40 shadow-xs ring-1 ring-purple-600"
+                                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
+                            }`}
+                          >
+                            <div className="flex items-center sm:flex-col gap-2">
+                              <div
+                                className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                                  isSelected ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-600"
+                                }`}
+                              >
+                                <Icon className="h-4 w-4" />
+                              </div>
+                              <div className="text-left sm:text-center">
+                                <p className="text-xs font-bold text-navy-900 leading-tight">{method.name}</p>
+                                <p className="text-[10px] text-slate-400 hidden sm:block truncate">{method.badge || "All Indian Banks"}</p>
+                              </div>
                             </div>
-                          ))}
+                            <div
+                              className={`h-3.5 w-3.5 rounded-full border flex items-center justify-center sm:hidden ${
+                                isSelected ? "border-purple-600 bg-purple-600" : "border-slate-300"
+                              }`}
+                            >
+                              {isSelected && <div className="h-1 w-1 rounded-full bg-white" />}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Dynamic Action Area for Selected Method */}
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+                    {/* OPTION 1: GOOGLE PAY */}
+                    {selectedMethod === "gpay" && (
+                      <div className="space-y-3.5 text-center">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <GPayIcon className="h-4 w-4" />
+                            <span className="font-bold text-navy-900">Google Pay Checkout</span>
+                          </div>
+                          <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                            Auto-Sync Active
+                          </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 text-center">
-                          Click below to launch Cashfree Universal UPI Checkout. On mobile, your installed UPI app opens directly.
+
+                        {/* Branded Dynamic QR Display for Google Pay */}
+                        <div className="mx-auto flex w-fit flex-col items-center justify-center rounded-2xl border-2 border-blue-200 bg-white p-3 shadow-md">
+                          {qrLoading ? (
+                            <div className="flex h-40 w-40 items-center justify-center">
+                              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                            </div>
+                          ) : qrTimer === 0 ? (
+                            <div className="flex h-40 w-40 flex-col items-center justify-center gap-2 p-2">
+                              <AlertCircle className="h-8 w-8 text-amber-600" />
+                              <p className="text-xs font-semibold text-slate-600">QR Code Expired</p>
+                              <Button size="sm" onClick={initQrPayment} className="text-xs rounded-lg">
+                                <RefreshCw className="h-3 w-3 mr-1" /> Regenerate
+                              </Button>
+                            </div>
+                          ) : qrString ? (
+                            <img
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrString)}`}
+                              alt="Google Pay Dynamic QR"
+                              className="h-40 w-40 object-contain rounded-lg"
+                            />
+                          ) : (
+                            <div className="flex h-40 w-40 flex-col items-center justify-center gap-2 p-3 text-center">
+                              <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100">
+                                <GPayIcon className="h-10 w-10 mx-auto" />
+                              </div>
+                              <p className="text-xs font-bold text-navy-950">Scan with Google Pay</p>
+                              <p className="text-[10px] text-slate-500 leading-tight">
+                                Or tap button below to open Google Pay app
+                              </p>
+                            </div>
+                          )}
+                          <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            Auto-detecting payment radar active
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-slate-500">
+                          On mobile, clicking below launches Google Pay app directly. On desktop, scan the dynamic QR code above.
                         </p>
+
                         <Button
-                          data-testid="pay-now-btn"
-                          onClick={() => handleUniversalPay("upi_intent")}
+                          data-testid="pay-gpay-btn"
+                          onClick={() => handleUniversalPay("gpay")}
                           disabled={busy}
-                          className="w-full bg-gradient-to-r from-purple-700 to-navy-900 hover:from-purple-800 hover:to-navy-950 text-white rounded-xl py-6 font-bold shadow-md hover:shadow-lg transition-all"
+                          className="w-full bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl py-6 font-bold shadow-lg shadow-blue-500/25 transition-all text-sm sm:text-base flex items-center justify-center gap-2"
                         >
-                          {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : `Pay via UPI (₹${totalNow.totalAmount})`}
+                          {busy ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : (
+                            <>
+                              <div className="h-6 w-6 rounded-full bg-white flex items-center justify-center p-1 shadow-xs">
+                                <GPayIcon className="h-4 w-4" />
+                              </div>
+                              Pay ₹{totalNow.totalAmount} with Google Pay
+                            </>
+                          )}
                         </Button>
                       </div>
                     )}
 
-                    {/* OPTION B: SCAN & PAY UPI QR */}
+                    {/* OPTION 2: PHONEPE */}
+                    {selectedMethod === "phonepe" && (
+                      <div className="space-y-3.5 text-center">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <PhonePeIcon className="h-4 w-4" />
+                            <span className="font-bold text-navy-900">PhonePe Direct Checkout</span>
+                          </div>
+                          <span className="font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">
+                            Auto-Sync Active
+                          </span>
+                        </div>
+
+                        {/* Branded Dynamic QR Display for PhonePe */}
+                        <div className="mx-auto flex w-fit flex-col items-center justify-center rounded-2xl border-2 border-purple-300 bg-white p-3 shadow-md">
+                          {qrLoading ? (
+                            <div className="flex h-40 w-40 items-center justify-center">
+                              <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                            </div>
+                          ) : qrTimer === 0 ? (
+                            <div className="flex h-40 w-40 flex-col items-center justify-center gap-2 p-2">
+                              <AlertCircle className="h-8 w-8 text-amber-600" />
+                              <p className="text-xs font-semibold text-slate-600">QR Code Expired</p>
+                              <Button size="sm" onClick={initQrPayment} className="text-xs rounded-lg">
+                                <RefreshCw className="h-3 w-3 mr-1" /> Regenerate
+                              </Button>
+                            </div>
+                          ) : qrString ? (
+                            <img
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrString)}`}
+                              alt="PhonePe Dynamic QR"
+                              className="h-40 w-40 object-contain rounded-lg"
+                            />
+                          ) : (
+                            <div className="flex h-40 w-40 flex-col items-center justify-center gap-2 p-3 text-center">
+                              <div className="p-3 bg-purple-50 rounded-2xl border border-purple-100">
+                                <PhonePeIcon className="h-10 w-10 mx-auto" />
+                              </div>
+                              <p className="text-xs font-bold text-navy-950">Scan with PhonePe App</p>
+                              <p className="text-[10px] text-slate-500 leading-tight">
+                                Or tap button below to open PhonePe app
+                              </p>
+                            </div>
+                          )}
+                          <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            Auto-detecting payment radar active
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-slate-500">
+                          On mobile, clicking below launches PhonePe application directly. On desktop, scan the dynamic QR code above.
+                        </p>
+
+                        <Button
+                          data-testid="pay-phonepe-btn"
+                          onClick={() => handleUniversalPay("phonepe")}
+                          disabled={busy}
+                          className="w-full bg-[#5f259f] hover:bg-[#4d1d82] text-white rounded-xl py-6 font-bold shadow-lg shadow-purple-600/30 transition-all text-sm sm:text-base flex items-center justify-center gap-2"
+                        >
+                          {busy ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : (
+                            <>
+                              <PhonePeIcon className="h-6 w-6" />
+                              Pay ₹{totalNow.totalAmount} with PhonePe
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* OPTION 3: PAYTM */}
+                    {selectedMethod === "paytm" && (
+                      <div className="space-y-3.5 text-center">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <PaytmIcon className="h-4 w-auto" />
+                            <span className="font-bold text-navy-900">Paytm Instant Checkout</span>
+                          </div>
+                          <span className="font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
+                            Auto-Sync Active
+                          </span>
+                        </div>
+
+                        <div className="mx-auto flex w-fit flex-col items-center justify-center rounded-2xl border-2 border-sky-200 bg-white p-3 shadow-md">
+                          {qrLoading ? (
+                            <div className="flex h-40 w-40 items-center justify-center">
+                              <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
+                            </div>
+                          ) : qrTimer === 0 ? (
+                            <div className="flex h-40 w-40 flex-col items-center justify-center gap-2 p-2">
+                              <AlertCircle className="h-8 w-8 text-amber-600" />
+                              <p className="text-xs font-semibold text-slate-600">QR Code Expired</p>
+                              <Button size="sm" onClick={initQrPayment} className="text-xs rounded-lg">
+                                <RefreshCw className="h-3 w-3 mr-1" /> Regenerate
+                              </Button>
+                            </div>
+                          ) : qrString ? (
+                            <img
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrString)}`}
+                              alt="Paytm Dynamic QR"
+                              className="h-40 w-40 object-contain rounded-lg"
+                            />
+                          ) : (
+                            <div className="flex h-40 w-40 flex-col items-center justify-center gap-2 p-3 text-center">
+                              <div className="p-3 bg-sky-50 rounded-2xl border border-sky-100">
+                                <PaytmIcon className="h-8 w-auto mx-auto" />
+                              </div>
+                              <p className="text-xs font-bold text-navy-950">Scan with Paytm App</p>
+                              <p className="text-[10px] text-slate-500 leading-tight">
+                                Or tap button below to open Paytm app directly
+                              </p>
+                            </div>
+                          )}
+                          <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            Auto-detecting payment radar active
+                          </div>
+                        </div>
+
+                        <Button
+                          data-testid="pay-paytm-btn"
+                          onClick={() => handleUniversalPay("paytm")}
+                          disabled={busy}
+                          className="w-full bg-[#002e6e] hover:bg-[#001f4d] text-white rounded-xl py-6 font-bold shadow-lg shadow-sky-900/25 transition-all text-sm sm:text-base flex items-center justify-center gap-2"
+                        >
+                          {busy ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : (
+                            <>
+                              <PaytmIcon className="h-5 w-auto" />
+                              Pay ₹{totalNow.totalAmount} with Paytm
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* OPTION 4: SCAN & PAY UPI QR */}
                     {selectedMethod === "upi_qr" && (
                       <div className="space-y-3.5 text-center">
                         <div className="flex items-center justify-between text-xs">
@@ -1001,7 +1367,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
                       </div>
                     )}
 
-                    {/* OPTION C: CREDIT / DEBIT CARDS */}
+                    {/* OPTION 5: CREDIT / DEBIT CARDS */}
                     {selectedMethod === "card" && (
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1031,7 +1397,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
                       </div>
                     )}
 
-                    {/* OPTION D: NET BANKING */}
+                    {/* OPTION 6: NET BANKING */}
                     {selectedMethod === "netbanking" && (
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">

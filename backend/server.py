@@ -1029,6 +1029,47 @@ async def generate_upi_qr(payload: dict, user: Optional[dict] = Depends(get_curr
     }
 
 
+@api.post("/payment/upi-intent")
+@app.post("/payment/upi-intent")
+@app.post("/api/payment/upi-intent")
+async def generate_upi_intent(payload: dict, user: Optional[dict] = Depends(get_current_customer_optional)):
+    order_id = payload.get("orderId")
+    provider = payload.get("provider", "gpay")
+    q = {"orderId": order_id}
+    if user:
+        q["userId"] = user["id"]
+    order = await db.orders.find_one(q)
+    if not order:
+        order = await db.orders.find_one({"orderId": order_id})
+    if not order:
+        raise HTTPException(404, "Order not found")
+
+    session_id = order.get("paymentSessionId")
+    if not session_id or session_id.startswith("session_mock_"):
+        cf_order = cashfree_client.create_order(
+            order_id=order["orderId"],
+            amount=float(order["totalAmount"]),
+            customer_id=user["id"] if user else order.get("userId", "guest"),
+            customer_name=order.get("customerName") or "SimpleDSC Customer",
+            customer_email=order.get("email"),
+            customer_phone=order.get("mobile"),
+        )
+        session_id = cf_order.get("payment_session_id")
+        await db.orders.update_one({"id": order["id"]}, {"$set": {"paymentSessionId": session_id}})
+
+    res = cashfree_client.create_upi_intent(session_id, order["orderId"], upi_provider=provider)
+    return {
+        "ok": True,
+        "orderId": order["orderId"],
+        "paymentSessionId": session_id,
+        "amount": order["totalAmount"],
+        "settlementBank": "Punjab National Bank",
+        "company": "TSMTX SOLUTIONS PRIVATE LIMITED",
+        "provider": provider,
+        **res
+    }
+
+
 @api.post("/payment/verify")
 @api.post("/orders/verify-payment")
 async def verify_payment(payload: VerifyPaymentReq, user: dict = Depends(get_current_customer)):
