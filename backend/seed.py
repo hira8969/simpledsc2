@@ -123,18 +123,23 @@ FAQS = [
 
 
 async def seed_all():
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@simpldsc.in")
+    admin_pw = os.environ.get("ADMIN_PASSWORD", "Simpl@DSC#Admin2026Kx7q")
+    owner_email = os.environ.get("OWNER_EMAIL", "imamitk17@gmail.com")
+    owner_pw = os.environ.get("OWNER_PASSWORD", "Owner@SimplDSC2026Zt4m")
+
     # Admins
-    if not await db.admin_users.find_one({"email": os.environ["ADMIN_EMAIL"]}):
+    if admin_email and not await db.admin_users.find_one({"email": admin_email}):
         await db.admin_users.insert_one({
-            "id": new_id(), "email": os.environ["ADMIN_EMAIL"],
-            "passwordHash": hash_password(os.environ["ADMIN_PASSWORD"]),
+            "id": new_id(), "email": admin_email,
+            "passwordHash": hash_password(admin_pw),
             "name": "SimplDSC Admin", "role": "super_admin", "active": True,
             "createdAt": now_iso(),
         })
-    if not await db.admin_users.find_one({"email": os.environ["OWNER_EMAIL"]}):
+    if owner_email and not await db.admin_users.find_one({"email": owner_email}):
         await db.admin_users.insert_one({
-            "id": new_id(), "email": os.environ["OWNER_EMAIL"],
-            "passwordHash": hash_password(os.environ["OWNER_PASSWORD"]),
+            "id": new_id(), "email": owner_email,
+            "passwordHash": hash_password(owner_pw),
             "name": "Owner", "role": "super_admin", "active": True,
             "createdAt": now_iso(),
         })

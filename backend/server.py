@@ -1512,20 +1512,29 @@ async def _scheduler():
 
 @app.on_event("startup")
 async def on_startup():
-    await seed_module.seed_all()
+    try:
+        await seed_module.seed_all()
+    except Exception as e:
+        logger.warning(f"Seed startup warning: {e}")
     # indexes
-    await db.users.create_index("mobile", unique=True)
-    await db.orders.create_index("orderId", unique=True)
-    await db.orders.create_index("userId")
-    await db.orders.create_index("invoiceNo", unique=True, sparse=True)
-    await db.invoices.create_index("invoiceNo", unique=True)
-    await db.invoices.create_index("orderId")
-    await db.payments.create_index("orderId")
-    await db.documents.create_index("orderId")
-    await db.dscs.create_index("userId")
-    await db.product_images.create_index("id", unique=True)
-    await db.used_widget_tokens.create_index("token", unique=True, sparse=True)
-    asyncio.create_task(_scheduler())
+    try:
+        await db.users.create_index("mobile", unique=True)
+        await db.orders.create_index("orderId", unique=True)
+        await db.orders.create_index("userId")
+        await db.orders.create_index("invoiceNo", unique=True, sparse=True)
+        await db.invoices.create_index("invoiceNo", unique=True)
+        await db.invoices.create_index("orderId")
+        await db.payments.create_index("orderId")
+        await db.documents.create_index("orderId")
+        await db.dscs.create_index("userId")
+        await db.product_images.create_index("id", unique=True)
+        await db.used_widget_tokens.create_index("token", unique=True, sparse=True)
+    except Exception as e:
+        logger.warning(f"Index creation warning: {e}")
+    try:
+        asyncio.create_task(_scheduler())
+    except Exception as e:
+        logger.warning(f"Scheduler startup warning: {e}")
     _, _, cf_mode = cashfree_client.get_credentials()
     logger.info("SimplDSC started. Cashfree mode=%s (live=%s), MSG91 configured=%s", cf_mode, cashfree_client.is_live(), msg91_client.is_configured())
 
