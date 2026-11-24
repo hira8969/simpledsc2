@@ -1080,18 +1080,12 @@ async def verify_payment(payload: VerifyPaymentReq, user: dict = Depends(get_cur
     if order.get("paymentStatus") == "Payment Successful":
         return {"ok": True, "invoiceNo": order.get("invoiceNo"), "alreadyPaid": True}
 
-    # Support direct confirmation / bypass mode without live payment gate (as requested: "bina payment ke hi purchase kara do")
-    is_mock = (
-        (payload.razorpaySignature and payload.razorpaySignature.startswith("mock_sig_"))
-        or (payload.razorpayPaymentId and payload.razorpayPaymentId.startswith("pay_mock_"))
-        or (payload.cashfreePaymentId and payload.cashfreePaymentId.startswith("mock_"))
-        or not cashfree_client.is_live()
-    )
-
-    if is_mock:
-        payment_id = payload.cashfreePaymentId or payload.razorpayPaymentId or f"pay_mock_{new_id()[:10]}"
-        res = await _execute_payment_success(order, payment_id=payment_id, payment_method="direct_confirmation")
-        return res
+    if not cashfree_client.is_live():
+        logger.warning(f"Payment verification failed: Cashfree API credentials not configured for order {target_order_id}")
+        raise HTTPException(
+            400,
+            "Cashfree Payment Gateway is not configured. Please set CASHFREE_APP_ID and CASHFREE_SECRET_KEY in production to deduct real payments."
+        )
 
     if cashfree_client.is_live():
         cf_order = cashfree_client.get_order(target_order_id)

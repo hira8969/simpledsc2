@@ -423,28 +423,20 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     }
   };
 
-  // Safe payment verification that handles both legacy Render backend and updated Cashfree backend
+  // Payment verification that strictly checks real payment status
   const verifyOrderPayment = async (orderId, fallbackOrd) => {
     try {
       setBusy(true);
-      const mockPayId = "cf_pay_" + Math.random().toString(36).slice(2, 10);
 
-      // Attempt 1: Call live POST /orders/verify-payment with universal signature
+      // Attempt 1: Direct order detail check to confirm live Cashfree webhook status
       try {
-        const res1 = await api.post("/orders/verify-payment", {
-          orderId,
-          cashfreeOrderId: orderId,
-          cashfreePaymentId: mockPayId,
-          razorpayOrderId: orderId,
-          razorpayPaymentId: "pay_mock_" + mockPayId,
-          razorpaySignature: "mock_sig_" + mockPayId,
-        });
-        if (res1.data?.ok) {
-          await finishPayment(fallbackOrd, res1.data.invoiceNo);
+        const res = await api.get(`/customer/orders/${orderId}`);
+        if (res.data?.order?.paymentStatus === "Payment Successful") {
+          await finishPayment(res.data.order, res.data.order?.invoiceNo);
           return true;
         }
-      } catch (err1) {
-        console.warn("Verify attempt 1:", err1.response?.status);
+      } catch (err) {
+        console.warn("Verify check 1 notice:", err.response?.status);
       }
 
       // Attempt 2: Call GET /payment/verify/${orderId}
@@ -459,32 +451,18 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
           return false;
         }
       } catch (err2) {
-        console.warn("Verify attempt 2:", err2.response?.status);
+        console.warn("Verify check 2 notice:", err2.response?.status);
       }
 
-      // Attempt 3: Direct order detail check to confirm status
-      try {
-        const res3 = await api.get(`/customer/orders/${orderId}`);
-        if (res3.data?.order?.paymentStatus === "Payment Successful") {
-          await finishPayment(res3.data.order, res3.data.order?.invoiceNo);
-          return true;
-        }
-      } catch (err3) {
-        console.warn("Verify attempt 3:", err3.response?.status);
-      }
-
-      // Graceful completion: prevent user blocking
-      await finishPayment(fallbackOrd);
-      return true;
+      // If gateway has not confirmed payment yet, keep in pending state rather than fake auto-complete
+      setPaymentState("pending");
+      toast.info("Awaiting payment approval from bank / UPI application...");
+      return false;
     } catch (e) {
       console.error("[Verify Payment Error]:", e);
-      const detail = e.response?.data?.detail;
-      if (detail && detail !== "Not Found") {
-        toast.error(detail);
-      } else {
-        await finishPayment(fallbackOrd);
-      }
-      return true;
+      setPaymentState("failed");
+      setPaymentErrorReason("Payment could not be verified by the bank. Please retry.");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -632,7 +610,16 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       }
     }
 
-    // 2. Fallback / sandbox verification
+    // 2. Prevent fake success if gateway credentials are missing
+    if (isMock || !session_id) {
+      toast.error("Real payment gateway is awaiting Cashfree Production credentials. Please configure CASHFREE_APP_ID and CASHFREE_SECRET_KEY.");
+      setPaymentState("failed");
+      setPaymentErrorReason("Cashfree live credentials are not set in the server environment. Once your Live API Keys are configured, real payments will be deducted directly from client bank accounts.");
+      setBusy(false);
+      return;
+    }
+
+    // 3. Verify actual gateway payment status
     await verifyOrderPayment(ord.orderId, ord);
   };
 
