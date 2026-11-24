@@ -20,6 +20,7 @@ except ImportError:
 logger = logging.getLogger("simpldsc.cashfree")
 
 CASHFREE_API_VERSION = "2023-08-01"
+CF_ENV = os.environ.get("CASHFREE_ENV", "PRODUCTION").strip().upper()
 
 
 def get_credentials():

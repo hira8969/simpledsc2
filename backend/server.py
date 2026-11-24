@@ -1526,7 +1526,8 @@ async def on_startup():
     await db.product_images.create_index("id", unique=True)
     await db.used_widget_tokens.create_index("token", unique=True, sparse=True)
     asyncio.create_task(_scheduler())
-    logger.info("SimplDSC started. Cashfree mode=%s (live=%s), MSG91 configured=%s", cashfree_client.CF_ENV, cashfree_client.is_live(), msg91_client.is_configured())
+    _, _, cf_mode = cashfree_client.get_credentials()
+    logger.info("SimplDSC started. Cashfree mode=%s (live=%s), MSG91 configured=%s", cf_mode, cashfree_client.is_live(), msg91_client.is_configured())
 
 @app.on_event("shutdown")
 async def on_shutdown():

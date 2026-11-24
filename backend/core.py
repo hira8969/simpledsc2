@@ -12,7 +12,8 @@ from pymongo import ReturnDocument
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-mongo_url = os.environ.get('MONGODB_URI') or os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+DEFAULT_MONGO_URI = "mongodb+srv://hk2493200_db_user:Nkd4Yk9RJ5XFmZjh@cluster0.asxnmmo.mongodb.net/?appName=Cluster0"
+mongo_url = os.environ.get('MONGODB_URI') or os.environ.get('MONGO_URL') or DEFAULT_MONGO_URI
 try:
     client = AsyncIOMotorClient(mongo_url, tlsCAFile=certifi.where())
 except Exception:

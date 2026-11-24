@@ -8,7 +8,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from core import db, clean, new_id, now_iso, gen_simpldsc_id
 
-JWT_SECRET = os.environ["JWT_SECRET"]
+JWT_SECRET = os.environ.get("JWT_SECRET", "simpldsc_super_secret_change_in_prod_2f9a7c1e8b4d6a3f")
 JWT_ALGO = "HS256"
 
 bearer = HTTPBearer(auto_error=False)
