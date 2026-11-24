@@ -570,12 +570,12 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
     const cfData = activeOrderData?.cashfree || {
       paymentSessionId: ord.paymentSessionId,
       mock: ord.paymentSessionId?.startsWith("session_mock_"),
-      environment: "SANDBOX",
+      environment: process.env.REACT_APP_CASHFREE_ENV || "PRODUCTION",
     };
 
     const session_id = cfData.paymentSessionId || ord.paymentSessionId;
     const isMock = cfData.mock || !session_id || session_id.startsWith("session_mock_");
-    const cfMode = (cfData.environment || "SANDBOX").toLowerCase();
+    const cfMode = (cfData.environment || process.env.REACT_APP_CASHFREE_ENV || "PRODUCTION").toLowerCase();
 
     // 1. If Cashfree session is available, open official Cashfree Web Checkout SDK
     if (!isMock && session_id) {
