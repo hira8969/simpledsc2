@@ -5,7 +5,7 @@ const getBackendUrl = () => {
   if (envUrl && !envUrl.includes("emergentagent.com")) {
     return envUrl.replace(/\/$/, "");
   }
-  return "https://simpledsc2.onrender.com";
+  return "https://simpledsc-3.onrender.com";
 };
 
 const BACKEND_URL = getBackendUrl();
