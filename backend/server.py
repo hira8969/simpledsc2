@@ -859,7 +859,8 @@ async def create_order(payload: CreateOrderReq, request: Request, user: Optional
     # Initialize Cashfree payment order (official v2023-08-01)
     # Cashfree requires valid public HTTPS webhook URL. Never use localhost or 0.0.0.0.
     notify_url = os.environ.get("BACKEND_PUBLIC_URL", "https://simpledsc-3.onrender.com").rstrip("/") + "/api/payment/webhook"
-    return_url = f"https://www.simpldsc.com/dashboard?order_id={order_id}"
+    frontend_url = os.environ.get("FRONTEND_PUBLIC_URL", "https://www.simpldsc.com").rstrip("/")
+    return_url = f"{frontend_url}/client?order_id={order_id}"
     cust_phone = user.get("mobile") or payload.applicant.get("mobile") or payload.shipping.get("mobile")
     cust_name = user.get("name") or payload.applicant.get("name") or payload.shipping.get("name") or "SimpleDSC Customer"
     cust_email = user.get("email") or payload.applicant.get("email") or payload.shipping.get("email") or "customer@simpldsc.com"

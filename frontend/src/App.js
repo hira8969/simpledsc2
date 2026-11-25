@@ -25,6 +25,11 @@ import Legal from "@/pages/Legal";
 import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/NotFound";
 import AdminLogin from "@/pages/admin/AdminLogin";
+
+function RedirectPreserveQuery({ to }) {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search || ""}`} replace />;
+}
 import AdminLayout from "@/pages/admin/AdminLayout";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminOrders from "@/pages/admin/AdminOrders";
@@ -151,8 +156,8 @@ export default function App() {
                 />
 
                 {/* Backwards Compatibility for Old Dashboard URLs */}
-                <Route path="/dashboard" element={<Navigate to="/client" replace />} />
-                <Route path="/dashboard/*" element={<Navigate to="/client" replace />} />
+                <Route path="/dashboard" element={<RedirectPreserveQuery to="/client" />} />
+                <Route path="/dashboard/*" element={<RedirectPreserveQuery to="/client" />} />
 
                 {/* 404 Catch-All */}
                 <Route path="*" element={<NotFound />} />

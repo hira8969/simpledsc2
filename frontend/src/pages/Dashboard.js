@@ -109,6 +109,34 @@ export default function Dashboard() {
     if (user) load();
   }, [user, loading, load, nav]);
 
+  // Verify Cashfree redirect return_url (?order_id=...)
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams(loc.search);
+    const returnOrderId = params.get("order_id");
+    if (!returnOrderId) return;
+
+    (async () => {
+      try {
+        const res = await api.get(`/payment/verify/${encodeURIComponent(returnOrderId)}`);
+        if (res.data?.ok) {
+          toast.success("Payment verified! Your order is confirmed.");
+          setTab("orders");
+          await load();
+        } else if (res.data?.status === "PENDING") {
+          toast.info("Payment is pending confirmation from your bank / UPI app.");
+          setTab("orders");
+        } else {
+          toast.error(res.data?.message || "Payment was not completed.");
+        }
+      } catch (e) {
+        console.warn("[Return URL verify notice]:", e?.response?.data || e.message);
+      } finally {
+        nav(loc.pathname, { replace: true });
+      }
+    })();
+  }, [user, loc.search, loc.pathname, load, nav]);
+
   if (!user) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading…</div>;
 
   const unread = notifs.filter((n) => !n.read).length;

@@ -293,6 +293,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   const [paymentErrorReason, setPaymentErrorReason] = useState("");
   const [copiedOrderId, setCopiedOrderId] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [cashfreeModalOpen, setCashfreeModalOpen] = useState(false);
 
   const pollingRef = useRef(null);
 
@@ -587,7 +588,11 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
           redirectTarget: "_modal",
         };
 
+        // Temporarily unmount Radix Dialog portal so body pointer-events & focus trap do not block Cashfree modal clicks
+        setCashfreeModalOpen(true);
+
         cashfree.checkout(checkoutOptions).then(async (result) => {
+          setCashfreeModalOpen(false);
           if (result.error) {
             console.warn("[Cashfree Checkout Error]:", result.error);
             setPaymentState("failed");
@@ -601,11 +606,13 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
           // Modal closed or completed
           await verifyOrderPayment(ord.orderId, ord);
         }).catch(async (err) => {
+          setCashfreeModalOpen(false);
           console.error("[Cashfree Checkout Exception]:", err);
           await verifyOrderPayment(ord.orderId, ord);
         });
         return;
       } catch (sdkErr) {
+        setCashfreeModalOpen(false);
         console.warn("[Cashfree SDK Init Warning]:", sdkErr);
       }
     }
@@ -718,6 +725,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
 
   const close = () => {
     stopQrPolling();
+    setCashfreeModalOpen(false);
     onOpenChange(false);
     setTimeout(() => {
       setStep(0);
@@ -729,6 +737,7 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
       setBusy(false);
       setSelectedMethod("gpay");
       setPaymentState("idle");
+      setCashfreeModalOpen(false);
     }, 200);
   };
 
@@ -737,9 +746,9 @@ export function PurchaseModal({ open, onOpenChange, product, onComplete }) {
   return (
     <>
       <Dialog
-        open={open}
+        open={open && !cashfreeModalOpen}
         onOpenChange={(o) => {
-          if (!o) {
+          if (!o && !cashfreeModalOpen) {
             if (step === 3) onComplete && onComplete();
             close();
           }
